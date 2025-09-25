@@ -76,6 +76,13 @@
         Explore by Category
       </h3>
       <div class="flex flex-wrap justify-center gap-4 mb-16">
+        <button 
+          id="show-all-btn"
+          class="category-btn active px-6 py-3 rounded-full border-2 border-yellow-400 text-yellow-400 transition-all duration-300 hover:scale-105"
+          data-category-id=""
+        >
+          Show All
+        </button>
         <% @categories.each do |category| %>
           <button 
             class="category-btn px-6 py-3 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105"
@@ -147,14 +154,17 @@
       document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const categoryId = e.target.dataset.categoryId;
-          const categoryColor = e.target.dataset.categoryColor;
           
           // Update active button
-          document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('border-yellow-400', 'text-yellow-400'));
-          e.target.classList.add('border-yellow-400', 'text-yellow-400');
+          document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('border-yellow-400', 'text-yellow-400', 'active');
+            b.classList.add('border-gray-600', 'text-gray-300');
+          });
+          e.target.classList.remove('border-gray-600', 'text-gray-300');
+          e.target.classList.add('border-yellow-400', 'text-yellow-400', 'active');
           
-          // Reset and load category playlists
-          this.currentCategory = categoryId;
+          // Reset and load playlists
+          this.currentCategory = categoryId || null;
           this.currentOffset = 0;
           this.hasMore = true;
           this.container.innerHTML = '';
