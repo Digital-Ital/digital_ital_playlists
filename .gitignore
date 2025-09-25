@@ -1,0 +1,68 @@
+# See https://git-scm.com/docs/gitignore for more about ignoring files.
+
+# Bundler
+/.bundle
+/vendor/bundle
+
+# Logs and temp files
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# PID
+/tmp/pids/*
+!/tmp/pids/
+
+# Byebug / Pry history
+.byebug_history
+.pry_history
+
+# Sockets
+/tmp/sockets/*
+!/tmp/sockets/
+
+# Storage (Active Storage)
+/storage/*
+!/storage/.keep
+
+# Node
+/node_modules/
+/yarn-error.log
+
+# Coverage
+/coverage/
+
+# Credentials and master key
+/config/master.key
+/config/credentials.yml.enc
+
+# dotenv
+.env
+.env.*
+
+# OSX / Linux
+.DS_Store
+*.swp
+
+# Ruby / Bundler
+/.bundle
+/vendor/cache
+
+# Assets
+/public/assets
+/public/packs
+/public/packs-test
+/node_modules
+
+# RubyMine / VSCode
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Rails autoload cache
+/.zeitwerk-cache
+
+# Kamal deploy artifacts
+/.kamal/.builds/
+/.kamal/.metadata
