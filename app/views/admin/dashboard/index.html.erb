@@ -1,0 +1,17 @@
+<div class="container mx-auto px-6 py-10">
+  <h1 class="text-3xl font-semibold text-gray-200 mb-6">Admin Dashboard</h1>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-6 bg-gray-900 rounded-xl">Categories: <%= @categories_count %></div>
+    <div class="p-6 bg-gray-900 rounded-xl">Playlists: <%= @playlists_count %></div>
+    <div class="p-6 bg-gray-900 rounded-xl">Uncategorized: <%= @uncategorized_count %></div>
+  </div>
+  <div class="mt-8 space-x-4">
+    <%= link_to 'Manage Categories', admin_categories_path, class: 'underline text-yellow-400' %>
+    <%= link_to 'Manage Playlists', admin_playlists_path, class: 'underline text-yellow-400' %>
+  </div>
+</div>
+
+<div class="container mx-auto px-6 py-10">
+  <h1 class="text-3xl font-semibold text-gray-200 mb-6">Admin Dashboard</h1>
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="p-6 bg-gray-900 rounded-xl">Categories: <

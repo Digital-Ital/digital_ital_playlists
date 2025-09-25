@@ -1,0 +1,102 @@
+<div class="container mx-auto px-6 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold text-gray-200">Playlists</h1>
+    <div class="space-x-2">
+      <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
+    </div>
+  </div>
+
+  <div class="bg-gray-900 rounded-xl p-4 mb-8">
+    <h2 class="text-xl text-gray-200 mb-4">Import from Spotify URL</h2>
+    <form id="spotify-import-form" class="flex gap-2" onsubmit="return importSpotify(event)">
+      <input id="spotify_url" name="spotify_url" class="flex-1 p-2 bg-gray-800 text-white rounded" placeholder="https://open.spotify.com/playlist/..." required />
+      <button class="px-4 py-2 bg-green-500 text-black rounded-lg">Import</button>
+    </form>
+    <div id="spotify-import-result" class="mt-4 text-gray-300"></div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div>
+      <h2 class="text-xl text-gray-200 mb-2">All Playlists</h2>
+      <table class="min-w-full text-gray-300">
+        <thead>
+          <tr>
+            <th class="text-left p-2">Title</th>
+            <th class="text-left p-2">Category</th>
+            <th class="text-left p-2">Tracks</th>
+            <th class="text-left p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @playlists.each do |playlist| %>
+            <tr class="border-t border-gray-800">
+              <td class="p-2"><%= playlist.title %></td>
+              <td class="p-2"><%= playlist.category&.name || 'Uncategorized' %></td>
+              <td class="p-2"><%= playlist.track_count %></td>
+              <td class="p-2 space-x-2">
+                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'underline' %>
+                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'underline text-red-400' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div>
+      <h2 class="text-xl text-gray-200 mb-2">Uncategorized</h2>
+      <table class="min-w-full text-gray-300">
+        <thead>
+          <tr>
+            <th class="text-left p-2">Title</th>
+            <th class="text-left p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @uncategorized.each do |playlist| %>
+            <tr class="border-t border-gray-800">
+              <td class="p-2"><%= playlist.title %></td>
+              <td class="p-2 space-x-2">
+                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'underline' %>
+                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'underline text-red-400' %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function importSpotify(event) {
+    event.preventDefault();
+    const input = document.getElementById('spotify_url');
+    const result = document.getElementById('spotify-import-result');
+    result.textContent = 'Importing...';
+    try {
+      const response = await fetch('<%= import_spotify_admin_playlists_path %>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({ spotify_url: input.value })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        result.innerHTML = `
+          <div class="p-4 bg-gray-800 rounded">
+            <div class="text-yellow-400 mb-2">Imported!</div>
+            <div><strong>Title:</strong> ${data.title}</div>
+            ${data.thumbnail_url ? `<img src="${data.thumbnail_url}" class="mt-2 w-48 rounded" />` : ''}
+          </div>
+        `;
+      } else {
+        result.textContent = data.error || 'Failed to import.';
+      }
+    } catch (e) {
+      result.textContent = 'Error importing.';
+    }
+    return false;
+  }
+</script>
+
+

@@ -1,0 +1,36 @@
+<div class="container mx-auto px-6 py-10">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold text-gray-200">Categories</h1>
+    <%= link_to 'New Category', new_admin_category_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
+  </div>
+
+  <div class="bg-gray-900 rounded-xl p-4">
+    <table class="min-w-full text-gray-300">
+      <thead>
+        <tr>
+          <th class="text-left p-2">Name</th>
+          <th class="text-left p-2">Slug</th>
+          <th class="text-left p-2">Color</th>
+          <th class="text-left p-2">Position</th>
+          <th class="text-left p-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @categories.each do |category| %>
+          <tr class="border-t border-gray-800">
+            <td class="p-2"><%= category.name %></td>
+            <td class="p-2"><%= category.slug %></td>
+            <td class="p-2"><span class="inline-block w-4 h-4 rounded" style="background: <%= category.color %>"></span> <%= category.color %></td>
+            <td class="p-2"><%= category.position %></td>
+            <td class="p-2 space-x-2">
+              <%= link_to 'Edit', edit_admin_category_path(category), class: 'underline' %>
+              <%= link_to 'Delete', admin_category_path(category), data: { turbo_method: :delete, turbo_confirm: 'Delete this category?' }, class: 'underline text-red-400' %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+

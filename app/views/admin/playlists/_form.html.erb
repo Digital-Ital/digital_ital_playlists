@@ -1,0 +1,47 @@
+<%= form_with model: [:admin, @playlist], class: "space-y-4" do |f| %>
+  <div>
+    <%= f.label :title, class: 'block text-gray-300 mb-1' %>
+    <%= f.text_field :title, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+  </div>
+  <div>
+    <%= f.label :description, class: 'block text-gray-300 mb-1' %>
+    <%= f.text_area :description, rows: 4, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+  </div>
+  <div>
+    <%= f.label :cover_image_url, class: 'block text-gray-300 mb-1' %>
+    <%= f.text_field :cover_image_url, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+  </div>
+  <div>
+    <%= f.label :spotify_url, class: 'block text-gray-300 mb-1' %>
+    <%= f.text_field :spotify_url, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+  </div>
+  <div class="grid grid-cols-2 gap-4">
+    <div>
+      <%= f.label :track_count, class: 'block text-gray-300 mb-1' %>
+      <%= f.number_field :track_count, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    </div>
+    <div>
+      <%= f.label :duration, class: 'block text-gray-300 mb-1' %>
+      <%= f.text_field :duration, placeholder: 'e.g., 1h 45m', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    </div>
+  </div>
+  <div class="grid grid-cols-2 gap-4 items-center">
+    <div>
+      <%= f.label :category_id, 'Category', class: 'block text-gray-300 mb-1' %>
+      <%= f.collection_select :category_id, Category.ordered, :id, :name, include_blank: 'Uncategorized', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    </div>
+    <div class="flex items-center gap-2 mt-6">
+      <%= f.check_box :featured %>
+      <%= f.label :featured, 'Featured', class: 'text-gray-300' %>
+    </div>
+  </div>
+  <div>
+    <%= f.label :position, class: 'block text-gray-300 mb-1' %>
+    <%= f.number_field :position, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+  </div>
+  <div>
+    <%= f.submit class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
+  </div>
+<% end %>
+
+
