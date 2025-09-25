@@ -75,9 +75,9 @@
       <h3 class="text-3xl font-semibold text-center mb-12 text-gray-200">
         Explore by Category
       </h3>
-      <div id="category-tree" class="space-y-8 mb-16">
+      <div id="category-tree" class="mb-16">
         <!-- Show All Button (hidden when already showing all) -->
-        <div id="show-all-container" class="text-center">
+        <div id="show-all-container" class="text-center mb-12">
           <button 
             id="show-all-btn"
             class="category-btn active px-8 py-4 rounded-full border-2 border-yellow-400 text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-semibold"
@@ -87,55 +87,128 @@
           </button>
         </div>
         
-        <!-- Main Categories Tree -->
-        <% @categories.each do |parent_category| %>
-          <div class="category-group relative">
-            <!-- Parent Category -->
-            <div class="text-center mb-6 relative">
-              <button 
-                class="category-btn parent-category px-8 py-4 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-xl font-bold relative z-10"
-                data-category-id="<%= parent_category.id %>"
-                data-category-color="<%= parent_category.color %>"
-                style="border-color: <%= parent_category.color %>; color: <%= parent_category.color %>"
-              >
-                <%= parent_category.name %>
-              </button>
-              
-              <!-- Vertical line from parent -->
-              <% if parent_category.children.any? %>
-                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-b from-<%= parent_category.color.gsub('#', '') %> to-gray-600 opacity-60" style="background: linear-gradient(to bottom, <%= parent_category.color %>, #4B5563);"></div>
-              <% end %>
-            </div>
-            
-            <!-- Children Categories with branches -->
-            <% if parent_category.children.any? %>
-              <div class="relative">
-                <!-- Horizontal branch line -->
-                <div class="absolute left-1/2 top-0 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-r from-gray-600 to-transparent opacity-40"></div>
+        <!-- Family Tree Layout -->
+        <div class="relative max-w-6xl mx-auto">
+          
+          <!-- Reggae Family -->
+          <div class="family-group reggae-family mb-16">
+            <div class="text-center mb-8">
+              <h4 class="text-2xl font-bold text-gray-300 mb-4">Reggae Family</h4>
+              <div class="flex flex-wrap justify-center gap-6">
+                <!-- Main Reggae -->
+                <button 
+                  class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
+                  data-category-id="<%= @categories.find { |c| c.name == 'Reggae' }&.id %>"
+                  data-category-color="<%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
+                  style="border-color: <%= @categories.find { |c| c.name == 'Reggae' }&.color %>; color: <%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
+                >
+                  Reggae
+                </button>
                 
-                <!-- Children in a tree-like layout -->
-                <div class="flex flex-wrap justify-center gap-4 relative">
-                  <% parent_category.children.each_with_index do |child_category, index| %>
-                    <div class="relative flex flex-col items-center">
-                      <!-- Vertical branch to child -->
-                      <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-b from-gray-600 to-<%= child_category.color.gsub('#', '') %> opacity-60" style="background: linear-gradient(to bottom, #4B5563, <%= child_category.color %>);"></div>
-                      
-                      <!-- Child button -->
-                      <button 
-                        class="category-btn child-category px-4 py-2 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm relative z-10"
-                        data-category-id="<%= child_category.id %>"
-                        data-category-color="<%= child_category.color %>"
-                        style="border-color: <%= child_category.color %>; color: <%= child_category.color %>"
-                      >
-                        <%= child_category.name %>
-                      </button>
-                    </div>
+                <!-- Reggae Children -->
+                <% @categories.find { |c| c.name == 'Reggae' }&.children&.each do |child| %>
+                  <button 
+                    class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
+                    data-category-id="<%= child.id %>"
+                    data-category-color="<%= child.color %>"
+                    style="border-color: <%= child.color %>; color: <%= child.color %>"
+                  >
+                    <%= child.name %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Hip-Hop Family -->
+          <div class="family-group hiphop-family mb-16">
+            <div class="text-center mb-8">
+              <h4 class="text-2xl font-bold text-gray-300 mb-4">Hip-Hop Family</h4>
+              <div class="flex flex-wrap justify-center gap-6">
+                <!-- Main Hip-Hop -->
+                <button 
+                  class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
+                  data-category-id="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>"
+                  data-category-color="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
+                  style="border-color: <%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>; color: <%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
+                >
+                  Hip-Hop
+                </button>
+                
+                <!-- Hip-Hop Children -->
+                <% @categories.find { |c| c.name == 'Hip-Hop' }&.children&.each do |child| %>
+                  <button 
+                    class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
+                    data-category-id="<%= child.id %>"
+                    data-category-color="<%= child.color %>"
+                    style="border-color: <%= child.color %>; color: <%= child.color %>"
+                  >
+                    <%= child.name %>
+                  </button>
+                <% end %>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Cross-Family Connections -->
+          <div class="cross-connections mb-16">
+            <div class="text-center mb-8">
+              <h4 class="text-2xl font-bold text-gray-300 mb-6">Cross-Family Connections</h4>
+              
+              <!-- Political Family (Reggae + Rap + Other) -->
+              <div class="mb-8">
+                <h5 class="text-lg font-semibold text-gray-400 mb-4">Political Songs</h5>
+                <div class="flex flex-wrap justify-center gap-4">
+                  <button 
+                    class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
+                    data-category-id="<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>"
+                    data-category-color="<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
+                    style="border-color: <%= @categories.find { |c| c.name == 'Political Songs' }&.color %>; color: <%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
+                  >
+                    Political Songs
+                  </button>
+                  
+                  <% @categories.find { |c| c.name == 'Political Songs' }&.children&.each do |child| %>
+                    <button 
+                      class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
+                      data-category-id="<%= child.id %>"
+                      data-category-color="<%= child.color %>"
+                      style="border-color: <%= child.color %>; color: <%= child.color %>"
+                    >
+                      <%= child.name %>
+                    </button>
                   <% end %>
                 </div>
               </div>
-            <% end %>
+              
+              <!-- Cannabis Family (Reggae + Rap + Other) -->
+              <div class="mb-8">
+                <h5 class="text-lg font-semibold text-gray-400 mb-4">Cannabis Songs</h5>
+                <div class="flex flex-wrap justify-center gap-4">
+                  <button 
+                    class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
+                    data-category-id="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>"
+                    data-category-color="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
+                    style="border-color: <%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>; color: <%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
+                  >
+                    Cannabis Songs
+                  </button>
+                  
+                  <% @categories.find { |c| c.name == 'Cannabis Songs' }&.children&.each do |child| %>
+                    <button 
+                      class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
+                      data-category-id="<%= child.id %>"
+                      data-category-color="<%= child.color %>"
+                      style="border-color: <%= child.color %>; color: <%= child.color %>"
+                    >
+                      <%= child.name %>
+                    </button>
+                  <% end %>
+                </div>
+              </div>
+            </div>
           </div>
-        <% end %>
+        </div>
       </div>
     </div>
   </section>
@@ -347,21 +420,38 @@
     left: 100%;
   }
   
-  /* Tree branch styling */
-  .category-group {
+  /* Family Group Styling */
+  .family-group {
     position: relative;
+    padding: 2rem;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
-  .category-group::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(to bottom, transparent, rgba(75, 85, 99, 0.3), transparent);
-    z-index: 1;
+  .reggae-family {
+    background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border-color: rgba(78, 205, 196, 0.3);
+  }
+  
+  .hiphop-family {
+    background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border-color: rgba(255, 107, 107, 0.3);
+  }
+  
+  .cross-connections {
+    background: linear-gradient(135deg, rgba(221, 160, 221, 0.1) 0%, rgba(0, 0, 0, 0.3) 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(221, 160, 221, 0.3);
+  }
+  
+  /* Family Group Hover Effects */
+  .family-group:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
   }
   
   .parent-category {
@@ -374,33 +464,27 @@
     z-index: 10;
   }
   
-  /* Animated tree branches */
-  .category-group:hover .parent-category {
+  /* Enhanced hover effects */
+  .parent-category:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
   }
   
   .child-category:hover {
     transform: scale(1.1);
-    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
   }
   
-  /* Tree trunk effect */
-  .category-tree::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: linear-gradient(to bottom, 
-      rgba(139, 69, 19, 0.8) 0%,
-      rgba(160, 82, 45, 0.6) 25%,
-      rgba(139, 69, 19, 0.4) 50%,
-      rgba(160, 82, 45, 0.3) 75%,
-      rgba(139, 69, 19, 0.2) 100%
-    );
-    transform: translateX(-50%);
-    z-index: 1;
+  /* Family connection indicators */
+  .family-group h4::after {
+    content: '🌳';
+    margin-left: 10px;
+    opacity: 0.7;
+  }
+  
+  .cross-connections h4::after {
+    content: '🔗';
+    margin-left: 10px;
+    opacity: 0.7;
   }
 </style>
