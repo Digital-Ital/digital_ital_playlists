@@ -1,5 +1,5 @@
 class Admin::PlaylistsController < Admin::BaseController
-  before_action :set_playlist, only: [:show, :edit, :update, :destroy]
+  before_action :set_playlist, only: [:edit, :update, :destroy]
 
   def index
     @categories = Category.ordered
@@ -37,9 +37,16 @@ class Admin::PlaylistsController < Admin::BaseController
 
   # POST /admin/playlists/import_spotify
   def import_spotify
-    importer = Spotify::OEmbedImporter.new(params[:spotify_url])
-    data = importer.call
-    render json: data
+    url = params[:spotify_url]
+    if ENV['SPOTIFY_CLIENT_ID'].present? && ENV['SPOTIFY_CLIENT_SECRET'].present?
+      importer = Spotify::PlaylistImporter.new(url)
+      data = importer.call
+      render json: data
+    else
+      importer = Spotify::OEmbedImporter.new(url)
+      data = importer.call
+      render json: data
+    end
   rescue => e
     render json: { error: e.message }, status: :unprocessable_entity
   end

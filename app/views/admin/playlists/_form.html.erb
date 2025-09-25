@@ -13,7 +13,10 @@
   </div>
   <div>
     <%= f.label :spotify_url, class: 'block text-gray-300 mb-1' %>
-    <%= f.text_field :spotify_url, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    <div class="flex gap-2">
+      <%= f.text_field :spotify_url, id: 'playlist_spotify_url', class: 'flex-1 p-2 bg-gray-800 text-white rounded' %>
+      <button type="button" onclick="return autofillFromSpotify()" class="px-3 py-2 bg-green-500 text-black rounded">Auto-fill</button>
+    </div>
   </div>
   <div class="grid grid-cols-2 gap-4">
     <div>
@@ -43,5 +46,32 @@
     <%= f.submit class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
   </div>
 <% end %>
+
+<script>
+  async function autofillFromSpotify(){
+    const urlInput = document.getElementById('playlist_spotify_url');
+    if(!urlInput.value){ return false; }
+    try{
+      const res = await fetch('<%= import_spotify_admin_playlists_path %>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content },
+        body: JSON.stringify({ spotify_url: urlInput.value })
+      });
+      const data = await res.json();
+      if(res.ok){
+        if(data.title){ document.getElementById('playlist_title').value = data.title; }
+        if(data.thumbnail_url){ document.getElementById('playlist_cover_image_url').value = data.thumbnail_url; }
+        if(data.track_count){ document.getElementById('playlist_track_count').value = data.track_count; }
+        if(data.duration){ document.getElementById('playlist_duration').value = data.duration; }
+        if(data.spotify_url){ urlInput.value = data.spotify_url; }
+      }else{
+        alert(data.error || 'Failed to import from Spotify');
+      }
+    }catch(e){
+      alert('Error importing from Spotify');
+    }
+    return false;
+  }
+</script>
 
 
