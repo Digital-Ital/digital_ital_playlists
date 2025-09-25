@@ -75,7 +75,7 @@
       <h3 class="text-3xl font-semibold text-center mb-12 text-gray-200">
         Explore by Category
       </h3>
-      <div id="category-tree" class="space-y-6 mb-16">
+      <div id="category-tree" class="space-y-8 mb-16">
         <!-- Show All Button (hidden when already showing all) -->
         <div id="show-all-container" class="text-center">
           <button 
@@ -89,32 +89,49 @@
         
         <!-- Main Categories Tree -->
         <% @categories.each do |parent_category| %>
-          <div class="category-group">
+          <div class="category-group relative">
             <!-- Parent Category -->
-            <div class="text-center mb-4">
+            <div class="text-center mb-6 relative">
               <button 
-                class="category-btn parent-category px-8 py-4 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-xl font-bold"
+                class="category-btn parent-category px-8 py-4 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-xl font-bold relative z-10"
                 data-category-id="<%= parent_category.id %>"
                 data-category-color="<%= parent_category.color %>"
                 style="border-color: <%= parent_category.color %>; color: <%= parent_category.color %>"
               >
                 <%= parent_category.name %>
               </button>
+              
+              <!-- Vertical line from parent -->
+              <% if parent_category.children.any? %>
+                <div class="absolute left-1/2 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-b from-<%= parent_category.color.gsub('#', '') %> to-gray-600 opacity-60" style="background: linear-gradient(to bottom, <%= parent_category.color %>, #4B5563);"></div>
+              <% end %>
             </div>
             
-            <!-- Children Categories -->
+            <!-- Children Categories with branches -->
             <% if parent_category.children.any? %>
-              <div class="flex flex-wrap justify-center gap-3">
-                <% parent_category.children.each do |child_category| %>
-                  <button 
-                    class="category-btn child-category px-4 py-2 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
-                    data-category-id="<%= child_category.id %>"
-                    data-category-color="<%= child_category.color %>"
-                    style="border-color: <%= child_category.color %>; color: <%= child_category.color %>"
-                  >
-                    <%= child_category.name %>
-                  </button>
-                <% end %>
+              <div class="relative">
+                <!-- Horizontal branch line -->
+                <div class="absolute left-1/2 top-0 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-r from-gray-600 to-transparent opacity-40"></div>
+                
+                <!-- Children in a tree-like layout -->
+                <div class="flex flex-wrap justify-center gap-4 relative">
+                  <% parent_category.children.each_with_index do |child_category, index| %>
+                    <div class="relative flex flex-col items-center">
+                      <!-- Vertical branch to child -->
+                      <div class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-1 h-6 bg-gradient-to-b from-gray-600 to-<%= child_category.color.gsub('#', '') %> opacity-60" style="background: linear-gradient(to bottom, #4B5563, <%= child_category.color %>);"></div>
+                      
+                      <!-- Child button -->
+                      <button 
+                        class="category-btn child-category px-4 py-2 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm relative z-10"
+                        data-category-id="<%= child_category.id %>"
+                        data-category-color="<%= child_category.color %>"
+                        style="border-color: <%= child_category.color %>; color: <%= child_category.color %>"
+                      >
+                        <%= child_category.name %>
+                      </button>
+                    </div>
+                  <% end %>
+                </div>
               </div>
             <% end %>
           </div>
@@ -328,5 +345,62 @@
   
   .category-btn:hover::before {
     left: 100%;
+  }
+  
+  /* Tree branch styling */
+  .category-group {
+    position: relative;
+  }
+  
+  .category-group::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(75, 85, 99, 0.3), transparent);
+    z-index: 1;
+  }
+  
+  .parent-category {
+    position: relative;
+    z-index: 10;
+  }
+  
+  .child-category {
+    position: relative;
+    z-index: 10;
+  }
+  
+  /* Animated tree branches */
+  .category-group:hover .parent-category {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+  }
+  
+  .child-category:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  }
+  
+  /* Tree trunk effect */
+  .category-tree::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(to bottom, 
+      rgba(139, 69, 19, 0.8) 0%,
+      rgba(160, 82, 45, 0.6) 25%,
+      rgba(139, 69, 19, 0.4) 50%,
+      rgba(160, 82, 45, 0.3) 75%,
+      rgba(139, 69, 19, 0.2) 100%
+    );
+    transform: translateX(-50%);
+    z-index: 1;
   }
 </style>
