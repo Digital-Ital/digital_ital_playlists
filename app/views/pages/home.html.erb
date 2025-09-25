@@ -75,22 +75,49 @@
       <h3 class="text-3xl font-semibold text-center mb-12 text-gray-200">
         Explore by Category
       </h3>
-      <div class="flex flex-wrap justify-center gap-4 mb-16">
-        <button 
-          id="show-all-btn"
-          class="category-btn active px-6 py-3 rounded-full border-2 border-yellow-400 text-yellow-400 transition-all duration-300 hover:scale-105"
-          data-category-id=""
-        >
-          Show All
-        </button>
-        <% @categories.each do |category| %>
+      <div id="category-tree" class="space-y-6 mb-16">
+        <!-- Show All Button (hidden when already showing all) -->
+        <div id="show-all-container" class="text-center">
           <button 
-            class="category-btn px-6 py-3 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105"
-            data-category-id="<%= category.id %>"
-            data-category-color="<%= category.color %>"
+            id="show-all-btn"
+            class="category-btn active px-8 py-4 rounded-full border-2 border-yellow-400 text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-semibold"
+            data-category-id=""
           >
-            <%= category.name %>
+            Show All
           </button>
+        </div>
+        
+        <!-- Main Categories Tree -->
+        <% @categories.each do |parent_category| %>
+          <div class="category-group">
+            <!-- Parent Category -->
+            <div class="text-center mb-4">
+              <button 
+                class="category-btn parent-category px-8 py-4 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-xl font-bold"
+                data-category-id="<%= parent_category.id %>"
+                data-category-color="<%= parent_category.color %>"
+                style="border-color: <%= parent_category.color %>; color: <%= parent_category.color %>"
+              >
+                <%= parent_category.name %>
+              </button>
+            </div>
+            
+            <!-- Children Categories -->
+            <% if parent_category.children.any? %>
+              <div class="flex flex-wrap justify-center gap-3">
+                <% parent_category.children.each do |child_category| %>
+                  <button 
+                    class="category-btn child-category px-4 py-2 rounded-full border-2 border-gray-600 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
+                    data-category-id="<%= child_category.id %>"
+                    data-category-color="<%= child_category.color %>"
+                    style="border-color: <%= child_category.color %>; color: <%= child_category.color %>"
+                  >
+                    <%= child_category.name %>
+                  </button>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         <% end %>
       </div>
     </div>
@@ -154,14 +181,34 @@
       document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const categoryId = e.target.dataset.categoryId;
+          const isParentCategory = e.target.classList.contains('parent-category');
           
           // Update active button
           document.querySelectorAll('.category-btn').forEach(b => {
             b.classList.remove('border-yellow-400', 'text-yellow-400', 'active');
-            b.classList.add('border-gray-600', 'text-gray-300');
+            if (b.classList.contains('parent-category')) {
+              b.style.borderColor = b.dataset.categoryColor;
+              b.style.color = b.dataset.categoryColor;
+            } else if (b.classList.contains('child-category')) {
+              b.style.borderColor = b.dataset.categoryColor;
+              b.style.color = b.dataset.categoryColor;
+            } else {
+              b.classList.add('border-gray-600', 'text-gray-300');
+            }
           });
-          e.target.classList.remove('border-gray-600', 'text-gray-300');
+          
+          // Highlight selected button
           e.target.classList.add('border-yellow-400', 'text-yellow-400', 'active');
+          e.target.style.borderColor = '#D4AF37';
+          e.target.style.color = '#D4AF37';
+          
+          // Show/hide "Show All" button
+          const showAllContainer = document.getElementById('show-all-container');
+          if (categoryId) {
+            showAllContainer.style.display = 'block';
+          } else {
+            showAllContainer.style.display = 'none';
+          }
           
           // Reset and load playlists
           this.currentCategory = categoryId || null;

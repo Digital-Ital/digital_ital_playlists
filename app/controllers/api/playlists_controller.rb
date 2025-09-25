@@ -1,9 +1,11 @@
 class Api::PlaylistsController < ApplicationController
   def index
-    @playlists = Playlist.includes(:category)
-                        .ordered
-                        .limit(20)
-                        .offset(params[:offset] || 0)
+    @playlists = Playlist.includes(:category).ordered
+    if params[:category_ids].present?
+      ids = params[:category_ids].to_s.split(',').map(&:to_i).uniq
+      @playlists = @playlists.where(category_id: ids)
+    end
+    @playlists = @playlists.limit(20).offset(params[:offset] || 0)
     
     render json: {
       playlists: @playlists.map { |playlist| playlist_json(playlist) },
@@ -13,10 +15,8 @@ class Api::PlaylistsController < ApplicationController
   
   def by_category
     @category = Category.find(params[:id])
-    @playlists = @category.playlists
-                         .ordered
-                         .limit(20)
-                         .offset(params[:offset] || 0)
+    ids = [@category.id] + @category.descendant_ids
+    @playlists = Playlist.where(category_id: ids).ordered.limit(20).offset(params[:offset] || 0)
     
     render json: {
       category: {
