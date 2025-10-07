@@ -1,30 +1,51 @@
-<div class="container mx-auto px-6 py-10">
+<div class="container mx-auto px-6 py-10 bg-black/50 rounded-xl backdrop-blur-sm">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-200">Categories</h1>
-    <%= link_to 'New Category', new_admin_category_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
+    <h1 class="text-2xl font-semibold text-white">Categories Admin</h1>
+    <div class="space-x-2">
+      <%= link_to 'New Category', new_admin_category_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
+      <%= link_to 'Back to Playlists', admin_playlists_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
+    </div>
   </div>
 
-  <div class="bg-gray-900 rounded-xl p-4">
-    <table class="min-w-full text-gray-300">
+  <div class="bg-gray-900/80 rounded-xl p-6 border border-gray-700">
+    <h2 class="text-xl text-white mb-4">Category Hierarchy</h2>
+    <table class="min-w-full text-white">
       <thead>
-        <tr>
-          <th class="text-left p-2">Name</th>
-          <th class="text-left p-2">Slug</th>
-          <th class="text-left p-2">Color</th>
-          <th class="text-left p-2">Position</th>
-          <th class="text-left p-2">Actions</th>
+        <tr class="border-b border-gray-600">
+          <th class="text-left p-3 text-yellow-400 font-semibold">Name</th>
+          <th class="text-left p-3 text-yellow-400 font-semibold">Parent</th>
+          <th class="text-left p-3 text-yellow-400 font-semibold">Color</th>
+          <th class="text-left p-3 text-yellow-400 font-semibold">Position</th>
+          <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
         </tr>
       </thead>
       <tbody>
         <% @categories.each do |category| %>
-          <tr class="border-t border-gray-800">
-            <td class="p-2"><%= category.name %></td>
-            <td class="p-2"><%= category.slug %></td>
-            <td class="p-2"><span class="inline-block w-4 h-4 rounded" style="background: <%= category.color %>"></span> <%= category.color %></td>
-            <td class="p-2"><%= category.position %></td>
-            <td class="p-2 space-x-2">
-              <%= link_to 'Edit', edit_admin_category_path(category), class: 'underline' %>
-              <%= link_to 'Delete', admin_category_path(category), data: { turbo_method: :delete, turbo_confirm: 'Delete this category?' }, class: 'underline text-red-400' %>
+          <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+            <td class="p-3 font-medium">
+              <% if category.parent.present? %>
+                <span class="text-gray-400">↳</span> <%= category.name %>
+              <% else %>
+                <strong class="text-yellow-400"><%= category.name %></strong>
+              <% end %>
+            </td>
+            <td class="p-3 text-gray-300">
+              <% if category.parent.present? %>
+                <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs"><%= category.parent.name %></span>
+              <% else %>
+                <span class="text-gray-500 italic">Root Category</span>
+              <% end %>
+            </td>
+            <td class="p-3">
+              <div class="flex items-center gap-2">
+                <span class="inline-block w-6 h-6 rounded border border-gray-600" style="background: <%= category.color %>"></span>
+                <span class="text-gray-300 text-sm"><%= category.color %></span>
+              </div>
+            </td>
+            <td class="p-3 text-gray-300"><%= category.position %></td>
+            <td class="p-3 space-x-2">
+              <%= link_to 'Edit', edit_admin_category_path(category), class: 'text-blue-400 hover:text-blue-300 underline' %>
+              <%= link_to 'Delete', admin_category_path(category), data: { turbo_method: :delete, turbo_confirm: 'Delete this category?' }, class: 'text-red-400 hover:text-red-300 underline' %>
             </td>
           </tr>
         <% end %>
