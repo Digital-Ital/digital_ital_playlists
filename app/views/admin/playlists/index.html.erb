@@ -2,6 +2,8 @@
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-semibold text-white">Playlists Admin</h1>
     <div class="space-x-2">
+      <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
+      <%= link_to 'Manage Categories', admin_categories_path, class: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors' %>
       <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
     </div>
   </div>
