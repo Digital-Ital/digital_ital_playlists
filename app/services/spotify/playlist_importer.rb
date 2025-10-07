@@ -21,8 +21,8 @@ module Spotify
       token = fetch_access_token
       playlist = fetch_playlist(playlist_id, token)
 
-      tracks_items = playlist.dig("tracks", "items") || []
-      total_ms = tracks_items.sum { |i| i.dig("track", "duration_ms").to_i }
+      # Sum duration across all pages for accurate total
+      total_ms = sum_all_track_durations(playlist.dig("tracks"), token)
 
       {
         title: playlist["name"],
@@ -56,8 +56,8 @@ module Spotify
     end
 
     def fetch_playlist(playlist_id, token)
-      # Include tracks to compute duration; limit 100 for first page
-      url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,tracks(items(track(duration_ms)),total)")
+      # Include tracks to compute duration; limit 100 for first page and include pagination cursor
+      url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,tracks(items(track(duration_ms)),total,next)")
       req = Net::HTTP::Get.new(url)
       req["Authorization"] = "Bearer #{token}"
 
@@ -68,6 +68,41 @@ module Spotify
       raise "Spotify playlist error: #{res.code}" unless res.is_a?(Net::HTTPSuccess)
 
       JSON.parse(res.body)
+    end
+
+    def sum_all_track_durations(tracks_obj, token)
+      return 0 unless tracks_obj
+
+      total_ms = 0
+      # sum first page
+      (tracks_obj["items"] || []).each do |item|
+        total_ms += item.dig("track", "duration_ms").to_i
+      end
+
+      # follow pagination
+      next_url = tracks_obj["next"]
+      while next_url
+        page = fetch_tracks_page(next_url, token)
+        (page["items"] || []).each do |item|
+          total_ms += item.dig("track", "duration_ms").to_i
+        end
+        next_url = page["next"]
+      end
+
+      total_ms
+    end
+
+    def fetch_tracks_page(next_url, token)
+      url = URI(next_url)
+      req = Net::HTTP::Get.new(url)
+      req["Authorization"] = "Bearer #{token}"
+
+      res = Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
+        http.request(req)
+      end
+
+      raise "Spotify tracks page error: #{res.code}" unless res.is_a?(Net::HTTPSuccess)
+      JSON.parse(res.body).fetch("tracks", JSON.parse(res.body)) rescue JSON.parse(res.body)
     end
 
     def format_duration_ms(ms)
