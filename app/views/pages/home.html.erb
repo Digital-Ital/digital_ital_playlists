@@ -74,145 +74,179 @@
   </section>
 
   <!-- Categories Navigation -->
-  <section class="py-16 bg-black/50 backdrop-blur-sm">
-    <div class="container mx-auto px-6">
-      <h3 class="text-3xl font-semibold text-center mb-12 text-gray-200">
+  <section class="py-8">
+    <div class="container mx-auto px-6 max-w-4xl">
+      <h2 class="text-3xl font-bold text-center text-white mb-6">
         Explore by Category
-      </h3>
-      <div id="category-tree" class="mb-16">
-        <!-- Show All Button (hidden when already showing all) -->
-        <div id="show-all-container" class="text-center mb-12">
-          <button 
-            id="show-all-btn"
-            class="category-btn active px-8 py-4 rounded-full border-2 border-yellow-400 text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-semibold"
-            data-category-id=""
-          >
-            Show All
-          </button>
+      </h2>
+      
+      <!-- Show All Button -->
+      <div id="show-all-container" class="text-center mb-6" style="display: none;">
+        <button 
+          class="category-btn px-6 py-3 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black rounded-lg font-bold text-lg hover:from-yellow-400 hover:to-yellow-500 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-yellow-500/25"
+          data-category-id=""
+        >
+          Show All Playlists
+        </button>
+      </div>
+      
+      <!-- Collapsible Tree Structure -->
+      <div class="bg-gray-900/50 rounded-xl p-6 border border-gray-700">
+        
+        <!-- Reggae Family -->
+        <div class="tree-node mb-4">
+          <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/50 transition-colors" onclick="toggleTreeSection('reggae-family')">
+            <div class="flex items-center gap-3">
+              <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="reggae-family-arrow">▶</span>
+              <span class="text-lg font-semibold text-gray-300">Reggae Family</span>
+              <span class="text-sm text-gray-500" id="reggae-family-count">(<%= @categories.find { |c| c.name == 'Reggae' }&.playlists&.count || 0 %> playlists)</span>
+            </div>
+          </div>
+          <div class="tree-content hidden ml-6 mt-2 space-y-2" id="reggae-family-content">
+            <!-- Reggae Root -->
+            <div class="tree-node">
+              <div class="tree-header cursor-pointer flex items-center justify-between p-2 rounded hover:bg-gray-800/30 transition-colors" onclick="toggleTreeSection('reggae-root')">
+                <div class="flex items-center gap-2">
+                  <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="reggae-root-arrow">▶</span>
+                  <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-medium" 
+                          data-category-id="<%= @categories.find { |c| c.name == 'Reggae' }&.id %>"
+                          data-category-color="<%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Reggae' }&.id %>, 'Reggae', '<%= @categories.find { |c| c.name == 'Reggae' }&.color %>')">
+                    Reggae
+                  </button>
+                  <span class="text-xs text-gray-500">(<%= @categories.find { |c| c.name == 'Reggae' }&.playlists&.count || 0 %>)</span>
+                </div>
+              </div>
+              <div class="tree-content hidden ml-4 mt-1 space-y-1" id="reggae-root-content">
+                <% @categories.find { |c| c.name == 'Reggae' }&.children&.each do |child| %>
+                  <div class="flex items-center gap-2 p-1 rounded hover:bg-gray-800/20 transition-colors">
+                    <button class="category-btn text-sm text-gray-300 hover:text-yellow-400 transition-colors" 
+                            data-category-id="<%= child.id %>"
+                            data-category-color="<%= child.color %>"
+                            onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
+                      ↳ <%= child.name %>
+                    </button>
+                    <span class="text-xs text-gray-500">(<%= child.playlists.count %>)</span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
         </div>
         
-        <!-- Family Tree Layout -->
-        <div class="relative max-w-6xl mx-auto">
-          
-          <!-- Reggae Family -->
-          <div class="family-group reggae-family mb-16">
-            <div class="text-center mb-8">
-              <h4 class="text-2xl font-bold text-gray-300 mb-4">Reggae Family</h4>
-              <div class="flex flex-wrap justify-center gap-6">
-                <!-- Main Reggae -->
-                <button 
-                  class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
-                  data-category-id="<%= @categories.find { |c| c.name == 'Reggae' }&.id %>"
-                  data-category-color="<%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
-                  style="border-color: <%= @categories.find { |c| c.name == 'Reggae' }&.color %>; color: <%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
-                >
-                  Reggae
-                </button>
-                
-                <!-- Reggae Children -->
-                <% @categories.find { |c| c.name == 'Reggae' }&.children&.each do |child| %>
-                  <button 
-                    class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
-                    data-category-id="<%= child.id %>"
-                    data-category-color="<%= child.color %>"
-                    style="border-color: <%= child.color %>; color: <%= child.color %>"
-                  >
-                    <%= child.name %>
-                  </button>
-                <% end %>
-              </div>
+        <!-- Hip-Hop Family -->
+        <div class="tree-node mb-4">
+          <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/50 transition-colors" onclick="toggleTreeSection('hiphop-family')">
+            <div class="flex items-center gap-3">
+              <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="hiphop-family-arrow">▶</span>
+              <span class="text-lg font-semibold text-gray-300">Hip-Hop Family</span>
+              <span class="text-sm text-gray-500" id="hiphop-family-count">(<%= @categories.find { |c| c.name == 'Hip-Hop' }&.playlists&.count || 0 %> playlists)</span>
             </div>
           </div>
-          
-          <!-- Hip-Hop Family -->
-          <div class="family-group hiphop-family mb-16">
-            <div class="text-center mb-8">
-              <h4 class="text-2xl font-bold text-gray-300 mb-4">Hip-Hop Family</h4>
-              <div class="flex flex-wrap justify-center gap-6">
-                <!-- Main Hip-Hop -->
-                <button 
-                  class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
-                  data-category-id="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>"
-                  data-category-color="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
-                  style="border-color: <%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>; color: <%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
-                >
-                  Hip-Hop
-                </button>
-                
-                <!-- Hip-Hop Children -->
+          <div class="tree-content hidden ml-6 mt-2 space-y-2" id="hiphop-family-content">
+            <!-- Hip-Hop Root -->
+            <div class="tree-node">
+              <div class="tree-header cursor-pointer flex items-center justify-between p-2 rounded hover:bg-gray-800/30 transition-colors" onclick="toggleTreeSection('hiphop-root')">
+                <div class="flex items-center gap-2">
+                  <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="hiphop-root-arrow">▶</span>
+                  <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-medium" 
+                          data-category-id="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>"
+                          data-category-color="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>, 'Hip-Hop', '<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>')">
+                    Hip-Hop
+                  </button>
+                  <span class="text-xs text-gray-500">(<%= @categories.find { |c| c.name == 'Hip-Hop' }&.playlists&.count || 0 %>)</span>
+                </div>
+              </div>
+              <div class="tree-content hidden ml-4 mt-1 space-y-1" id="hiphop-root-content">
                 <% @categories.find { |c| c.name == 'Hip-Hop' }&.children&.each do |child| %>
-                  <button 
-                    class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
-                    data-category-id="<%= child.id %>"
-                    data-category-color="<%= child.color %>"
-                    style="border-color: <%= child.color %>; color: <%= child.color %>"
-                  >
-                    <%= child.name %>
-                  </button>
+                  <div class="flex items-center gap-2 p-1 rounded hover:bg-gray-800/20 transition-colors">
+                    <button class="category-btn text-sm text-gray-300 hover:text-yellow-400 transition-colors" 
+                            data-category-id="<%= child.id %>"
+                            data-category-color="<%= child.color %>"
+                            onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
+                      ↳ <%= child.name %>
+                    </button>
+                    <span class="text-xs text-gray-500">(<%= child.playlists.count %>)</span>
+                  </div>
                 <% end %>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Cross-Family Connections -->
-          <div class="cross-connections mb-16">
-            <div class="text-center mb-8">
-              <h4 class="text-2xl font-bold text-gray-300 mb-6">Cross-Family Connections</h4>
-              
-              <!-- Political Family (Reggae + Rap + Other) -->
-              <div class="mb-8">
-                <h5 class="text-lg font-semibold text-gray-400 mb-4">Political Songs</h5>
-                <div class="flex flex-wrap justify-center gap-4">
-                  <button 
-                    class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
-                    data-category-id="<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>"
-                    data-category-color="<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
-                    style="border-color: <%= @categories.find { |c| c.name == 'Political Songs' }&.color %>; color: <%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
-                  >
-                    Political Songs
-                  </button>
-                  
-                  <% @categories.find { |c| c.name == 'Political Songs' }&.children&.each do |child| %>
-                    <button 
-                      class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
-                      data-category-id="<%= child.id %>"
-                      data-category-color="<%= child.color %>"
-                      style="border-color: <%= child.color %>; color: <%= child.color %>"
-                    >
-                      <%= child.name %>
-                    </button>
-                  <% end %>
-                </div>
-              </div>
-              
-              <!-- Cannabis Family (Reggae + Rap + Other) -->
-              <div class="mb-8">
-                <h5 class="text-lg font-semibold text-gray-400 mb-4">Cannabis Songs</h5>
-                <div class="flex flex-wrap justify-center gap-4">
-                  <button 
-                    class="category-btn parent-category px-6 py-3 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-lg font-bold"
-                    data-category-id="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>"
-                    data-category-color="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
-                    style="border-color: <%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>; color: <%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
-                  >
-                    Cannabis Songs
-                  </button>
-                  
-                  <% @categories.find { |c| c.name == 'Cannabis Songs' }&.children&.each do |child| %>
-                    <button 
-                      class="category-btn child-category px-4 py-2 rounded-full border-2 text-gray-300 hover:border-yellow-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 text-sm"
-                      data-category-id="<%= child.id %>"
-                      data-category-color="<%= child.color %>"
-                      style="border-color: <%= child.color %>; color: <%= child.color %>"
-                    >
-                      <%= child.name %>
-                    </button>
-                  <% end %>
-                </div>
               </div>
             </div>
           </div>
         </div>
+        
+        <!-- Cross-Family Connections -->
+        <div class="tree-node">
+          <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg hover:bg-gray-800/50 transition-colors" onclick="toggleTreeSection('cross-family')">
+            <div class="flex items-center gap-3">
+              <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="cross-family-arrow">▶</span>
+              <span class="text-lg font-semibold text-gray-300">Cross-Family Connections</span>
+              <span class="text-sm text-gray-500" id="cross-family-count">(<%= (@categories.find { |c| c.name == 'Political Songs' }&.playlists&.count || 0) + (@categories.find { |c| c.name == 'Cannabis Songs' }&.playlists&.count || 0) %> playlists)</span>
+            </div>
+          </div>
+          <div class="tree-content hidden ml-6 mt-2 space-y-3" id="cross-family-content">
+            
+            <!-- Political Songs -->
+            <div class="tree-node">
+              <div class="tree-header cursor-pointer flex items-center justify-between p-2 rounded hover:bg-gray-800/30 transition-colors" onclick="toggleTreeSection('political-root')">
+                <div class="flex items-center gap-2">
+                  <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="political-root-arrow">▶</span>
+                  <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-medium" 
+                          data-category-id="<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>"
+                          data-category-color="<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>, 'Political Songs', '<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>')">
+                    Political Songs
+                  </button>
+                  <span class="text-xs text-gray-500">(<%= @categories.find { |c| c.name == 'Political Songs' }&.playlists&.count || 0 %>)</span>
+                </div>
+              </div>
+              <div class="tree-content hidden ml-4 mt-1 space-y-1" id="political-root-content">
+                <% @categories.find { |c| c.name == 'Political Songs' }&.children&.each do |child| %>
+                  <div class="flex items-center gap-2 p-1 rounded hover:bg-gray-800/20 transition-colors">
+                    <button class="category-btn text-sm text-gray-300 hover:text-yellow-400 transition-colors" 
+                            data-category-id="<%= child.id %>"
+                            data-category-color="<%= child.color %>"
+                            onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
+                      ↳ <%= child.name %>
+                    </button>
+                    <span class="text-xs text-gray-500">(<%= child.playlists.count %>)</span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+            
+            <!-- Cannabis Songs -->
+            <div class="tree-node">
+              <div class="tree-header cursor-pointer flex items-center justify-between p-2 rounded hover:bg-gray-800/30 transition-colors" onclick="toggleTreeSection('cannabis-root')">
+                <div class="flex items-center gap-2">
+                  <span class="tree-arrow text-gray-400 transform transition-transform duration-200" id="cannabis-root-arrow">▶</span>
+                  <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-medium" 
+                          data-category-id="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>"
+                          data-category-color="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>, 'Cannabis Songs', '<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>')">
+                    Cannabis Songs
+                  </button>
+                  <span class="text-xs text-gray-500">(<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.playlists&.count || 0 %>)</span>
+                </div>
+              </div>
+              <div class="tree-content hidden ml-4 mt-1 space-y-1" id="cannabis-root-content">
+                <% @categories.find { |c| c.name == 'Cannabis Songs' }&.children&.each do |child| %>
+                  <div class="flex items-center gap-2 p-1 rounded hover:bg-gray-800/20 transition-colors">
+                    <button class="category-btn text-sm text-gray-300 hover:text-yellow-400 transition-colors" 
+                            data-category-id="<%= child.id %>"
+                            data-category-color="<%= child.color %>"
+                            onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
+                      ↳ <%= child.name %>
+                    </button>
+                    <span class="text-xs text-gray-500">(<%= child.playlists.count %>)</span>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+        
       </div>
     </div>
   </section>
@@ -275,26 +309,16 @@
       document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
           const categoryId = e.target.dataset.categoryId;
-          const isParentCategory = e.target.classList.contains('parent-category');
           
-          // Update active button
+          // Update active button - reset all buttons
           document.querySelectorAll('.category-btn').forEach(b => {
-            b.classList.remove('border-yellow-400', 'text-yellow-400', 'active');
-            if (b.classList.contains('parent-category')) {
-              b.style.borderColor = b.dataset.categoryColor;
-              b.style.color = b.dataset.categoryColor;
-            } else if (b.classList.contains('child-category')) {
-              b.style.borderColor = b.dataset.categoryColor;
-              b.style.color = b.dataset.categoryColor;
-            } else {
-              b.classList.add('border-gray-600', 'text-gray-300');
-            }
+            b.classList.remove('text-yellow-400', 'active');
+            b.classList.add('text-gray-300');
           });
           
           // Highlight selected button
-          e.target.classList.add('border-yellow-400', 'text-yellow-400', 'active');
-          e.target.style.borderColor = '#D4AF37';
-          e.target.style.color = '#D4AF37';
+          e.target.classList.remove('text-gray-300');
+          e.target.classList.add('text-yellow-400', 'active');
           
           // Show/hide "Show All" button
           const showAllContainer = document.getElementById('show-all-container');
@@ -317,26 +341,17 @@
     }
     
     selectCategory(categoryId, categoryName, categoryColor) {
-      // Update active button
+      // Update active button - reset all buttons
       document.querySelectorAll('.category-btn').forEach(b => {
-        b.classList.remove('border-yellow-400', 'text-yellow-400', 'active');
-        if (b.classList.contains('parent-category')) {
-          b.style.borderColor = b.dataset.categoryColor;
-          b.style.color = b.dataset.categoryColor;
-        } else if (b.classList.contains('child-category')) {
-          b.style.borderColor = b.dataset.categoryColor;
-          b.style.color = b.dataset.categoryColor;
-        } else {
-          b.classList.add('border-gray-600', 'text-gray-300');
-        }
+        b.classList.remove('text-yellow-400', 'active');
+        b.classList.add('text-gray-300');
       });
       
       // Highlight the selected category button
       const targetButton = document.querySelector(`[data-category-id="${categoryId}"]`);
       if (targetButton) {
-        targetButton.classList.add('border-yellow-400', 'text-yellow-400', 'active');
-        targetButton.style.borderColor = '#D4AF37';
-        targetButton.style.color = '#D4AF37';
+        targetButton.classList.remove('text-gray-300');
+        targetButton.classList.add('text-yellow-400', 'active');
       }
       
       // Show "Show All" button
@@ -440,6 +455,22 @@
       `;
       
       this.container.appendChild(playlistElement);
+    }
+  }
+  
+  // Tree toggle function
+  function toggleTreeSection(sectionId) {
+    const content = document.getElementById(sectionId + '-content');
+    const arrow = document.getElementById(sectionId + '-arrow');
+    
+    if (content && arrow) {
+      if (content.classList.contains('hidden')) {
+        content.classList.remove('hidden');
+        arrow.style.transform = 'rotate(90deg)';
+      } else {
+        content.classList.add('hidden');
+        arrow.style.transform = 'rotate(0deg)';
+      }
     }
   }
   
