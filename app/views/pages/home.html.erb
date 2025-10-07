@@ -416,16 +416,24 @@
           </p>
           <div class="flex items-center justify-between text-sm text-gray-500">
             <span>${playlist.track_count} tracks</span>
-            <div class="flex flex-wrap gap-1">
-              ${playlist.categories.map(category => 
-                `<button class="category-tag-btn px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs hover:bg-yellow-400/30 hover:text-yellow-300 transition-colors duration-200" 
-                 data-category-id="${category.id}" 
-                 data-category-name="${category.name}"
-                 data-category-color="${category.color}"
-                 onclick="event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')">
-                   ${category.name}
-                 </button>`
-              ).join('')}
+            <div class="flex flex-wrap gap-2 items-start">
+              ${playlist.categories
+                .sort((a, b) => {
+                  // Sort: root categories first, then subcategories
+                  if (a.is_root && !b.is_root) return -1;
+                  if (!a.is_root && b.is_root) return 1;
+                  return a.name.localeCompare(b.name);
+                })
+                .map(category => 
+                  `<button class="category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 ${category.is_root ? 'bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-gray-100 border border-gray-600 hover:from-gray-700/90 hover:to-gray-600/90 font-semibold shadow-lg' : 'bg-gradient-to-r from-yellow-400/25 to-yellow-500/25 text-yellow-300 hover:from-yellow-400/35 hover:to-yellow-500/35 border border-yellow-400/30'}" 
+                   data-category-id="${category.id}" 
+                   data-category-name="${category.name}"
+                   data-category-color="${category.color}"
+                   data-is-root="${category.is_root}"
+                   onclick="event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')">
+                     ${category.is_root ? category.name : '↳ ' + category.name}
+                   </button>`
+                ).join('')}
             </div>
           </div>
         </div>

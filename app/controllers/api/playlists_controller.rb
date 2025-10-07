@@ -46,14 +46,25 @@ class Api::PlaylistsController < ApplicationController
       spotify_url: playlist.spotify_url,
       track_count: playlist.track_count,
       duration: playlist.duration_formatted,
-      categories: playlist.categories.map do |category|
-        {
-          id: category.id,
-          name: category.name,
-          slug: category.slug,
-          color: category.color
-        }
-      end
+      categories: playlist.categories.flat_map do |category|
+        # Include the category itself and all its parent categories
+        categories_to_show = [category]
+        current = category.parent
+        while current
+          categories_to_show << current
+          current = current.parent
+        end
+        
+        categories_to_show.map do |cat|
+          {
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug,
+            color: cat.color,
+            is_root: cat.parent_id.nil?
+          }
+        end
+      end.uniq { |cat| cat[:id] }
     }
   end
 end
