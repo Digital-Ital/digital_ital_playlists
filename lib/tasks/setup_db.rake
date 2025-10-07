@@ -52,6 +52,47 @@ namespace :db do
       ActiveRecord::Base.connection.add_column :categories, :position, :integer
     end
 
+    # Add missing columns to playlists table if they don't exist
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :category_id)
+      puts "Adding category_id to playlists..."
+      ActiveRecord::Base.connection.add_reference :playlists, :category, null: true, foreign_key: true
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :featured)
+      puts "Adding featured to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :featured, :boolean
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :position)
+      puts "Adding position to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :position, :integer
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :track_count)
+      puts "Adding track_count to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :track_count, :integer
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :duration)
+      puts "Adding duration to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :duration, :string
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :cover_image_url)
+      puts "Adding cover_image_url to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :cover_image_url, :string
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :spotify_url)
+      puts "Adding spotify_url to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :spotify_url, :string
+    end
+
+    unless ActiveRecord::Base.connection.column_exists?(:playlists, :description)
+      puts "Adding description to playlists..."
+      ActiveRecord::Base.connection.add_column :playlists, :description, :text
+    end
+
     # Make category_id nullable if it's not already
     if ActiveRecord::Base.connection.column_exists?(:playlists, :category_id)
       puts "Making category_id nullable..."
