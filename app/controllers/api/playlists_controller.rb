@@ -1,6 +1,18 @@
 class Api::PlaylistsController < ApplicationController
   protect_from_forgery with: :null_session
   def index
+    # Return ALL playlists when all=true (no pagination)
+    if params[:all].to_s == 'true'
+      scope = Playlist.left_joins(:categories).includes(:categories).distinct.ordered
+      if params[:category_ids].present?
+        ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq
+        scope = Playlist.by_category_ids(ids).includes(:categories).ordered
+      end
+      playlists = scope.to_a
+      render json: { playlists: playlists.map { |p| playlist_json(p) }, has_more: false }
+      return
+    end
+
     per_page = [[params[:per_page].to_i, 1].max, 100].min rescue 30
     per_page = 30 if per_page.zero?
     offset = (params[:offset] || 0).to_i

@@ -323,7 +323,7 @@
         const perPage = 30;
         const url = this.currentCategory 
           ? `/api/categories/${this.currentCategory}/playlists?offset=${this.currentOffset}&per_page=${perPage}`
-          : `/api/playlists?offset=${this.currentOffset}&per_page=${perPage}`;
+          : `/api/playlists?${this.currentOffset === 0 ? 'all=true' : 'offset='+this.currentOffset+'&per_page='+perPage}`;
           
         const response = await fetch(url);
         const data = await response.json();
@@ -334,7 +334,7 @@
           });
           
           this.currentOffset += data.playlists.length;
-          this.hasMore = data.has_more;
+          this.hasMore = data.has_more; // will be false when all=true
         } else {
           this.hasMore = false;
         }
