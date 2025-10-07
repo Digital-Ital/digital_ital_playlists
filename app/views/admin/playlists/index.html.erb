@@ -42,7 +42,10 @@
                 <% if playlist.categories.any? %>
                   <div class="flex flex-wrap gap-1">
                     <% playlist.categories.each do |category| %>
-                      <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs"><%= category.name %></span>
+                      <span class="px-2 py-1 rounded text-xs text-white border" 
+                            style="background-color: <%= category.color || '#FDE68A' %>; border-color: <%= category.color || '#FDE68A' %>;">
+                        <%= category.name %>
+                      </span>
                     <% end %>
                   </div>
                 <% else %>
