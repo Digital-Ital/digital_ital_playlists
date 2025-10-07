@@ -387,7 +387,7 @@
                      data-is-root=\"${category.is_root}\"
                       onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')\" ` +
                       (!category.is_root ? `style=\\"` +
-                        (category.color ? `color:${category.color}; border-color:${category.color}; background-color:${category.color}22;` : `color:#FDE68A; border-color:#FDE68A55; background-color:#FDE68A22;`) +
+                        (category.color ? `color:${category.color}; border-color:${category.color}; background: linear-gradient(135deg, ${category.color}22, ${category.color}11);` : `color:#FDE68A; border-color:#FDE68A55; background: linear-gradient(135deg, #FDE68A22, #FDE68A11);`) +
                       `\\"` : '') +
                     `>`
                       + (category.is_root ? category.name : '↳ ' + category.name) +
