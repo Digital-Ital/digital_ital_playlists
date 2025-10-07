@@ -25,19 +25,18 @@
           <tr class="border-b border-gray-600">
             <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
             <th class="text-left p-3 text-yellow-400 font-semibold">Categories</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Tracks</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Duration</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Position</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Featured</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Spotify</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">#</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Pos</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">⭐</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">🔗</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold"></th>
           </tr>
         </thead>
         <tbody>
           <% @playlists.each do |playlist| %>
             <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
-              <td class="p-3 font-medium max-w-xs">
-                <div class="truncate" title="<%= playlist.title %>"><%= playlist.title %></div>
+              <td class="p-3 font-medium">
+                <div class="max-w-md"><%= playlist.title %></div>
               </td>
               <td class="p-3">
                 <% if playlist.categories.any? %>
@@ -50,26 +49,25 @@
                   <span class="text-gray-400 italic">Uncategorized</span>
                 <% end %>
               </td>
-              <td class="p-3 text-gray-300"><%= playlist.track_count || 0 %></td>
-              <td class="p-3 text-gray-300 text-sm"><%= playlist.duration || '-' %></td>
-              <td class="p-3 text-gray-300"><%= playlist.position || '-' %></td>
-              <td class="p-3">
+              <td class="p-3 text-gray-300 text-sm"><%= playlist.track_count || 0 %></td>
+              <td class="p-3 text-gray-300 text-sm"><%= playlist.position || '-' %></td>
+              <td class="p-3 text-center">
                 <% if playlist.featured? %>
-                  <span class="px-2 py-1 bg-yellow-500/30 text-yellow-300 rounded text-xs font-semibold">⭐ Featured</span>
+                  <span class="text-yellow-400" title="Featured">⭐</span>
                 <% else %>
                   <span class="text-gray-500">-</span>
                 <% end %>
               </td>
-              <td class="p-3">
+              <td class="p-3 text-center">
                 <% if playlist.spotify_url.present? %>
                   <%= link_to '🔗', playlist.spotify_url, target: '_blank', class: 'text-green-400 hover:text-green-300', title: 'Open in Spotify' %>
                 <% else %>
                   <span class="text-gray-500">-</span>
                 <% end %>
               </td>
-              <td class="p-3 space-x-2">
-                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300 underline' %>
-                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300 underline' %>
+              <td class="p-3 text-center space-x-2">
+                <%= link_to '✏️', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300', title: 'Edit' %>
+                <%= link_to '🗑️', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300', title: 'Delete' %>
               </td>
             </tr>
           <% end %>
@@ -88,40 +86,38 @@
           <thead>
             <tr class="border-b border-gray-600">
               <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Tracks</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Duration</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Position</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Featured</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Spotify</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">#</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Pos</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">⭐</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">🔗</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold"></th>
             </tr>
           </thead>
           <tbody>
             <% @uncategorized.each do |playlist| %>
               <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
-                <td class="p-3 font-medium max-w-xs">
-                  <div class="truncate" title="<%= playlist.title %>"><%= playlist.title %></div>
+                <td class="p-3 font-medium">
+                  <div class="max-w-md"><%= playlist.title %></div>
                 </td>
-                <td class="p-3 text-gray-300"><%= playlist.track_count || 0 %></td>
-                <td class="p-3 text-gray-300 text-sm"><%= playlist.duration || '-' %></td>
-                <td class="p-3 text-gray-300"><%= playlist.position || '-' %></td>
-                <td class="p-3">
+                <td class="p-3 text-gray-300 text-sm"><%= playlist.track_count || 0 %></td>
+                <td class="p-3 text-gray-300 text-sm"><%= playlist.position || '-' %></td>
+                <td class="p-3 text-center">
                   <% if playlist.featured? %>
-                    <span class="px-2 py-1 bg-yellow-500/30 text-yellow-300 rounded text-xs font-semibold">⭐ Featured</span>
+                    <span class="text-yellow-400" title="Featured">⭐</span>
                   <% else %>
                     <span class="text-gray-500">-</span>
                   <% end %>
                 </td>
-                <td class="p-3">
+                <td class="p-3 text-center">
                   <% if playlist.spotify_url.present? %>
                     <%= link_to '🔗', playlist.spotify_url, target: '_blank', class: 'text-green-400 hover:text-green-300', title: 'Open in Spotify' %>
                   <% else %>
                     <span class="text-gray-500">-</span>
                   <% end %>
                 </td>
-                <td class="p-3 space-x-2">
-                  <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300 underline' %>
-                  <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300 underline' %>
+                <td class="p-3 text-center space-x-2">
+                  <%= link_to '✏️', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300', title: 'Edit' %>
+                  <%= link_to '🗑️', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300', title: 'Delete' %>
                 </td>
               </tr>
             <% end %>
