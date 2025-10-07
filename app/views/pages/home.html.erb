@@ -316,6 +316,43 @@
       });
     }
     
+    selectCategory(categoryId, categoryName, categoryColor) {
+      // Update active button
+      document.querySelectorAll('.category-btn').forEach(b => {
+        b.classList.remove('border-yellow-400', 'text-yellow-400', 'active');
+        if (b.classList.contains('parent-category')) {
+          b.style.borderColor = b.dataset.categoryColor;
+          b.style.color = b.dataset.categoryColor;
+        } else if (b.classList.contains('child-category')) {
+          b.style.borderColor = b.dataset.categoryColor;
+          b.style.color = b.dataset.categoryColor;
+        } else {
+          b.classList.add('border-gray-600', 'text-gray-300');
+        }
+      });
+      
+      // Highlight the selected category button
+      const targetButton = document.querySelector(`[data-category-id="${categoryId}"]`);
+      if (targetButton) {
+        targetButton.classList.add('border-yellow-400', 'text-yellow-400', 'active');
+        targetButton.style.borderColor = '#D4AF37';
+        targetButton.style.color = '#D4AF37';
+      }
+      
+      // Show "Show All" button
+      const showAllContainer = document.getElementById('show-all-container');
+      showAllContainer.style.display = 'block';
+      
+      // Reset and load playlists for this category
+      this.currentCategory = categoryId;
+      this.currentOffset = 0;
+      this.hasMore = true;
+      this.container.innerHTML = '';
+      this.endOfContent.classList.add('hidden');
+      
+      this.loadPlaylists();
+    }
+    
     async loadPlaylists() {
       if (this.isLoading) return;
       
@@ -381,7 +418,13 @@
             <span>${playlist.track_count} tracks</span>
             <div class="flex flex-wrap gap-1">
               ${playlist.categories.map(category => 
-                `<span class="px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs">${category.name}</span>`
+                `<button class="category-tag-btn px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs hover:bg-yellow-400/30 hover:text-yellow-300 transition-colors duration-200" 
+                 data-category-id="${category.id}" 
+                 data-category-name="${category.name}"
+                 data-category-color="${category.color}"
+                 onclick="event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')">
+                   ${category.name}
+                 </button>`
               ).join('')}
             </div>
           </div>
@@ -394,7 +437,7 @@
   
   // Initialize when DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    new PlaylistLoader();
+    window.playlistLoader = new PlaylistLoader();
   });
 </script>
 
