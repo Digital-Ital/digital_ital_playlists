@@ -28,6 +28,13 @@ module.exports = {
     'from-green-700/80', 'to-fuchsia-600/80',
     'hover:from-green-600/90', 'hover:to-fuchsia-500/90',
 
+    // Political (anarcho-communism + green variant)
+    'from-black/80', 'via-red-700/80', 'to-red-600/80',
+    'hover:from-black/80', 'hover:via-red-600/90', 'hover:to-red-500/90',
+
+    'from-black/80', 'via-emerald-700/80', 'to-red-700/80',
+    'hover:from-black/80', 'hover:via-emerald-600/90', 'hover:to-red-600/90',
+
     // Generic grays used as fallbacks
     'from-gray-700/80', 'to-gray-600/80',
     'hover:from-gray-600/90', 'hover:to-gray-500/90'
