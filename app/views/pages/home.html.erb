@@ -428,8 +428,8 @@
     // Find which family node contains the selected button
     const selectedBtn = document.querySelector(`[data-category-id="${selectedId}"]`);
     if (!selectedBtn) return;
-    const familyNode = selectedBtn.closest('[id^="family-'][id$='-node']');
-    const allFamilies = document.querySelectorAll('[id^="family-'][id$='-node']');
+    const familyNode = selectedBtn.closest('[id^="family-"][id$="-node"]');
+    const allFamilies = document.querySelectorAll('[id^="family-"][id$="-node"]');
     allFamilies.forEach(node => {
       if (familyNode && node !== familyNode) {
         node.style.display = 'none';
@@ -453,7 +453,7 @@
       const btn = showAllContainer.querySelector('button');
       if (btn) {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('[id^="family-'][id$='-node']').forEach(node => {
+          document.querySelectorAll('[id^="family-"][id$="-node"]').forEach(node => {
             node.style.display = 'block';
           });
         });
