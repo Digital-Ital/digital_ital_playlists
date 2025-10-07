@@ -104,13 +104,13 @@
                   <% if family_has_children %>
                     <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
                   <% end %>
-                  <button class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
-                          data-category-id="<%= family.id %>"
-                          data-category-name="<%= family.name %>"
-                          data-category-color="<%= family.color %>"
-                          onclick="event.stopPropagation(); toggleTreeSection('family-<%= family.id %>'); showOnlyFamilyByChildCategory(<%= family.id %>);">
+                  <a href="<%= category_path(family.slug) %>" class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
+                     data-category-id="<%= family.id %>"
+                     data-category-name="<%= family.name %>"
+                     data-category-color="<%= family.color %>"
+                     onclick="event.stopPropagation(); toggleTreeSection('family-<%= family.id %>'); showOnlyFamilyByChildCategory(<%= family.id %>);">
                     <%= family.family_emoji || '🎵' %> <%= family.name.upcase %> <%= family.family_emoji || '🎵' %>
-                  </button>
+                  </a>
                   <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
                     <%= family.playlists.count %> playlists / <%= family.playlists.sum(:track_count) %> tracks
                   </span>
