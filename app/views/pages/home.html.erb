@@ -362,7 +362,7 @@
                      data-category-color=\"${category.color}\"
                      data-category-slug=\"${category.slug}\"
                      data-is-root=\"${category.is_root}\"
-                      onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}'); updateUrl('${category.slug}')\">`
+                      onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}'); showOnlyFamilyByChildCategory(${category.id}); updateUrl('${category.slug}')\">`
                       + (category.is_root ? category.name : '↳ ' + category.name) +
                     `</button>`
                   ).join('')}
