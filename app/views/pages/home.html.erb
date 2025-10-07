@@ -336,8 +336,8 @@
           this.currentOffset += data.playlists.length;
           this.hasMore = data.has_more; // will be false when all=true
           
-          // Update total site count if this is the first load or all playlists
-          if (this.currentOffset === data.playlists.length || !this.hasMore) {
+          // Update total site count ONLY on initial load of all playlists (no category selected)
+          if (!this.currentCategory && this.currentOffset === data.playlists.length && !this.hasMore) {
             this.totalPlaylistsOnSite = data.playlists.length;
           }
         } else {
