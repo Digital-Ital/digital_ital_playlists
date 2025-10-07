@@ -192,7 +192,7 @@
       this.currentCategory = null;
       this.isLoading = false;
       this.hasMore = true;
-      this.totalPlaylists = 0;
+      this.totalPlaylistsOnSite = 0;
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
@@ -292,8 +292,7 @@
         });
       }
       
-      // Reset total count when switching categories
-      this.totalPlaylists = 0;
+      // Keep total site count - don't reset when switching categories
       
       // Hide counters while loading new category
       this.counterTop.classList.add('hidden');
@@ -337,13 +336,12 @@
           this.currentOffset += data.playlists.length;
           this.hasMore = data.has_more; // will be false when all=true
           
-          // Update total count if this is the first load or all playlists
+          // Update total site count if this is the first load or all playlists
           if (this.currentOffset === data.playlists.length || !this.hasMore) {
-            this.totalPlaylists = data.playlists.length;
+            this.totalPlaylistsOnSite = data.playlists.length;
           }
         } else {
           this.hasMore = false;
-          this.totalPlaylists = 0;
         }
         
         // Update counters
@@ -427,7 +425,7 @@
     
     updateCounters() {
       const currentCount = this.container.children.length;
-      const totalCount = this.totalPlaylists || currentCount;
+      const totalCount = this.totalPlaylistsOnSite || currentCount;
       
       // Update counter text
       document.getElementById('current-count-top').textContent = currentCount;
