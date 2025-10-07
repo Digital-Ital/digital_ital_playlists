@@ -307,22 +307,24 @@
       
       playlistElement.innerHTML = `
         <div class="relative overflow-hidden rounded-2xl bg-gray-900 p-4 hover:shadow-xl transition">
-          <div class="flex gap-4 items-start">
-            ${playlist.cover_image_url ? 
-              `<img src="${playlist.cover_image_url}" alt="${playlist.title}" class="w-40 h-40 object-cover rounded-xl flex-shrink-0">` :
-              `<div class=\"w-40 h-40 bg-gray-800 rounded-xl flex-shrink-0 flex items-center justify-center\"><div class=\"text-3xl\">🎵</div></div>`
-            }
-            <div class="flex-1">
-              <h4 class="text-2xl font-semibold text-white mb-2">
+          <div class="flex flex-col md:flex-row gap-4 items-start">
+            <div class="w-full md:w-40 flex justify-center md:justify-start">
+              ${playlist.cover_image_url ? 
+                `<img src="${playlist.cover_image_url}" alt="${playlist.title}" class="w-40 h-40 object-cover rounded-xl flex-shrink-0">` :
+                `<div class=\"w-40 h-40 bg-gray-800 rounded-xl flex-shrink-0 flex items-center justify-center\"><div class=\"text-3xl\">🎵</div></div>`
+              }
+            </div>
+            <div class="flex-1 w-full md:w-auto">
+              <h4 class="text-2xl font-semibold text-white mb-2 text-center md:text-left">
                 ${playlist.title}
               </h4>
-              ${playlist.description ? `<p class=\"text-gray-300 text-sm mb-3\">${playlist.description}</p>` : ''}
-              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-3">
+              ${playlist.description ? `<p class=\"text-gray-300 text-sm mb-3 text-center md:text-left\">${playlist.description}</p>` : ''}
+              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-3 justify-center md:justify-start">
                 <span>${playlist.track_count} tracks</span>
                 ${playlist.duration ? `<span>• ${playlist.duration}</span>` : ''}
                 <button class="px-3 py-1 rounded-md bg-green-500 text-black font-semibold hover:bg-green-400" onclick="event.stopPropagation(); window.open('${playlist.spotify_url}','_blank')">Open on Spotify</button>
               </div>
-              <div class="flex flex-wrap gap-2 items-start">
+              <div class="flex flex-wrap gap-2 items-start justify-center md:justify-start">
                 ${playlist.categories
                   .sort((a, b) => {
                     if (a.is_root && !b.is_root) return -1;
