@@ -13,9 +13,9 @@
       <!-- Header -->
       <div class="text-center mb-16">
         <h1 class="text-6xl md:text-8xl font-bold mb-6">
-          <span class="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 bg-clip-text text-transparent">
-            Digital Ital's
-          </span>
+          <a href="/" class="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 bg-clip-text text-transparent hover:from-yellow-300 hover:via-red-400 hover:to-green-400 transition-all duration-300">
+            Digital Ital Crates
+          </a>
         </h1>
         <h2 class="text-2xl md:text-4xl font-light text-gray-300 mb-4">
           <%= @category.name %>
@@ -28,60 +28,18 @@
         </div>
       </div>
       
-      <!-- Featured Playlists -->
-      <% if @featured_playlists.any? %>
-        <div class="mb-20">
-          <h3 class="text-3xl font-semibold text-center mb-12 text-gray-200">
-            Featured Selections
-          </h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <% @featured_playlists.each do |playlist| %>
-              <div class="group cursor-pointer" onclick="window.open('<%= playlist.spotify_url %>', '_blank')">
-                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-6 transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl group-hover:shadow-yellow-500/20">
-                  <!-- Vinyl Record Effect -->
-                  <div class="absolute top-4 right-4 w-12 h-12 rounded-full border-4 border-yellow-400 opacity-20"></div>
-                  <div class="absolute top-6 right-6 w-8 h-8 rounded-full bg-gray-800"></div>
-                  
-                  <% if playlist.cover_image_url.present? %>
-                    <img src="<%= playlist.cover_image_url %>" alt="<%= playlist.title %>" class="w-full h-48 object-cover rounded-xl mb-4">
-                  <% else %>
-                    <div class="w-full h-48 bg-gradient-to-br from-yellow-400/20 to-red-500/20 rounded-xl mb-4 flex items-center justify-center">
-                      <div class="text-4xl">🎵</div>
-                    </div>
-                  <% end %>
-                  
-                  <h4 class="text-xl font-semibold text-white mb-2 line-clamp-2">
-                    <%= playlist.title %>
-                  </h4>
-                  <p class="text-gray-400 text-sm mb-3 line-clamp-2">
-                    <%= playlist.description %>
-                  </p>
-                  <div class="flex items-center justify-between text-sm text-gray-500">
-                    <span><%= playlist.track_count %> tracks</span>
-                    <div class="flex flex-wrap gap-1">
-                      <% playlist.categories.each do |category| %>
-                        <span class="px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs">
-                          <%= category.name %>
-                        </span>
-                      <% end %>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
     </div>
   </section>
 
   <!-- Categories Navigation -->
   <section class="py-8">
     <div class="container mx-auto px-6 max-w-4xl">
-      <h2 class="text-3xl font-bold text-center text-white mb-4">
-        🎵 Explore by Category 🎵
+      <h2 class="text-4xl md:text-5xl font-bold text-center text-white mb-6 drop-shadow-lg">
+        <span class="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 bg-clip-text text-transparent">
+          🎵 Explore by Category 🎵
+        </span>
       </h2>
-      <p class="text-center text-yellow-400 mb-6 font-semibold text-lg animate-pulse">
+      <p class="text-center text-yellow-300 mb-8 font-bold text-xl animate-pulse drop-shadow-md">
         👇 Click to expand and discover more playlists 👇
       </p>
       

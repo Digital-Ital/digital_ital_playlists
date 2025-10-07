@@ -1,7 +1,6 @@
 class CategoriesController < ApplicationController
   def show
     @category = Category.find_by!(slug: params[:id])
-    @featured_playlists = Playlist.featured.ordered.limit(4)
     @main_families = Category.main_families.includes(children: :children)
     
     # For the tree view - we'll highlight this category
