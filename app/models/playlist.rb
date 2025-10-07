@@ -1,5 +1,5 @@
 class Playlist < ApplicationRecord
-  belongs_to :category, optional: true
+  has_and_belongs_to_many :categories
 
   validates :title, presence: true
   validates :spotify_url, presence: true, format: { with: URI.regexp(%w[http https]) }
@@ -7,7 +7,8 @@ class Playlist < ApplicationRecord
 
   scope :featured, -> { where(featured: true) }
   scope :ordered, -> { order(:position, :title) }
-  scope :by_category, ->(category) { where(category: category) }
+  scope :by_category, ->(category) { joins(:categories).where(categories: { id: category.id }) }
+  scope :by_category_ids, ->(category_ids) { joins(:categories).where(categories: { id: category_ids }).distinct if category_ids.present? }
 
   def duration_formatted
     return duration if duration.present?

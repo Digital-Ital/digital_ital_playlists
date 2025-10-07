@@ -3,8 +3,8 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def index
     @categories = Category.ordered
-    @playlists = Playlist.includes(:category).ordered
-    @uncategorized = Playlist.where(category_id: nil).ordered
+    @playlists = Playlist.includes(:categories).ordered
+    @uncategorized = Playlist.left_joins(:categories).where(categories: { id: nil }).ordered
   end
 
   def new
@@ -12,8 +12,9 @@ class Admin::PlaylistsController < Admin::BaseController
   end
 
   def create
-    @playlist = Playlist.new(playlist_params)
+    @playlist = Playlist.new(playlist_params.except(:category_ids))
     if @playlist.save
+      @playlist.category_ids = playlist_params[:category_ids] if playlist_params[:category_ids].present?
       redirect_to admin_playlists_path, notice: "Playlist created."
     else
       render :new, status: :unprocessable_entity
@@ -23,7 +24,8 @@ class Admin::PlaylistsController < Admin::BaseController
   def edit; end
 
   def update
-    if @playlist.update(playlist_params)
+    if @playlist.update(playlist_params.except(:category_ids))
+      @playlist.category_ids = playlist_params[:category_ids] if playlist_params[:category_ids].present?
       redirect_to admin_playlists_path, notice: "Playlist updated."
     else
       render :edit, status: :unprocessable_entity
@@ -58,6 +60,6 @@ class Admin::PlaylistsController < Admin::BaseController
   end
 
   def playlist_params
-    params.require(:playlist).permit(:title, :description, :cover_image_url, :spotify_url, :track_count, :duration, :category_id, :featured, :position)
+    params.require(:playlist).permit(:title, :description, :cover_image_url, :spotify_url, :track_count, :duration, :featured, :position, category_ids: [])
   end
 end

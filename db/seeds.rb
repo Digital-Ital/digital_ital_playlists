@@ -1,6 +1,7 @@
 # Digital Ital's List of Playlists - Hierarchical Categories
 
 # Clear existing data
+PlaylistCategory.destroy_all if defined?(PlaylistCategory)
 Category.destroy_all
 Playlist.destroy_all
 
@@ -83,10 +84,9 @@ playlists_data.each do |playlist_data|
   category = Category.find_by(name: playlist_data[:category])
   next unless category
 
-  Playlist.create!(
+  playlist = Playlist.create!(
     title: playlist_data[:title],
     description: playlist_data[:description],
-    category: category,
     track_count: playlist_data[:track_count],
     duration: playlist_data[:duration],
     featured: playlist_data[:featured],
@@ -94,6 +94,73 @@ playlists_data.each do |playlist_data|
     cover_image_url: "https://i.scdn.co/image/ab67706f00000002f1b2b9b8b8b8b8b8b8b8b8b8",
     position: rand(1..100)
   )
+
+  # Associate playlist with category using many-to-many relationship
+  playlist.categories << category
+end
+
+# Create Multi-Category Playlists for testing many-to-many relationships
+multi_category_playlists = [
+  {
+    title: "Dub Revolution: Political Dub Classics",
+    description: "Dub music with a message - where deep bass meets deep thoughts. Political dub that speaks truth to power.",
+    categories: ["Dubwise Reggae", "Reggae Political Crates"],
+    track_count: 18,
+    duration: "1h 32m",
+    featured: true
+  },
+  {
+    title: "Rap & Herb: Lyrical Cannabis Vibes",
+    description: "Where lyrical mastery meets herb culture. Complex flows celebrating the sacred plant.",
+    categories: ["Lyrical Hip-Hop Explorations", "Rap Cannabis Crates"],
+    track_count: 16,
+    duration: "1h 25m",
+    featured: false
+  },
+  {
+    title: "Revolutionary Sound System: Political Rap-Reggae Fusion",
+    description: "The perfect fusion of political rap and reggae. Fast flows over revolutionary riddims.",
+    categories: ["Rap-Reggae", "Reggae Political Crates", "Rap Political Crates"],
+    track_count: 22,
+    duration: "1h 45m",
+    featured: true
+  },
+  {
+    title: "Vinyl Vault Classics: Rare Political & Cannabis Gems",
+    description: "Deep cuts from the crates - rare political and cannabis tracks that never made it mainstream.",
+    categories: ["Reggae Period Crates", "Rap Period Crates", "Other Political Crates", "Other Cannabis Crates"],
+    track_count: 24,
+    duration: "1h 58m",
+    featured: false
+  },
+  {
+    title: "Green Revolution: Cannabis-Inspired Political Music",
+    description: "Where the herb meets the message. Cannabis-inspired tracks with political consciousness.",
+    categories: ["Political Songs", "Cannabis Songs"],
+    track_count: 20,
+    duration: "1h 38m",
+    featured: false
+  }
+]
+
+# Create Multi-Category Playlists
+multi_category_playlists.each do |playlist_data|
+  playlist = Playlist.create!(
+    title: playlist_data[:title],
+    description: playlist_data[:description],
+    track_count: playlist_data[:track_count],
+    duration: playlist_data[:duration],
+    featured: playlist_data[:featured],
+    spotify_url: "https://open.spotify.com/playlist/37i9dQZF1DX186v583rmzp",
+    cover_image_url: "https://i.scdn.co/image/ab67706f00000002f1b2b9b8b8b8b8b8b8b8b8b8",
+    position: rand(1..100)
+  )
+
+  # Associate playlist with multiple categories
+  playlist_data[:categories].each do |category_name|
+    category = Category.find_by(name: category_name)
+    playlist.categories << category if category
+  end
 end
 
 puts "✅ Created #{Category.count} categories"

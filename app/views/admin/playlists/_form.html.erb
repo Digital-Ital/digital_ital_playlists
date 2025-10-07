@@ -28,10 +28,15 @@
       <%= f.text_field :duration, placeholder: 'e.g., 1h 45m', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
     </div>
   </div>
-  <div class="grid grid-cols-2 gap-4 items-center">
+  <div class="grid grid-cols-2 gap-4 items-start">
     <div>
-      <%= f.label :category_id, 'Category', class: 'block text-gray-300 mb-1' %>
-      <%= f.collection_select :category_id, Category.ordered, :id, :name, include_blank: 'Uncategorized', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      <%= f.label :category_ids, 'Categories', class: 'block text-gray-300 mb-1' %>
+      <%= f.collection_check_boxes :category_ids, Category.ordered, :id, :name do |b| %>
+        <div class="flex items-center gap-2 mb-1">
+          <%= b.check_box(class: 'rounded') %>
+          <%= b.label(class: 'text-gray-300') %>
+        </div>
+      <% end %>
     </div>
     <div class="flex items-center gap-2 mt-6">
       <%= f.check_box :featured %>

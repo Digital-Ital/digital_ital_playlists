@@ -30,7 +30,6 @@ namespace :db do
         t.string :spotify_url
         t.integer :track_count
         t.string :duration
-        t.references :category, null: true, foreign_key: true
         t.boolean :featured
         t.integer :position
 
@@ -38,6 +37,20 @@ namespace :db do
       end
     else
       puts "Playlists table already exists"
+    end
+
+    # Create playlist_categories join table if it doesn't exist
+    unless ActiveRecord::Base.connection.table_exists?(:playlist_categories)
+      puts "Creating playlist_categories join table..."
+      ActiveRecord::Base.connection.create_table :playlist_categories do |t|
+        t.references :playlist, null: false, foreign_key: true
+        t.references :category, null: false, foreign_key: true
+
+        t.timestamps
+      end
+      ActiveRecord::Base.connection.add_index :playlist_categories, [:playlist_id, :category_id], unique: true
+    else
+      puts "Playlist_categories table already exists"
     end
 
     # Add parent_id to categories if it doesn't exist
@@ -53,11 +66,6 @@ namespace :db do
     end
 
     # Add missing columns to playlists table if they don't exist
-    unless ActiveRecord::Base.connection.column_exists?(:playlists, :category_id)
-      puts "Adding category_id to playlists..."
-      ActiveRecord::Base.connection.add_reference :playlists, :category, null: true, foreign_key: true
-    end
-
     unless ActiveRecord::Base.connection.column_exists?(:playlists, :featured)
       puts "Adding featured to playlists..."
       ActiveRecord::Base.connection.add_column :playlists, :featured, :boolean
@@ -91,12 +99,6 @@ namespace :db do
     unless ActiveRecord::Base.connection.column_exists?(:playlists, :description)
       puts "Adding description to playlists..."
       ActiveRecord::Base.connection.add_column :playlists, :description, :text
-    end
-
-    # Make category_id nullable if it's not already
-    if ActiveRecord::Base.connection.column_exists?(:playlists, :category_id)
-      puts "Making category_id nullable..."
-      ActiveRecord::Base.connection.change_column_null :playlists, :category_id, true
     end
 
     puts "Database setup complete!"
