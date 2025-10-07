@@ -380,15 +380,13 @@
                     return a.name.localeCompare(b.name);
                   })
                   .map(category => 
-                    `<button class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 ${category.is_root ? 'bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-gray-100 border border-gray-600 hover:from-gray-700/90 hover:to-gray-600/90 font-semibold shadow-lg' : 'border'}\"
+                    `<button class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 ${category.is_root ? 'bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-gray-100 border border-gray-600 hover:from-gray-700/90 hover:to-gray-600/90 font-semibold shadow-lg' : ''}\"
                      data-category-id=\"${category.id}\" 
                      data-category-name=\"${category.name}\"
                      data-category-color=\"${category.color}\"
                      data-is-root=\"${category.is_root}\"
                       onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')\" ` +
-                      (!category.is_root ? `style=\\"` +
-                        (category.color ? `background-color:${category.color}; color:white; border-color:${category.color};` : `background-color:#FDE68A; color:black; border-color:#FDE68A;`) +
-                      `\\"` : '') +
+                      (!category.is_root ? `style=\\"background-color:${category.color || '#FDE68A'} !important; color:${category.color ? 'white' : 'black'} !important; border: 1px solid ${category.color || '#FDE68A'} !important;\\"` : '') +
                     `>`
                       + (category.is_root ? category.name : '↳ ' + category.name) +
                     `</button>`
