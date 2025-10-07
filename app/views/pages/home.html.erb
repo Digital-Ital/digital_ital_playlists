@@ -148,6 +148,15 @@
   <!-- Infinite Scroll Playlists -->
   <section id="playlists-section" class="py-16">
     <div class="container mx-auto px-6">
+      <!-- Playlist Counter - Top -->
+      <div id="playlist-counter-top" class="text-center mb-8 hidden">
+        <div class="inline-block bg-gray-800/80 rounded-full px-6 py-3 border border-gray-600">
+          <span class="text-yellow-400 font-bold text-lg">
+            <span id="current-count-top">0</span> / <span id="total-count-top">0</span> playlists
+          </span>
+        </div>
+      </div>
+      
       <div id="playlists-container" class="grid grid-cols-1 gap-6">
         <!-- Playlists will be loaded here via JavaScript -->
       </div>
@@ -158,6 +167,15 @@
         <p class="text-gray-400 mt-4">Loading more playlists...</p>
       </div>
       
+      <!-- Playlist Counter - Bottom -->
+      <div id="playlist-counter-bottom" class="text-center mt-8 hidden">
+        <div class="inline-block bg-gray-800/80 rounded-full px-6 py-3 border border-gray-600">
+          <span class="text-yellow-400 font-bold text-lg">
+            <span id="current-count-bottom">0</span> / <span id="total-count-bottom">0</span> playlists
+          </span>
+        </div>
+      </div>
+
       <!-- End of Content -->
       <div id="end-of-content" class="text-center py-12 hidden">
         <p class="text-gray-500">You've reached the end of the playlist collection</p>
@@ -174,9 +192,12 @@
       this.currentCategory = null;
       this.isLoading = false;
       this.hasMore = true;
+      this.totalPlaylists = 0;
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
+      this.counterTop = document.getElementById('playlist-counter-top');
+      this.counterBottom = document.getElementById('playlist-counter-bottom');
       
       this.init();
     }
@@ -271,6 +292,13 @@
         });
       }
       
+      // Reset total count when switching categories
+      this.totalPlaylists = 0;
+      
+      // Hide counters while loading new category
+      this.counterTop.classList.add('hidden');
+      this.counterBottom.classList.add('hidden');
+      
       // Scroll to show "Show All Playlists" button and ensure category tree is visible
       setTimeout(() => {
         const showAllContainer = document.getElementById('show-all-container');
@@ -308,9 +336,18 @@
           
           this.currentOffset += data.playlists.length;
           this.hasMore = data.has_more; // will be false when all=true
+          
+          // Update total count if this is the first load or all playlists
+          if (this.currentOffset === data.playlists.length || !this.hasMore) {
+            this.totalPlaylists = data.playlists.length;
+          }
         } else {
           this.hasMore = false;
+          this.totalPlaylists = 0;
         }
+        
+        // Update counters
+        this.updateCounters();
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
@@ -386,6 +423,26 @@
         btn.style.color = text;
         btn.style.border = `1px solid ${bg}`;
       });
+    }
+    
+    updateCounters() {
+      const currentCount = this.container.children.length;
+      const totalCount = this.totalPlaylists || currentCount;
+      
+      // Update counter text
+      document.getElementById('current-count-top').textContent = currentCount;
+      document.getElementById('total-count-top').textContent = totalCount;
+      document.getElementById('current-count-bottom').textContent = currentCount;
+      document.getElementById('total-count-bottom').textContent = totalCount;
+      
+      // Show/hide counters
+      if (currentCount > 0) {
+        this.counterTop.classList.remove('hidden');
+        this.counterBottom.classList.remove('hidden');
+      } else {
+        this.counterTop.classList.add('hidden');
+        this.counterBottom.classList.add('hidden');
+      }
     }
   }
   
