@@ -385,9 +385,7 @@
                      data-category-name=\"${category.name}\"
                      data-category-color=\"${category.color}\"
                      data-is-root=\"${category.is_root}\"
-                      onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')\" ` +
-                      (!category.is_root ? `style=\\"background-color:${category.color || '#FDE68A'} !important; color:${category.color ? 'white' : 'black'} !important; border: 1px solid ${category.color || '#FDE68A'} !important;\\"` : '') +
-                    `>`
+                      onclick=\"event.stopPropagation(); window.playlistLoader.selectCategory(${category.id}, '${category.name}', '${category.color}')\">`
                       + (category.is_root ? category.name : '↳ ' + category.name) +
                     `</button>`
                   ).join('')}
@@ -398,6 +396,19 @@
       `;
       
       this.container.appendChild(playlistElement);
+
+      // Style non-root category tags after insertion for reliable rendering
+      const tagButtons = playlistElement.querySelectorAll('.category-tag-btn');
+      tagButtons.forEach(btn => {
+        const isRoot = btn.dataset.isRoot === 'true';
+        if (isRoot) return;
+        const hex = (btn.dataset.categoryColor || '').trim();
+        const bg = isValidHex(hex) ? hex : '#FDE68A';
+        const text = getReadableTextColor(bg);
+        btn.style.backgroundColor = bg;
+        btn.style.color = text;
+        btn.style.border = `1px solid ${bg}`;
+      });
     }
   }
   
@@ -464,6 +475,31 @@
       }
     }
   });
+
+  // --- Color utilities ---
+  function isValidHex(hex) {
+    return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
+  }
+
+  function hexToRgb(hex) {
+    let h = hex.replace('#', '');
+    if (h.length === 3) {
+      h = h.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(h, 16);
+    return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+  }
+
+  function getReadableTextColor(hexBg) {
+    const { r, g, b } = hexToRgb(hexBg);
+    const toLinear = (v) => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    const R = toLinear(r), G = toLinear(g), B = toLinear(b);
+    const luminance = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+    return luminance > 0.5 ? '#111111' : '#FFFFFF';
+  }
 </script>
 
 <style>
