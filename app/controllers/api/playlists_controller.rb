@@ -18,7 +18,16 @@ class Api::PlaylistsController < ApplicationController
     begin
       @category = Category.find(params[:id])
       ids = [ @category.id ] + @category.descendant_ids
-      @playlists = Playlist.by_category_ids(ids).ordered.limit(20).offset(params[:offset] || 0)
+      # Ensure playlists appear if they belong to ANY of the selected categories,
+      # even when they are assigned to multiple categories across branches.
+      @playlists = Playlist
+        .joins(:categories)
+        .where(playlist_categories: { category_id: ids })
+        .includes(:categories)
+        .distinct
+        .ordered
+        .limit(20)
+        .offset((params[:offset] || 0).to_i)
 
       render json: {
         category: {

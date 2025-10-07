@@ -8,7 +8,14 @@ class Playlist < ApplicationRecord
   scope :featured, -> { where(featured: true) }
   scope :ordered, -> { order(:position, :title) }
   scope :by_category, ->(category) { joins(:categories).where(categories: { id: category.id }) }
-  scope :by_category_ids, ->(category_ids) { joins(:categories).where(categories: { id: category_ids }).distinct if category_ids.present? }
+  # Return playlists that belong to ANY of the given category_ids (OR semantics)
+  scope :by_category_ids, ->(category_ids) do
+    if category_ids.present?
+      joins(:categories)
+        .where(playlist_categories: { category_id: category_ids })
+        .distinct
+    end
+  end
 
   def duration_formatted
     return duration if duration.present?
