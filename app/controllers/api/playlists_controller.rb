@@ -1,4 +1,5 @@
 class Api::PlaylistsController < ApplicationController
+  protect_from_forgery with: :null_session
   def index
     @playlists = Playlist.includes(:categories).ordered.distinct
     if params[:category_ids].present?
@@ -14,20 +15,24 @@ class Api::PlaylistsController < ApplicationController
   end
 
   def by_category
-    @category = Category.find(params[:id])
-    ids = [ @category.id ] + @category.descendant_ids
-    @playlists = Playlist.by_category_ids(ids).ordered.limit(20).offset(params[:offset] || 0)
+    begin
+      @category = Category.find(params[:id])
+      ids = [ @category.id ] + @category.descendant_ids
+      @playlists = Playlist.by_category_ids(ids).ordered.limit(20).offset(params[:offset] || 0)
 
-    render json: {
-      category: {
-        id: @category.id,
-        name: @category.name,
-        slug: @category.slug,
-        color: @category.color
-      },
-      playlists: @playlists.map { |playlist| playlist_json(playlist) },
-      has_more: @playlists.count == 20
-    }
+      render json: {
+        category: {
+          id: @category.id,
+          name: @category.name,
+          slug: @category.slug,
+          color: @category.color
+        },
+        playlists: @playlists.map { |playlist| playlist_json(playlist) },
+        has_more: @playlists.count == 20
+      }
+    rescue ActiveRecord::RecordNotFound
+      render json: { error: "Category not found" }, status: :not_found
+    end
   end
 
   private

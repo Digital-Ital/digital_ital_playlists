@@ -3,8 +3,8 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def index
     @categories = Category.ordered
-    @playlists = Playlist.includes(:categories).ordered
-    @uncategorized = Playlist.left_joins(:categories).where(categories: { id: nil }).ordered
+    @playlists = Playlist.includes(:categories).ordered.page(params[:page]).per(20)
+    @uncategorized = Playlist.left_joins(:categories).where(categories: { id: nil }).ordered.page(params[:page]).per(10)
   end
 
   def new

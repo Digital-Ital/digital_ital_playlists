@@ -6,5 +6,6 @@ class Admin::DashboardController < Admin::BaseController
     @featured_count = Playlist.where(featured: true).count
     @root_categories = Category.where(parent_id: nil).count
     @subcategories = Category.where.not(parent_id: nil).count
+    @recent_playlists = Playlist.includes(:categories).order(created_at: :desc).limit(5)
   end
 end

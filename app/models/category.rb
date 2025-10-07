@@ -5,8 +5,10 @@ class Category < ApplicationRecord
 
   validates :name, presence: true, uniqueness: true
   validates :slug, presence: true, uniqueness: true
+  validates :position, uniqueness: { scope: :parent_id }, allow_nil: true
 
-  before_validation :generate_slug, on: :create
+  before_validation :generate_slug, on: [:create, :update]
+  before_destroy :check_for_children
 
   scope :ordered, -> { order(:position, :name) }
 
@@ -29,5 +31,12 @@ class Category < ApplicationRecord
 
   def generate_slug
     self.slug = name.parameterize if name.present?
+  end
+
+  def check_for_children
+    if children.exists?
+      errors.add(:base, "Cannot delete category with subcategories. Please delete or move subcategories first.")
+      throw(:abort)
+    end
   end
 end

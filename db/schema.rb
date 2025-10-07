@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_25_210707) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_07_021529) do
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.string "slug"
@@ -21,6 +21,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_25_210707) do
     t.integer "position"
     t.integer "parent_id"
     t.index ["parent_id"], name: "index_categories_on_parent_id"
+  end
+
+  create_table "playlist_categories", force: :cascade do |t|
+    t.integer "playlist_id", null: false
+    t.integer "category_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_playlist_categories_on_category_id"
+    t.index ["playlist_id", "category_id"], name: "index_playlist_categories_on_playlist_id_and_category_id", unique: true
+    t.index ["playlist_id"], name: "index_playlist_categories_on_playlist_id"
   end
 
   create_table "playlists", force: :cascade do |t|
@@ -39,5 +49,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_25_210707) do
   end
 
   add_foreign_key "categories", "categories", column: "parent_id"
-  add_foreign_key "playlists", "categories"
+  add_foreign_key "playlist_categories", "categories"
+  add_foreign_key "playlist_categories", "playlists"
 end

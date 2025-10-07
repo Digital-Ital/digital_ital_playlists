@@ -2,7 +2,7 @@ class Playlist < ApplicationRecord
   has_and_belongs_to_many :categories, join_table: :playlist_categories
 
   validates :title, presence: true
-  validates :spotify_url, presence: true, format: { with: URI.regexp(%w[http https]) }
+  validates :spotify_url, presence: true, uniqueness: true, format: { with: URI.regexp(%w[http https]) }
   validates :track_count, presence: true, numericality: { greater_than: 0 }
 
   scope :featured, -> { where(featured: true) }
