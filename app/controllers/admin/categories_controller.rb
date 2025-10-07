@@ -1,5 +1,5 @@
 class Admin::CategoriesController < Admin::BaseController
-  before_action :set_category, only: [:edit, :update, :destroy]
+  before_action :set_category, only: [ :edit, :update, :destroy ]
 
   def index
     @categories = Category.ordered
@@ -12,7 +12,7 @@ class Admin::CategoriesController < Admin::BaseController
   def create
     @category = Category.new(category_params)
     if @category.save
-      redirect_to admin_categories_path, notice: 'Category created.'
+      redirect_to admin_categories_path, notice: "Category created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -22,7 +22,7 @@ class Admin::CategoriesController < Admin::BaseController
 
   def update
     if @category.update(category_params)
-      redirect_to admin_categories_path, notice: 'Category updated.'
+      redirect_to admin_categories_path, notice: "Category updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -30,7 +30,7 @@ class Admin::CategoriesController < Admin::BaseController
 
   def destroy
     @category.destroy
-    redirect_to admin_categories_path, notice: 'Category deleted.'
+    redirect_to admin_categories_path, notice: "Category deleted."
   end
 
   private
@@ -43,5 +43,3 @@ class Admin::CategoriesController < Admin::BaseController
     params.require(:category).permit(:name, :slug, :description, :color, :position)
   end
 end
-
-

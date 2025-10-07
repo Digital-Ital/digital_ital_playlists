@@ -2,7 +2,7 @@ namespace :db do
   desc "Setup database tables safely"
   task setup_safe: :environment do
     puts "Setting up database safely..."
-    
+
     # Create categories table if it doesn't exist
     unless ActiveRecord::Base.connection.table_exists?(:categories)
       puts "Creating categories table..."

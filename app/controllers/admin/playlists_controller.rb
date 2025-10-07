@@ -1,5 +1,5 @@
 class Admin::PlaylistsController < Admin::BaseController
-  before_action :set_playlist, only: [:edit, :update, :destroy]
+  before_action :set_playlist, only: [ :edit, :update, :destroy ]
 
   def index
     @categories = Category.ordered
@@ -14,7 +14,7 @@ class Admin::PlaylistsController < Admin::BaseController
   def create
     @playlist = Playlist.new(playlist_params)
     if @playlist.save
-      redirect_to admin_playlists_path, notice: 'Playlist created.'
+      redirect_to admin_playlists_path, notice: "Playlist created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -24,7 +24,7 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def update
     if @playlist.update(playlist_params)
-      redirect_to admin_playlists_path, notice: 'Playlist updated.'
+      redirect_to admin_playlists_path, notice: "Playlist updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -32,13 +32,13 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def destroy
     @playlist.destroy
-    redirect_to admin_playlists_path, notice: 'Playlist deleted.'
+    redirect_to admin_playlists_path, notice: "Playlist deleted."
   end
 
   # POST /admin/playlists/import_spotify
   def import_spotify
     url = params[:spotify_url]
-    if ENV['SPOTIFY_CLIENT_ID'].present? && ENV['SPOTIFY_CLIENT_SECRET'].present?
+    if ENV["SPOTIFY_CLIENT_ID"].present? && ENV["SPOTIFY_CLIENT_SECRET"].present?
       importer = Spotify::PlaylistImporter.new(url)
       data = importer.call
       render json: data
@@ -61,5 +61,3 @@ class Admin::PlaylistsController < Admin::BaseController
     params.require(:playlist).permit(:title, :description, :cover_image_url, :spotify_url, :track_count, :duration, :category_id, :featured, :position)
   end
 end
-
-
