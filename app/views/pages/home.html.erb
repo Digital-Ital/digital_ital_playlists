@@ -97,14 +97,14 @@
       <% if @main_families.any? %>
         <div class="space-y-4">
           <% @main_families.each do |family| %>
-            <div class="tree-node">
+            <div class="tree-node" id="family-<%= family.id %>-node" data-family-id="<%= family.id %>">
               <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" onclick="toggleTreeSection('family-<%= family.id %>')">
                 <div class="flex items-center gap-3">
                   <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
                   <button class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
                           data-category-id="<%= family.id %>"
                           data-category-color="<%= family.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= family.id %>, '<%= j family.name %>', '<%= family.color %>')">
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= family.id %>, '<%= j family.name %>', '<%= family.color %>'); expandFamily(<%= family.id %>); showOnlyFamilyByChildCategory(<%= family.id %>);">
                     <%= family.family_emoji || '🎵' %> <%= family.name.upcase %> <%= family.family_emoji || '🎵' %>
                   </button>
                   <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
@@ -122,7 +122,7 @@
                         <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
                                 data-category-id="<%= root_category.id %>"
                                 data-category-color="<%= root_category.color %>"
-                                onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= root_category.id %>, '<%= root_category.name %>', '<%= root_category.color %>')">
+                                onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= root_category.id %>, '<%= root_category.name %>', '<%= root_category.color %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>);">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
                         </button>
                         <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
@@ -134,7 +134,7 @@
                           <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
                                   data-category-id="<%= child.id %>"
                                   data-category-color="<%= child.color %>"
-                                  onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
+                                  onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>'); showOnlyFamilyByChildCategory(<%= child.id %>);">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
                           </button>
                           <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
@@ -412,10 +412,53 @@
       }
     }
   }
+
+  // Expand the family content programmatically
+  function expandFamily(familyId) {
+    const content = document.getElementById('family-' + familyId + '-content');
+    const arrow = document.getElementById('family-' + familyId + '-arrow');
+    if (content && content.classList.contains('hidden')) {
+      content.classList.remove('hidden');
+      if (arrow) arrow.style.transform = 'rotate(90deg)';
+    }
+  }
+
+  // Hide all other families and show only the one containing the selected category/family
+  function showOnlyFamilyByChildCategory(selectedId) {
+    // Find which family node contains the selected button
+    const selectedBtn = document.querySelector(`[data-category-id="${selectedId}"]`);
+    if (!selectedBtn) return;
+    const familyNode = selectedBtn.closest('[id^="family-'][id$='-node']');
+    const allFamilies = document.querySelectorAll('[id^="family-'][id$='-node']');
+    allFamilies.forEach(node => {
+      if (familyNode && node !== familyNode) {
+        node.style.display = 'none';
+      } else {
+        node.style.display = 'block';
+      }
+    });
+
+    // Ensure Show All appears
+    const showAllContainer = document.getElementById('show-all-container');
+    if (showAllContainer) showAllContainer.style.display = 'block';
+  }
   
   // Initialize when DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
     window.playlistLoader = new PlaylistLoader();
+
+    // Hook up Show All to restore visibility of all families
+    const showAllContainer = document.getElementById('show-all-container');
+    if (showAllContainer) {
+      const btn = showAllContainer.querySelector('button');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('[id^="family-'][id$='-node']').forEach(node => {
+            node.style.display = 'block';
+          });
+        });
+      }
+    }
   });
 </script>
 
