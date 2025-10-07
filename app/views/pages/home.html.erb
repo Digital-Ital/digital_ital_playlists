@@ -98,9 +98,12 @@
         <div class="space-y-4">
           <% @main_families.each do |family| %>
             <div class="tree-node" id="family-<%= family.id %>-node" data-family-id="<%= family.id %>">
-              <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" onclick="toggleTreeSection('family-<%= family.id %>')">
+              <% family_has_children = family.children.any? %>
+              <div class="tree-header <%= family_has_children ? 'cursor-pointer' : '' %> flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" <%= family_has_children ? "onclick=\"toggleTreeSection('family-#{family.id}')\"" : '' %>>
                 <div class="flex items-center gap-3">
-                  <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
+                  <% if family_has_children %>
+                    <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
+                  <% end %>
                   <button class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
                           data-category-id="<%= family.id %>"
                           data-category-color="<%= family.color %>"
@@ -116,9 +119,12 @@
                 <!-- Family Root Categories -->
                 <% family.children.each do |root_category| %>
                   <div class="tree-node">
-                    <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30" onclick="toggleTreeSection('root-<%= root_category.id %>')">
+                    <% root_has_children = root_category.children.any? %>
+                    <div class="tree-header <%= root_has_children ? 'cursor-pointer' : '' %> flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30" <%= root_has_children ? "onclick=\"toggleTreeSection('root-#{root_category.id}')\"" : '' %>>
                       <div class="flex items-center gap-2">
-                        <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
+                        <% if root_has_children %>
+                          <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
+                        <% end %>
                         <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
                                 data-category-id="<%= root_category.id %>"
                                 data-category-color="<%= root_category.color %>"
