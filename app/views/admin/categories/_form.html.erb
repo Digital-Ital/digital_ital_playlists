@@ -14,9 +14,10 @@
     <div>
       <%= f.label :parent_id, 'Parent Category', class: 'block text-white mb-2 font-semibold' %>
       <%= f.select :parent_id, 
-          options_from_collection_for_select(Category.where(parent_id: nil).order(:name), :id, :name, @category.parent_id), 
-          { prompt: 'Select a parent category (leave blank for root category)' }, 
-          { class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' } %>
+          options_from_collection_for_select(Category.where(parent_id: nil).where.not(id: @category.id).order(:name), :id, :name, @category.parent_id), 
+          { prompt: 'Leave blank for a root category (top-level family or root group)' }, 
+          { id: 'category_parent_id', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' } %>
+      <p class="text-gray-400 text-xs mt-1">Root categories appear at the top level. Children appear inside their parent branch.</p>
     </div>
     
     <div>
@@ -28,15 +29,17 @@
       <div>
         <%= f.label :color, class: 'block text-white mb-2 font-semibold' %>
         <%= f.text_field :color, placeholder: '#D4AF37', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+        <p class="text-gray-400 text-xs mt-1">Hex color for tags and badges (e.g., #4ECDC4).</p>
       </div>
-      <div>
-        <%= f.label :position, class: 'block text-white mb-2 font-semibold' %>
-        <%= f.number_field :position, class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+      <div id="position-field">
+        <%= f.label :position, 'Position (order within the same parent)', class: 'block text-white mb-2 font-semibold' %>
+        <%= f.number_field :position, placeholder: '1', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+        <p class="text-gray-400 text-xs mt-1">Used to order siblings inside the same branch. Not used for root categories.</p>
       </div>
     </div>
 
     <!-- Display/Family Configuration -->
-    <div class="mt-6 p-4 rounded-lg border border-gray-700 bg-gray-800/60">
+    <div id="family-settings" class="mt-6 p-4 rounded-lg border border-gray-700 bg-gray-800/60">
       <h4 class="text-white font-semibold mb-3">Family & Display Settings</h4>
       <p class="text-gray-400 text-sm mb-4">Use these to style root families (e.g., Reggae Branch, Hip-Hop) and control ordering. Leave blank for regular subcategories.</p>
 
@@ -44,13 +47,14 @@
         <div>
           <%= f.label :is_main_family, 'Is Main Family?', class: 'block text-white mb-2 font-semibold' %>
           <div class="flex items-center gap-3">
-            <%= f.check_box :is_main_family, class: 'w-5 h-5 accent-yellow-500' %>
-            <span class="text-gray-400 text-sm">Check for top-level families you want featured on the home page tree.</span>
+            <%= f.check_box :is_main_family, id: 'category_is_main_family', class: 'w-5 h-5 accent-yellow-500' %>
+            <span class="text-gray-400 text-sm">Top-level family highlighted on the home page (e.g., Reggae Branch).</span>
           </div>
         </div>
         <div>
-          <%= f.label :display_order, 'Display Order', class: 'block text-white mb-2 font-semibold' %>
+          <%= f.label :display_order, 'Display Order (order among top-level families)', class: 'block text-white mb-2 font-semibold' %>
           <%= f.number_field :display_order, placeholder: '1', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+          <p class="text-gray-400 text-xs mt-1">Controls ordering between root families (1 shows first).</p>
         </div>
       </div>
 
@@ -73,6 +77,28 @@
         <p class="text-gray-400 text-xs mt-1">Gradient for family header. Example (Reggae): <code class='text-yellow-400'>from-green-600/80 to-yellow-600/80</code>. Example (Hip-Hop): <code class='text-yellow-400'>from-red-600/80 to-orange-600/80</code>.</p>
       </div>
     </div>
+
+    <script>
+      // Toggle fields: show family settings for root categories; show position for children
+      (function() {
+        function updateVisibility() {
+          var parentSelect = document.getElementById('category_parent_id');
+          var familySettings = document.getElementById('family-settings');
+          var positionField = document.getElementById('position-field');
+          if (!parentSelect || !familySettings || !positionField) return;
+
+          var isRoot = !parentSelect.value; // blank means root
+          familySettings.style.display = isRoot ? 'block' : 'none';
+          positionField.style.display = isRoot ? 'none' : 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', updateVisibility);
+        document.addEventListener('turbo:load', updateVisibility);
+        document.addEventListener('turbo:render', updateVisibility);
+        var parentSelect = document.getElementById('category_parent_id');
+        if (parentSelect) parentSelect.addEventListener('change', updateVisibility);
+      })();
+    </script>
     
     <div class="flex gap-4 pt-4">
       <%= f.submit class: 'px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold' %>
