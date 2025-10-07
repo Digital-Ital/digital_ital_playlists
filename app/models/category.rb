@@ -10,9 +10,11 @@ class Category < ApplicationRecord
   before_validation :generate_slug, on: [:create, :update]
   before_destroy :check_for_children
 
-  scope :ordered, -> { order(:position, :name) }
+  scope :ordered, -> { order(:display_order, :position, :name) }
 
   scope :roots, -> { where(parent_id: nil).ordered }
+  
+  scope :main_families, -> { where(is_main_family: true).ordered }
 
   def descendant_ids
     ids = []

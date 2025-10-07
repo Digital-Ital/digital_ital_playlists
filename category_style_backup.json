@@ -1,0 +1,75 @@
+{
+  "current_hardcoded_styles": {
+    "reggae_family": {
+      "emoji": "🌴",
+      "family_name": "REGGAE FAMILY",
+      "root_emoji": "🎶",
+      "root_name": "Reggae",
+      "gradient": "from-green-600/80 to-yellow-600/80",
+      "hover_gradient": "from-green-500/90 to-yellow-500/90",
+      "border_color": "border-yellow-400/50",
+      "left_border": "border-green-500/50",
+      "sub_bg": "bg-green-900/30",
+      "sub_hover": "bg-green-800/50",
+      "sub_border": "border-green-700/30",
+      "sub_text": "text-green-200",
+      "sub_text_hover": "text-yellow-400"
+    },
+    "hiphop_family": {
+      "emoji": "🎤",
+      "family_name": "HIP-HOP FAMILY", 
+      "root_emoji": "🎧",
+      "root_name": "Hip-Hop",
+      "gradient": "from-red-600/80 to-orange-600/80",
+      "hover_gradient": "from-red-500/90 to-orange-500/90",
+      "border_color": "border-yellow-400/50",
+      "left_border": "border-red-500/50",
+      "sub_bg": "bg-red-900/30",
+      "sub_hover": "bg-red-800/50",
+      "sub_border": "border-red-700/30",
+      "sub_text": "text-red-200",
+      "sub_text_hover": "text-yellow-400"
+    },
+    "cross_family": {
+      "emoji": "🔗",
+      "family_name": "CROSS-FAMILY CONNECTIONS",
+      "gradient": "from-purple-600/80 to-pink-600/80",
+      "hover_gradient": "from-purple-500/90 to-pink-500/90",
+      "border_color": "border-yellow-400/50",
+      "left_border": "border-purple-500/50"
+    },
+    "political_songs": {
+      "emoji": "✊",
+      "name": "Political Songs",
+      "gradient": "from-purple-700/60 to-purple-600/60",
+      "hover_gradient": "from-purple-600/70 to-purple-500/70",
+      "border": "border-purple-400/30",
+      "sub_bg": "bg-purple-900/30",
+      "sub_hover": "bg-purple-800/50",
+      "sub_border": "border-purple-700/30",
+      "sub_text": "text-purple-200",
+      "sub_text_hover": "text-yellow-400"
+    },
+    "cannabis_songs": {
+      "emoji": "🌿",
+      "name": "Cannabis Songs",
+      "gradient": "from-green-700/60 to-lime-600/60",
+      "hover_gradient": "from-green-600/70 to-lime-500/70",
+      "border": "border-lime-400/30",
+      "sub_bg": "bg-lime-900/30",
+      "sub_hover": "bg-lime-800/50",
+      "sub_border": "border-lime-700/30",
+      "sub_text": "text-lime-200",
+      "sub_text_hover": "text-yellow-400"
+    }
+  },
+  "common_elements": {
+    "tree_arrow": "text-yellow-300",
+    "main_title": "text-white drop-shadow-lg",
+    "stats_badge": "bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50",
+    "root_button": "text-white hover:text-yellow-300",
+    "sub_stats": "bg-black/30 rounded text-xs font-bold",
+    "show_all_button": "bg-gradient-to-r from-yellow-500 to-yellow-600 text-black",
+    "instruction_text": "text-yellow-400 animate-pulse"
+  }
+}
