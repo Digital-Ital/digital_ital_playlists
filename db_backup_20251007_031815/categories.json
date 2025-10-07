@@ -1,0 +1,130 @@
+[
+  {
+    "name": "Reggae",
+    "slug": "reggae",
+    "description": "Roots, rock, reggae - the foundation of sound",
+    "color": "#4ECDC4",
+    "position": 1,
+    "parent_name": null
+  },
+  {
+    "name": "Hip-Hop",
+    "slug": "hip-hop",
+    "description": "Lyrical mastery and beats that move the soul",
+    "color": "#FF6B6B",
+    "position": 2,
+    "parent_name": null
+  },
+  {
+    "name": "Political Songs",
+    "slug": "political-songs",
+    "description": "Music with a message, songs for change",
+    "color": "#DDA0DD",
+    "position": 3,
+    "parent_name": null
+  },
+  {
+    "name": "Cannabis Songs",
+    "slug": "cannabis-songs",
+    "description": "Herb-inspired tracks and green vibes",
+    "color": "#98D8C8",
+    "position": 4,
+    "parent_name": null
+  },
+  {
+    "name": "Dubwise Reggae",
+    "slug": "dubwise-reggae",
+    "description": "Echo chambers and bass lines that shake the earth",
+    "color": "#45B7D1",
+    "position": 1,
+    "parent_name": "Reggae"
+  },
+  {
+    "name": "Rock-Reggae",
+    "slug": "rock-reggae",
+    "description": "Where rock meets reggae in perfect harmony",
+    "color": "#96CEB4",
+    "position": 2,
+    "parent_name": "Reggae"
+  },
+  {
+    "name": "Rap-Reggae",
+    "slug": "rap-reggae",
+    "description": "Fast flows over reggae riddims",
+    "color": "#FFEAA7",
+    "position": 3,
+    "parent_name": "Reggae"
+  },
+  {
+    "name": "Reggae Period Crates",
+    "slug": "reggae-period-crates",
+    "description": "Deep cuts and rare finds from the vinyl vault",
+    "color": "#F7DC6F",
+    "position": 4,
+    "parent_name": "Reggae"
+  },
+  {
+    "name": "Rap Period Crates",
+    "slug": "rap-period-crates",
+    "description": "Deep cuts and rare finds from the vinyl vault",
+    "color": "#F7DC6F",
+    "position": 1,
+    "parent_name": "Hip-Hop"
+  },
+  {
+    "name": "Lyrical Hip-Hop Explorations",
+    "slug": "lyrical-hip-hop-explorations",
+    "description": "Lyrical mastery and beats that move the soul",
+    "color": "#FF6B6B",
+    "position": 2,
+    "parent_name": "Hip-Hop"
+  },
+  {
+    "name": "Reggae Political Crates",
+    "slug": "reggae-political-crates",
+    "description": "Reggae with a message, songs for change",
+    "color": "#DDA0DD",
+    "position": 1,
+    "parent_name": "Political Songs"
+  },
+  {
+    "name": "Rap Political Crates",
+    "slug": "rap-political-crates",
+    "description": "Rap with a message, songs for change",
+    "color": "#DDA0DD",
+    "position": 2,
+    "parent_name": "Political Songs"
+  },
+  {
+    "name": "Other Political Crates",
+    "slug": "other-political-crates",
+    "description": "Other political music, songs for change",
+    "color": "#DDA0DD",
+    "position": 3,
+    "parent_name": "Political Songs"
+  },
+  {
+    "name": "Reggae Cannabis Crates",
+    "slug": "reggae-cannabis-crates",
+    "description": "Reggae herb-inspired tracks and green vibes",
+    "color": "#98D8C8",
+    "position": 1,
+    "parent_name": "Cannabis Songs"
+  },
+  {
+    "name": "Rap Cannabis Crates",
+    "slug": "rap-cannabis-crates",
+    "description": "Rap herb-inspired tracks and green vibes",
+    "color": "#98D8C8",
+    "position": 2,
+    "parent_name": "Cannabis Songs"
+  },
+  {
+    "name": "Other Cannabis Crates",
+    "slug": "other-cannabis-crates",
+    "description": "Other herb-inspired tracks and green vibes",
+    "color": "#98D8C8",
+    "position": 3,
+    "parent_name": "Cannabis Songs"
+  }
+]
