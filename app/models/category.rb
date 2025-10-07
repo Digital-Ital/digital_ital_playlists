@@ -10,7 +10,9 @@ class Category < ApplicationRecord
   before_validation :generate_slug, on: [:create, :update]
   before_destroy :check_for_children
 
-  scope :ordered, -> { order(:display_order, :position, :name) }
+  scope :ordered, -> {
+    order(Arel.sql("display_order NULLS LAST, position NULLS LAST, name ASC"))
+  }
 
   scope :roots, -> { where(parent_id: nil).ordered }
   
