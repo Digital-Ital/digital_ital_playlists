@@ -97,13 +97,14 @@
       <div class="space-y-4">
         
         <!-- Reggae Family -->
+        <% reggae_cat = @categories.find { |c| c.name == 'Reggae' } %>
         <div class="tree-node">
           <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-green-600/80 to-yellow-600/80 hover:from-green-500/90 hover:to-yellow-500/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" onclick="toggleTreeSection('reggae-family')">
             <div class="flex items-center gap-3">
               <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="reggae-family-arrow">▶</span>
               <span class="text-xl font-bold text-white drop-shadow-lg">🌴 REGGAE FAMILY 🌴</span>
               <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
-                <%= @categories.find { |c| c.name == 'Reggae' }&.playlists&.count || 0 %> playlists
+                <%= reggae_cat&.playlists&.count || 0 %> playlists / <%= reggae_cat&.playlists&.sum(:track_count) || 0 %> tracks
               </span>
             </div>
           </div>
@@ -114,16 +115,16 @@
                 <div class="flex items-center gap-2">
                   <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="reggae-root-arrow">▶</span>
                   <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                          data-category-id="<%= @categories.find { |c| c.name == 'Reggae' }&.id %>"
-                          data-category-color="<%= @categories.find { |c| c.name == 'Reggae' }&.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Reggae' }&.id %>, 'Reggae', '<%= @categories.find { |c| c.name == 'Reggae' }&.color %>')">
+                          data-category-id="<%= reggae_cat&.id %>"
+                          data-category-color="<%= reggae_cat&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= reggae_cat&.id %>, 'Reggae', '<%= reggae_cat&.color %>')">
                     🎶 Reggae
                   </button>
-                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= @categories.find { |c| c.name == 'Reggae' }&.playlists&.count || 0 %>)</span>
+                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= reggae_cat&.playlists&.count || 0 %> / <%= reggae_cat&.playlists&.sum(:track_count) || 0 %>)</span>
                 </div>
               </div>
               <div class="tree-content hidden ml-6 mt-2 space-y-1" id="reggae-root-content">
-                <% @categories.find { |c| c.name == 'Reggae' }&.children&.each do |child| %>
+                <% reggae_cat&.children&.each do |child| %>
                   <div class="flex items-center gap-2 p-2 rounded-lg bg-green-900/30 hover:bg-green-800/50 transition-colors border border-green-700/30">
                     <button class="category-btn text-green-200 hover:text-yellow-400 transition-colors font-semibold" 
                             data-category-id="<%= child.id %>"
@@ -131,7 +132,7 @@
                             onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
                       ↳ <%= child.name %>
                     </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-green-300">(<%= child.playlists.count %>)</span>
+                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-green-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
                   </div>
                 <% end %>
               </div>
@@ -140,13 +141,14 @@
         </div>
         
         <!-- Hip-Hop Family -->
+        <% hiphop_cat = @categories.find { |c| c.name == 'Hip-Hop' } %>
         <div class="tree-node">
           <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-red-600/80 to-orange-600/80 hover:from-red-500/90 hover:to-orange-500/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" onclick="toggleTreeSection('hiphop-family')">
             <div class="flex items-center gap-3">
               <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="hiphop-family-arrow">▶</span>
               <span class="text-xl font-bold text-white drop-shadow-lg">🎤 HIP-HOP FAMILY 🎤</span>
               <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
-                <%= @categories.find { |c| c.name == 'Hip-Hop' }&.playlists&.count || 0 %> playlists
+                <%= hiphop_cat&.playlists&.count || 0 %> playlists / <%= hiphop_cat&.playlists&.sum(:track_count) || 0 %> tracks
               </span>
             </div>
           </div>
@@ -157,16 +159,16 @@
                 <div class="flex items-center gap-2">
                   <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="hiphop-root-arrow">▶</span>
                   <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                          data-category-id="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>"
-                          data-category-color="<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Hip-Hop' }&.id %>, 'Hip-Hop', '<%= @categories.find { |c| c.name == 'Hip-Hop' }&.color %>')">
+                          data-category-id="<%= hiphop_cat&.id %>"
+                          data-category-color="<%= hiphop_cat&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= hiphop_cat&.id %>, 'Hip-Hop', '<%= hiphop_cat&.color %>')">
                     🎧 Hip-Hop
                   </button>
-                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= @categories.find { |c| c.name == 'Hip-Hop' }&.playlists&.count || 0 %>)</span>
+                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= hiphop_cat&.playlists&.count || 0 %> / <%= hiphop_cat&.playlists&.sum(:track_count) || 0 %>)</span>
                 </div>
               </div>
               <div class="tree-content hidden ml-6 mt-2 space-y-1" id="hiphop-root-content">
-                <% @categories.find { |c| c.name == 'Hip-Hop' }&.children&.each do |child| %>
+                <% hiphop_cat&.children&.each do |child| %>
                   <div class="flex items-center gap-2 p-2 rounded-lg bg-red-900/30 hover:bg-red-800/50 transition-colors border border-red-700/30">
                     <button class="category-btn text-red-200 hover:text-yellow-400 transition-colors font-semibold" 
                             data-category-id="<%= child.id %>"
@@ -174,7 +176,7 @@
                             onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
                       ↳ <%= child.name %>
                     </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-red-300">(<%= child.playlists.count %>)</span>
+                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-red-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
                   </div>
                 <% end %>
               </div>
@@ -183,13 +185,17 @@
         </div>
         
         <!-- Cross-Family Connections -->
+        <% political_cat = @categories.find { |c| c.name == 'Political Songs' } %>
+        <% cannabis_cat = @categories.find { |c| c.name == 'Cannabis Songs' } %>
+        <% cross_playlists = (political_cat&.playlists&.count || 0) + (cannabis_cat&.playlists&.count || 0) %>
+        <% cross_tracks = (political_cat&.playlists&.sum(:track_count) || 0) + (cannabis_cat&.playlists&.sum(:track_count) || 0) %>
         <div class="tree-node">
           <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-500/90 hover:to-pink-500/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" onclick="toggleTreeSection('cross-family')">
             <div class="flex items-center gap-3">
               <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="cross-family-arrow">▶</span>
               <span class="text-xl font-bold text-white drop-shadow-lg">🔗 CROSS-FAMILY CONNECTIONS 🔗</span>
               <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
-                <%= (@categories.find { |c| c.name == 'Political Songs' }&.playlists&.count || 0) + (@categories.find { |c| c.name == 'Cannabis Songs' }&.playlists&.count || 0) %> playlists
+                <%= cross_playlists %> playlists / <%= cross_tracks %> tracks
               </span>
             </div>
           </div>
@@ -201,16 +207,16 @@
                 <div class="flex items-center gap-2">
                   <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="political-root-arrow">▶</span>
                   <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                          data-category-id="<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>"
-                          data-category-color="<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Political Songs' }&.id %>, 'Political Songs', '<%= @categories.find { |c| c.name == 'Political Songs' }&.color %>')">
+                          data-category-id="<%= political_cat&.id %>"
+                          data-category-color="<%= political_cat&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= political_cat&.id %>, 'Political Songs', '<%= political_cat&.color %>')">
                     ✊ Political Songs
                   </button>
-                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= @categories.find { |c| c.name == 'Political Songs' }&.playlists&.count || 0 %>)</span>
+                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= political_cat&.playlists&.count || 0 %> / <%= political_cat&.playlists&.sum(:track_count) || 0 %>)</span>
                 </div>
               </div>
               <div class="tree-content hidden ml-6 mt-2 space-y-1" id="political-root-content">
-                <% @categories.find { |c| c.name == 'Political Songs' }&.children&.each do |child| %>
+                <% political_cat&.children&.each do |child| %>
                   <div class="flex items-center gap-2 p-2 rounded-lg bg-purple-900/30 hover:bg-purple-800/50 transition-colors border border-purple-700/30">
                     <button class="category-btn text-purple-200 hover:text-yellow-400 transition-colors font-semibold" 
                             data-category-id="<%= child.id %>"
@@ -218,7 +224,7 @@
                             onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
                       ↳ <%= child.name %>
                     </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-purple-300">(<%= child.playlists.count %>)</span>
+                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-purple-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
                   </div>
                 <% end %>
               </div>
@@ -230,16 +236,16 @@
                 <div class="flex items-center gap-2">
                   <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="cannabis-root-arrow">▶</span>
                   <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                          data-category-id="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>"
-                          data-category-color="<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.id %>, 'Cannabis Songs', '<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.color %>')">
+                          data-category-id="<%= cannabis_cat&.id %>"
+                          data-category-color="<%= cannabis_cat&.color %>"
+                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= cannabis_cat&.id %>, 'Cannabis Songs', '<%= cannabis_cat&.color %>')">
                     🌿 Cannabis Songs
                   </button>
-                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= @categories.find { |c| c.name == 'Cannabis Songs' }&.playlists&.count || 0 %>)</span>
+                  <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300">(<%= cannabis_cat&.playlists&.count || 0 %> / <%= cannabis_cat&.playlists&.sum(:track_count) || 0 %>)</span>
                 </div>
               </div>
               <div class="tree-content hidden ml-6 mt-2 space-y-1" id="cannabis-root-content">
-                <% @categories.find { |c| c.name == 'Cannabis Songs' }&.children&.each do |child| %>
+                <% cannabis_cat&.children&.each do |child| %>
                   <div class="flex items-center gap-2 p-2 rounded-lg bg-lime-900/30 hover:bg-lime-800/50 transition-colors border border-lime-700/30">
                     <button class="category-btn text-lime-200 hover:text-yellow-400 transition-colors font-semibold" 
                             data-category-id="<%= child.id %>"
@@ -247,7 +253,7 @@
                             onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
                       ↳ <%= child.name %>
                     </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-lime-300">(<%= child.playlists.count %>)</span>
+                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-lime-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
                   </div>
                 <% end %>
               </div>
