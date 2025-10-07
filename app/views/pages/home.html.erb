@@ -261,13 +261,29 @@
       
       this.loadPlaylists();
       
-      // Scroll to top of playlist section when category is selected
-      const playlistsSection = document.getElementById('playlists-section');
-      if (playlistsSection) {
-        setTimeout(() => {
-          playlistsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100); // Small delay to ensure content is loaded
+      // Expand selected category and hide others
+      if (categoryId) {
+        showOnlyFamilyByChildCategory(categoryId);
+      } else {
+        // Show all families if "Show All" is selected
+        document.querySelectorAll('[id^="family-"][id$="-node"]').forEach(node => {
+          node.style.display = 'block';
+        });
       }
+      
+      // Scroll to show "Show All Playlists" button and ensure category tree is visible
+      setTimeout(() => {
+        const showAllContainer = document.getElementById('show-all-container');
+        if (showAllContainer) {
+          showAllContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+          // Fallback to playlists section if show-all button not visible
+          const playlistsSection = document.getElementById('playlists-section');
+          if (playlistsSection) {
+            playlistsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      }, 100);
     }
     
     async loadPlaylists() {
