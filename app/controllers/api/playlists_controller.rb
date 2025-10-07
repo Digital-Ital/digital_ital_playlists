@@ -1,12 +1,13 @@
 class Api::PlaylistsController < ApplicationController
   protect_from_forgery with: :null_session
   def index
-    @playlists = Playlist.includes(:categories).ordered.distinct
+    # Use left_joins to include playlists even if they have no categories
+    @playlists = Playlist.left_joins(:categories).includes(:categories).ordered.distinct
     if params[:category_ids].present?
       ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq
       @playlists = @playlists.by_category_ids(ids)
     end
-    @playlists = @playlists.limit(20).offset(params[:offset] || 0)
+    @playlists = @playlists.limit(20).offset((params[:offset] || 0).to_i)
 
     render json: {
       playlists: @playlists.map { |playlist| playlist_json(playlist) },
