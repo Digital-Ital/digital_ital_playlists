@@ -320,9 +320,10 @@
       this.loadingSpinner.classList.remove('hidden');
       
       try {
+        const perPage = 30;
         const url = this.currentCategory 
-          ? `/api/categories/${this.currentCategory}/playlists?offset=${this.currentOffset}`
-          : `/api/playlists?offset=${this.currentOffset}`;
+          ? `/api/categories/${this.currentCategory}/playlists?offset=${this.currentOffset}&per_page=${perPage}`
+          : `/api/playlists?offset=${this.currentOffset}&per_page=${perPage}`;
           
         const response = await fetch(url);
         const data = await response.json();

@@ -1,17 +1,25 @@
 class Api::PlaylistsController < ApplicationController
   protect_from_forgery with: :null_session
   def index
+    per_page = [[params[:per_page].to_i, 1].max, 100].min rescue 30
+    per_page = 30 if per_page.zero?
+    offset = (params[:offset] || 0).to_i
+
     # Use left_joins to include playlists even if they have no categories
-    @playlists = Playlist.left_joins(:categories).includes(:categories).ordered.distinct
+    scope = Playlist.left_joins(:categories).includes(:categories).distinct
     if params[:category_ids].present?
       ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq
-      @playlists = @playlists.by_category_ids(ids)
+      scope = Playlist.by_category_ids(ids).includes(:categories) # ensures correct join semantics
     end
-    @playlists = @playlists.limit(20).offset((params[:offset] || 0).to_i)
+    scope = scope.ordered
+
+    records = scope.offset(offset).limit(per_page + 1).to_a
+    has_more = records.length > per_page
+    page_records = records.first(per_page)
 
     render json: {
-      playlists: @playlists.map { |playlist| playlist_json(playlist) },
-      has_more: @playlists.count == 20
+      playlists: page_records.map { |playlist| playlist_json(playlist) },
+      has_more: has_more
     }
   end
 
@@ -19,16 +27,20 @@ class Api::PlaylistsController < ApplicationController
     begin
       @category = Category.find(params[:id])
       ids = [ @category.id ] + @category.descendant_ids
-      # Ensure playlists appear if they belong to ANY of the selected categories,
-      # even when they are assigned to multiple categories across branches.
-      @playlists = Playlist
+      per_page = [[params[:per_page].to_i, 1].max, 100].min rescue 20
+      per_page = 20 if per_page.zero?
+      offset = (params[:offset] || 0).to_i
+
+      scope = Playlist
         .joins(:categories)
         .where(playlist_categories: { category_id: ids })
         .includes(:categories)
         .distinct
         .ordered
-        .limit(20)
-        .offset((params[:offset] || 0).to_i)
+
+      records = scope.offset(offset).limit(per_page + 1).to_a
+      has_more = records.length > per_page
+      page_records = records.first(per_page)
 
       render json: {
         category: {
@@ -37,8 +49,8 @@ class Api::PlaylistsController < ApplicationController
           slug: @category.slug,
           color: @category.color
         },
-        playlists: @playlists.map { |playlist| playlist_json(playlist) },
-        has_more: @playlists.count == 20
+        playlists: page_records.map { |playlist| playlist_json(playlist) },
+        has_more: has_more
       }
     rescue ActiveRecord::RecordNotFound
       render json: { error: "Category not found" }, status: :not_found
