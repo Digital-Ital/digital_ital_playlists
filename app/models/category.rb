@@ -16,10 +16,10 @@ class Category < ApplicationRecord
 
   scope :roots, -> { where(parent_id: nil).ordered }
   
-  # For main families, sort strictly by display_order (then name). Ensures 1,2,3... order.
+  # For main families, sort by display_order if present, else fall back to position; then name.
   scope :main_families, -> {
     where(is_main_family: true)
-      .order(Arel.sql("display_order NULLS LAST, name ASC"))
+      .order(Arel.sql("COALESCE(display_order, position) NULLS LAST, name ASC"))
   }
 
   def descendant_ids
