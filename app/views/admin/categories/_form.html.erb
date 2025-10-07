@@ -34,6 +34,45 @@
         <%= f.number_field :position, class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
       </div>
     </div>
+
+    <!-- Display/Family Configuration -->
+    <div class="mt-6 p-4 rounded-lg border border-gray-700 bg-gray-800/60">
+      <h4 class="text-white font-semibold mb-3">Family & Display Settings</h4>
+      <p class="text-gray-400 text-sm mb-4">Use these to style root families (e.g., Reggae Branch, Hip-Hop) and control ordering. Leave blank for regular subcategories.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :is_main_family, 'Is Main Family?', class: 'block text-white mb-2 font-semibold' %>
+          <div class="flex items-center gap-3">
+            <%= f.check_box :is_main_family, class: 'w-5 h-5 accent-yellow-500' %>
+            <span class="text-gray-400 text-sm">Check for top-level families you want featured on the home page tree.</span>
+          </div>
+        </div>
+        <div>
+          <%= f.label :display_order, 'Display Order', class: 'block text-white mb-2 font-semibold' %>
+          <%= f.number_field :display_order, placeholder: '1', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div>
+          <%= f.label :emoji, 'Emoji (for this category)', class: 'block text-white mb-2 font-semibold' %>
+          <%= f.text_field :emoji, placeholder: '🎶', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+          <p class="text-gray-400 text-xs mt-1">Shown before the category name (optional).</p>
+        </div>
+        <div>
+          <%= f.label :family_emoji, 'Family Emoji (for main families)', class: 'block text-white mb-2 font-semibold' %>
+          <%= f.text_field :family_emoji, placeholder: '🌴', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+          <p class="text-gray-400 text-xs mt-1">Used in the large family header. Example: 🌴 for Reggae.</p>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <%= f.label :family_color, 'Family Gradient (Tailwind classes)', class: 'block text-white mb-2 font-semibold' %>
+        <%= f.text_field :family_color, placeholder: 'from-green-600/80 to-yellow-600/80', class: 'w-full p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none' %>
+        <p class="text-gray-400 text-xs mt-1">Gradient for family header. Example (Reggae): <code class='text-yellow-400'>from-green-600/80 to-yellow-600/80</code>. Example (Hip-Hop): <code class='text-yellow-400'>from-red-600/80 to-orange-600/80</code>.</p>
+      </div>
+    </div>
     
     <div class="flex gap-4 pt-4">
       <%= f.submit class: 'px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold' %>
