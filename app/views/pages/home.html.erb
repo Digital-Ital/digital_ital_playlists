@@ -117,7 +117,7 @@
               </div>
               <div class="tree-content hidden ml-6 mt-3 space-y-2 border-l-4 border-yellow-500/50 pl-4" id="family-<%= family.id %>-content">
                 <!-- Family Root Categories -->
-                <% family.children.each do |root_category| %>
+                <% family.children.order(:position, :name).each do |root_category| %>
                   <div class="tree-node">
                     <% root_has_children = root_category.children.any? %>
                     <div class="tree-header <%= root_has_children ? 'cursor-pointer' : '' %> flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30" <%= root_has_children ? "onclick=\"toggleTreeSection('root-#{root_category.id}')\"" : '' %>>
@@ -135,7 +135,7 @@
                       </div>
                     </div>
                     <div class="tree-content hidden ml-6 mt-2 space-y-1" id="root-<%= root_category.id %>-content">
-                      <% root_category.children.each do |child| %>
+                      <% root_category.children.order(:position, :name).each do |child| %>
                         <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-900/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30">
                           <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
                                   data-category-id="<%= child.id %>"
