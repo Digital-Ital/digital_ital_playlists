@@ -1,9 +1,11 @@
 # Digital Ital's List of Playlists - Hierarchical Categories
 
-# Clear existing data
-PlaylistCategory.destroy_all if defined?(PlaylistCategory)
-Category.destroy_all
+# Clear existing data in the correct order to avoid foreign key constraints
+if defined?(PlaylistCategory)
+  ActiveRecord::Base.connection.execute("DELETE FROM playlist_categories")
+end
 Playlist.destroy_all
+Category.destroy_all
 
 # Create hierarchical categories
 reggae = Category.create!(name: "Reggae", color: "#4ECDC4", position: 1, description: "Roots, rock, reggae - the foundation of sound")

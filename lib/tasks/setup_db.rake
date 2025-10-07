@@ -65,11 +65,18 @@ namespace :db do
       ActiveRecord::Base.connection.add_column :categories, :position, :integer
     end
 
-    # Add missing columns to playlists table if they don't exist
-    unless ActiveRecord::Base.connection.column_exists?(:playlists, :featured)
-      puts "Adding featured to playlists..."
-      ActiveRecord::Base.connection.add_column :playlists, :featured, :boolean
-    end
+        # Remove old category_id column if it exists (from previous belongs_to relationship)
+        if ActiveRecord::Base.connection.column_exists?(:playlists, :category_id)
+          puts "Removing old category_id column from playlists..."
+          ActiveRecord::Base.connection.remove_foreign_key :playlists, :categories if ActiveRecord::Base.connection.foreign_key_exists?(:playlists, :categories)
+          ActiveRecord::Base.connection.remove_column :playlists, :category_id
+        end
+
+        # Add missing columns to playlists table if they don't exist
+        unless ActiveRecord::Base.connection.column_exists?(:playlists, :featured)
+          puts "Adding featured to playlists..."
+          ActiveRecord::Base.connection.add_column :playlists, :featured, :boolean
+        end
 
     unless ActiveRecord::Base.connection.column_exists?(:playlists, :position)
       puts "Adding position to playlists..."
