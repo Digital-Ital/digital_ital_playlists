@@ -2,35 +2,42 @@
   <div>
     <%= f.label :title, class: 'block text-gray-300 mb-1' %>
     <%= f.text_field :title, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    <p class="text-gray-400 text-xs mt-1">Auto-filled from Spotify, but you can edit.</p>
   </div>
   <div>
     <%= f.label :description, class: 'block text-gray-300 mb-1' %>
     <%= f.text_area :description, rows: 4, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    <p class="text-gray-400 text-xs mt-1">Short summary for the landing page card.</p>
   </div>
   <div>
     <%= f.label :cover_image_url, class: 'block text-gray-300 mb-1' %>
     <%= f.text_field :cover_image_url, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    <p class="text-gray-400 text-xs mt-1">Auto-filled thumbnail; replace with a custom image if you prefer.</p>
   </div>
   <div>
-    <%= f.label :spotify_url, class: 'block text-gray-300 mb-1' %>
+    <%= f.label :spotify_url, 'Spotify Playlist URL', class: 'block text-gray-300 mb-1' %>
     <div class="flex gap-2">
-      <%= f.text_field :spotify_url, id: 'playlist_spotify_url', class: 'flex-1 p-2 bg-gray-800 text-white rounded' %>
-      <button type="button" onclick="return autofillFromSpotify()" class="px-3 py-2 bg-green-500 text-black rounded">Auto-fill</button>
+      <%= f.text_field :spotify_url, id: 'playlist_spotify_url', placeholder: 'https://open.spotify.com/playlist/...', class: 'flex-1 p-2 bg-gray-800 text-white rounded' %>
+      <button type="button" onclick="return autofillFromSpotify()" class="px-3 py-2 bg-green-500 text-black rounded">Import from Spotify</button>
     </div>
+    <p class="text-gray-400 text-xs mt-1">We’ll fetch title, image, track count, and duration. You can still edit everything.</p>
   </div>
   <div class="grid grid-cols-2 gap-4">
     <div>
       <%= f.label :track_count, class: 'block text-gray-300 mb-1' %>
       <%= f.number_field :track_count, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      <p class="text-gray-400 text-xs mt-1">Auto-filled. Keep it accurate so stats display correctly.</p>
     </div>
     <div>
       <%= f.label :duration, class: 'block text-gray-300 mb-1' %>
       <%= f.text_field :duration, placeholder: 'e.g., 1h 45m', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      <p class="text-gray-400 text-xs mt-1">Optional. If blank, we show the track count.</p>
     </div>
   </div>
   <div class="grid grid-cols-2 gap-4 items-start">
     <div>
       <%= f.label :category_ids, 'Categories', class: 'block text-gray-300 mb-1' %>
+      <p class="text-gray-400 text-xs mb-2">Select one or more. You can assign to multiple branches and subcategories.</p>
       <%= f.collection_check_boxes :category_ids, Category.ordered, :id, :name do |b| %>
         <div class="flex items-center gap-2 mb-1">
           <%= b.check_box(class: 'rounded') %>
@@ -46,6 +53,7 @@
   <div>
     <%= f.label :position, class: 'block text-gray-300 mb-1' %>
     <%= f.number_field :position, class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+    <p class="text-gray-400 text-xs mt-1">Ordering hint for how playlists appear within a category.</p>
   </div>
   <div>
     <%= f.submit class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
