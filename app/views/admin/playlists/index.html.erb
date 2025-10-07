@@ -1,47 +1,51 @@
-<div class="container mx-auto px-6 py-10">
+<div class="container mx-auto px-6 py-10 bg-black/50 rounded-xl backdrop-blur-sm">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-200">Playlists</h1>
+    <h1 class="text-2xl font-semibold text-white">Playlists Admin</h1>
     <div class="space-x-2">
-      <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg' %>
+      <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
     </div>
   </div>
 
-  <div class="bg-gray-900 rounded-xl p-4 mb-8">
-    <h2 class="text-xl text-gray-200 mb-4">Import from Spotify URL</h2>
+  <div class="bg-gray-900/80 rounded-xl p-6 mb-8 border border-gray-700">
+    <h2 class="text-xl text-white mb-4">Import from Spotify URL</h2>
     <form id="spotify-import-form" class="flex gap-2" onsubmit="return importSpotify(event)">
-      <input id="spotify_url" name="spotify_url" class="flex-1 p-2 bg-gray-800 text-white rounded" placeholder="https://open.spotify.com/playlist/..." required />
-      <button class="px-4 py-2 bg-green-500 text-black rounded-lg">Import</button>
+      <input id="spotify_url" name="spotify_url" class="flex-1 p-3 bg-gray-800 text-white rounded border border-gray-600 focus:border-yellow-500 focus:outline-none" placeholder="https://open.spotify.com/playlist/..." required />
+      <button class="px-6 py-3 bg-green-500 text-black rounded-lg hover:bg-green-400 transition-colors font-semibold">Import</button>
     </form>
-    <div id="spotify-import-result" class="mt-4 text-gray-300"></div>
+    <div id="spotify-import-result" class="mt-4 text-white"></div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-    <div>
-      <h2 class="text-xl text-gray-200 mb-2">All Playlists</h2>
-      <table class="min-w-full text-gray-300">
+    <div class="bg-gray-900/60 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-xl text-white mb-4">All Playlists</h2>
+      <table class="min-w-full text-white">
         <thead>
-          <tr>
-            <th class="text-left p-2">Title</th>
-            <th class="text-left p-2">Categories</th>
-            <th class="text-left p-2">Tracks</th>
-            <th class="text-left p-2">Actions</th>
+          <tr class="border-b border-gray-600">
+            <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Categories</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Tracks</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @playlists.each do |playlist| %>
-            <tr class="border-t border-gray-800">
-              <td class="p-2"><%= playlist.title %></td>
-              <td class="p-2">
+            <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+              <td class="p-3 font-medium"><%= playlist.title %></td>
+              <td class="p-3">
                 <% if playlist.categories.any? %>
-                  <%= playlist.categories.map(&:name).join(', ') %>
+                  <div class="flex flex-wrap gap-1">
+                    <% playlist.categories.each do |category| %>
+                      <span class="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded text-xs"><%= category.name %></span>
+                    <% end %>
+                  </div>
                 <% else %>
-                  <span class="text-gray-500">Uncategorized</span>
+                  <span class="text-gray-400 italic">Uncategorized</span>
                 <% end %>
               </td>
-              <td class="p-2"><%= playlist.track_count %></td>
-              <td class="p-2 space-x-2">
-                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'underline' %>
-                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'underline text-red-400' %>
+              <td class="p-3 text-gray-300"><%= playlist.track_count %></td>
+              <td class="p-3 space-x-2">
+                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300 underline' %>
+                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300 underline' %>
               </td>
             </tr>
           <% end %>
@@ -49,22 +53,22 @@
       </table>
     </div>
 
-    <div>
-      <h2 class="text-xl text-gray-200 mb-2">Uncategorized</h2>
-      <table class="min-w-full text-gray-300">
+    <div class="bg-gray-900/60 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-xl text-white mb-4">Uncategorized</h2>
+      <table class="min-w-full text-white">
         <thead>
-          <tr>
-            <th class="text-left p-2">Title</th>
-            <th class="text-left p-2">Actions</th>
+          <tr class="border-b border-gray-600">
+            <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody>
           <% @uncategorized.each do |playlist| %>
-            <tr class="border-t border-gray-800">
-              <td class="p-2"><%= playlist.title %></td>
-              <td class="p-2 space-x-2">
-                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'underline' %>
-                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'underline text-red-400' %>
+            <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+              <td class="p-3 font-medium"><%= playlist.title %></td>
+              <td class="p-3 space-x-2">
+                <%= link_to 'Edit', edit_admin_playlist_path(playlist), class: 'text-blue-400 hover:text-blue-300 underline' %>
+                <%= link_to 'Delete', admin_playlist_path(playlist), data: { turbo_method: :delete, turbo_confirm: 'Delete this playlist?' }, class: 'text-red-400 hover:text-red-300 underline' %>
               </td>
             </tr>
           <% end %>
