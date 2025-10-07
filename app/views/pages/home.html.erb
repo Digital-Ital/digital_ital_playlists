@@ -106,8 +106,9 @@
                   <% end %>
                   <button class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
                           data-category-id="<%= family.id %>"
+                          data-category-name="<%= family.name %>"
                           data-category-color="<%= family.color %>"
-                          onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= family.id %>, '<%= j family.name %>', '<%= family.color %>'); expandFamily(<%= family.id %>); showOnlyFamilyByChildCategory(<%= family.id %>);">
+                          onclick="event.stopPropagation(); toggleTreeSection('family-<%= family.id %>'); showOnlyFamilyByChildCategory(<%= family.id %>);">
                     <%= family.family_emoji || '🎵' %> <%= family.name.upcase %> <%= family.family_emoji || '🎵' %>
                   </button>
                   <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
@@ -127,8 +128,9 @@
                         <% end %>
                         <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
                                 data-category-id="<%= root_category.id %>"
+                                data-category-name="<%= root_category.name %>"
                                 data-category-color="<%= root_category.color %>"
-                                onclick="event.stopPropagation(); window.playlistLoader.selectCategory(<%= root_category.id %>, '<%= root_category.name %>', '<%= root_category.color %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>);">
+                                onclick="event.stopPropagation(); toggleTreeSection('root-<%= root_category.id %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>);">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
                         </button>
                         <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
@@ -139,6 +141,7 @@
                         <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-900/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30">
                           <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
                                   data-category-id="<%= child.id %>"
+                                  data-category-name="<%= child.name %>"
                                   data-category-color="<%= child.color %>"
                                   onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>'); showOnlyFamilyByChildCategory(<%= child.id %>);">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
@@ -413,18 +416,31 @@
     }
   }
   
-  // Tree toggle function
+  // Tree toggle function - always toggles and selects the category
   function toggleTreeSection(sectionId) {
     const content = document.getElementById(sectionId + '-content');
     const arrow = document.getElementById(sectionId + '-arrow');
     
     if (content && arrow) {
-      if (content.classList.contains('hidden')) {
+      const isHidden = content.classList.contains('hidden');
+      
+      if (isHidden) {
+        // Expand this section
         content.classList.remove('hidden');
         arrow.style.transform = 'rotate(90deg)';
       } else {
+        // Collapse this section
         content.classList.add('hidden');
         arrow.style.transform = 'rotate(0deg)';
+      }
+      
+      // Find the category button in this section and select it
+      const categoryBtn = content.closest('.tree-node').querySelector('.category-btn');
+      if (categoryBtn) {
+        const categoryId = categoryBtn.dataset.categoryId;
+        const categoryName = categoryBtn.dataset.categoryName || categoryBtn.textContent.trim();
+        const categoryColor = categoryBtn.dataset.categoryColor;
+        window.playlistLoader.selectCategory(categoryId, categoryName, categoryColor);
       }
     }
   }
@@ -433,23 +449,32 @@
   function expandFamily(familyId) {
     const content = document.getElementById('family-' + familyId + '-content');
     const arrow = document.getElementById('family-' + familyId + '-arrow');
-    if (content && content.classList.contains('hidden')) {
+    if (content && arrow) {
       content.classList.remove('hidden');
-      if (arrow) arrow.style.transform = 'rotate(90deg)';
+      arrow.style.transform = 'rotate(90deg)';
     }
   }
 
-  // Hide all other families and show only the one containing the selected category/family
+  // Collapse all other families and show only the selected one
   function showOnlyFamilyByChildCategory(selectedId) {
     // Find which family node contains the selected button
     const selectedBtn = document.querySelector(`[data-category-id="${selectedId}"]`);
     if (!selectedBtn) return;
     const familyNode = selectedBtn.closest('[id^="family-"][id$="-node"]');
     const allFamilies = document.querySelectorAll('[id^="family-"][id$="-node"]');
+    
     allFamilies.forEach(node => {
       if (familyNode && node !== familyNode) {
+        // Hide other families and collapse them
         node.style.display = 'none';
+        const content = node.querySelector('.tree-content');
+        const arrow = node.querySelector('.tree-arrow');
+        if (content && arrow) {
+          content.classList.add('hidden');
+          arrow.style.transform = 'rotate(0deg)';
+        }
       } else {
+        // Show the selected family
         node.style.display = 'block';
       }
     });
@@ -458,20 +483,33 @@
     const showAllContainer = document.getElementById('show-all-container');
     if (showAllContainer) showAllContainer.style.display = 'block';
   }
+
+  // Collapse all tree sections
+  function collapseAllTreeSections() {
+    document.querySelectorAll('.tree-content').forEach(content => {
+      content.classList.add('hidden');
+    });
+    document.querySelectorAll('.tree-arrow').forEach(arrow => {
+      arrow.style.transform = 'rotate(0deg)';
+    });
+  }
   
   // Initialize when DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
     window.playlistLoader = new PlaylistLoader();
 
-    // Hook up Show All to restore visibility of all families
+    // Hook up Show All to restore visibility of all families and collapse all sections
     const showAllContainer = document.getElementById('show-all-container');
     if (showAllContainer) {
       const btn = showAllContainer.querySelector('button');
       if (btn) {
         btn.addEventListener('click', () => {
+          // Show all families
           document.querySelectorAll('[id^="family-"][id$="-node"]').forEach(node => {
             node.style.display = 'block';
           });
+          // Collapse all tree sections
+          collapseAllTreeSections();
         });
       }
     }
