@@ -146,7 +146,7 @@
   </section>
 
   <!-- Infinite Scroll Playlists -->
-  <section class="py-16">
+  <section id="playlists-section" class="py-16">
     <div class="container mx-auto px-6">
       <div id="playlists-container" class="grid grid-cols-1 gap-6">
         <!-- Playlists will be loaded here via JavaScript -->
@@ -260,6 +260,14 @@
       this.endOfContent.classList.add('hidden');
       
       this.loadPlaylists();
+      
+      // Scroll to top of playlist section when category is selected
+      const playlistsSection = document.getElementById('playlists-section');
+      if (playlistsSection) {
+        setTimeout(() => {
+          playlistsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100); // Small delay to ensure content is loaded
+      }
     }
     
     async loadPlaylists() {
