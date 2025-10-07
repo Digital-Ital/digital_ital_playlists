@@ -379,9 +379,11 @@
           </p>
           <div class="flex items-center justify-between text-sm text-gray-500">
             <span>${playlist.track_count} tracks</span>
-            <span class="px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs">
-              ${playlist.category.name}
-            </span>
+            <div class="flex flex-wrap gap-1">
+              ${playlist.categories.map(category => 
+                `<span class="px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded-full text-xs">${category.name}</span>`
+              ).join('')}
+            </div>
           </div>
         </div>
       `;
