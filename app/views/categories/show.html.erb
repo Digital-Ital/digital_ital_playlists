@@ -18,12 +18,14 @@
           </span>
         </h1>
         <h2 class="text-2xl md:text-4xl font-light text-gray-300 mb-4">
-          List of Playlists
+          <%= @category.name %>
         </h2>
         <p class="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed">
-          Daily curation and discoveries from the depths of reggae, dub, hip-hop, and soundsystem culture. 
-          Each playlist is a journey through vinyl crates and digital streams.
+          <%= @category.description.present? ? @category.description : "Daily curation and discoveries from the depths of reggae, dub, hip-hop, and soundsystem culture. Each playlist is a journey through vinyl crates and digital streams." %>
         </p>
+        <div class="mt-6">
+          <%= link_to "← Back to All Categories", root_path, class: "inline-block px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors" %>
+        </div>
       </div>
       
       <!-- Featured Playlists -->
@@ -126,26 +128,26 @@
                         <% if root_has_children %>
                           <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
                         <% end %>
-                        <a href="<%= category_path(root_category.slug) %>" class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                           data-category-id="<%= root_category.id %>"
-                           data-category-name="<%= root_category.name %>"
-                           data-category-color="<%= root_category.color %>"
-                           onclick="event.stopPropagation(); toggleTreeSection('root-<%= root_category.id %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>);">
+                        <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
+                                data-category-id="<%= root_category.id %>"
+                                data-category-name="<%= root_category.name %>"
+                                data-category-color="<%= root_category.color %>"
+                                onclick="event.stopPropagation(); toggleTreeSection('root-<%= root_category.id %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>);">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
-                        </a>
+                        </button>
                         <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
                       </div>
                     </div>
                     <div class="tree-content hidden ml-6 mt-2 space-y-1" id="root-<%= root_category.id %>-content">
                       <% root_category.children.order(:position, :name).each do |child| %>
                         <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-900/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30">
-                          <a href="<%= category_path(child.slug) %>" class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
-                             data-category-id="<%= child.id %>"
-                             data-category-name="<%= child.name %>"
-                             data-category-color="<%= child.color %>"
-                             onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>'); showOnlyFamilyByChildCategory(<%= child.id %>);">
+                          <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
+                                  data-category-id="<%= child.id %>"
+                                  data-category-name="<%= child.name %>"
+                                  data-category-color="<%= child.color %>"
+                                  onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>'); showOnlyFamilyByChildCategory(<%= child.id %>);">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
-                          </a>
+                          </button>
                           <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
                         </div>
                       <% end %>
@@ -155,45 +157,6 @@
               </div>
             </div>
           <% end %>
-        </div>
-      <% elsif @categories.any? %>
-        <!-- Fallback: show root categories if no main families flagged -->
-        <div class="space-y-4">
-          <% @categories.each do |root_category| %>
-            <div class="tree-node">
-              <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-gray-700/80 to-gray-600/80 hover:from-gray-600/90 hover:to-gray-500/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/30" onclick="toggleTreeSection('rootonly-<%= root_category.id %>')">
-                <div class="flex items-center gap-3">
-                  <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="rootonly-<%= root_category.id %>-arrow">▶</span>
-                  <span class="text-xl font-bold text-white drop-shadow-lg">
-                    <%= root_category.emoji || '🎶' %> <%= root_category.name %>
-                  </span>
-                  <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/30">
-                    <%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks
-                  </span>
-                </div>
-              </div>
-              <div class="tree-content hidden ml-6 mt-3 space-y-1 border-l-4 border-yellow-500/30 pl-4" id="rootonly-<%= root_category.id %>-content">
-                <% root_category.children.each do |child| %>
-                  <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-900/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30">
-                    <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
-                            data-category-id="<%= child.id %>"
-                            data-category-color="<%= child.color %>"
-                            onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>')">
-                      ↳ <%= child.emoji || '🎵' %> <%= child.name %>
-                    </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
-                  </div>
-                <% end %>
-              </div>
-            </div>
-          <% end %>
-        </div>
-      <% else %>
-        <!-- Empty State -->
-        <div class="text-center py-16">
-          <div class="text-6xl mb-4">🎵</div>
-          <h3 class="text-2xl font-bold text-white mb-4">No Categories Yet</h3>
-          <p class="text-gray-400 mb-6">Start building your music collection by adding categories and playlists through the admin panel.</p>
         </div>
       <% end %>
     </div>
@@ -223,9 +186,9 @@
 
 <script>
   class PlaylistLoader {
-    constructor() {
+    constructor(initialCategoryId = null) {
       this.currentOffset = 0;
-      this.currentCategory = null;
+      this.currentCategory = initialCategoryId;
       this.isLoading = false;
       this.hasMore = true;
       this.container = document.getElementById('playlists-container');
@@ -239,6 +202,11 @@
       this.loadPlaylists();
       this.setupInfiniteScroll();
       this.setupCategoryButtons();
+      
+      // Auto-select the category if we're on a category page
+      if (this.currentCategory) {
+        this.selectCategoryById(this.currentCategory);
+      }
     }
     
     setupInfiniteScroll() {
@@ -314,6 +282,15 @@
       this.endOfContent.classList.add('hidden');
       
       this.loadPlaylists();
+    }
+    
+    selectCategoryById(categoryId) {
+      const targetButton = document.querySelector(`[data-category-id="${categoryId}"]`);
+      if (targetButton) {
+        const categoryName = targetButton.dataset.categoryName || targetButton.textContent.trim();
+        const categoryColor = targetButton.dataset.categoryColor;
+        this.selectCategory(categoryId, categoryName, categoryColor);
+      }
     }
     
     async loadPlaylists() {
@@ -496,7 +473,7 @@
   
   // Initialize when DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
-    window.playlistLoader = new PlaylistLoader();
+    window.playlistLoader = new PlaylistLoader(<%= @current_category_id %>);
 
     // Hook up Show All to restore visibility of all families and collapse all sections
     const showAllContainer = document.getElementById('show-all-container');
