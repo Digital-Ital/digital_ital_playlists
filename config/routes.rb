@@ -4,15 +4,20 @@ Rails.application.routes.draw do
   resources :playlists, only: [ :show ]
   resources :categories, only: [ :show ]
 
-  namespace :admin do
-    root to: "dashboard#index"
-    resources :categories
-    resources :playlists do
-      collection do
-        post :import_spotify
+      namespace :admin do
+        root to: "dashboard#index"
+        resources :categories
+        resources :playlists do
+          collection do
+            post :import_spotify
+          end
+        end
+        resources :update_sessions do
+          member do
+            patch :apply_changes
+          end
+        end
       end
-    end
-  end
 
   # API endpoints for infinite scroll
   get "api/playlists", to: "api/playlists#index"

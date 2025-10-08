@@ -1,0 +1,89 @@
+<div class="container mx-auto px-6 py-10 bg-black/50 rounded-xl backdrop-blur-sm">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold text-white">Playlist Update Sessions</h1>
+    <div class="space-x-2">
+      <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
+      <%= link_to 'Start New Update', new_admin_update_session_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors', 
+                  method: :post, 
+                  data: { turbo_method: :post, turbo_confirm: 'Start checking all playlists for updates? This may take a few minutes.' } %>
+    </div>
+  </div>
+
+  <div class="bg-gray-900/80 rounded-xl p-6 border border-gray-700">
+    <h2 class="text-xl text-white mb-4">Update History</h2>
+    
+    <% if @update_sessions.any? %>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-white">
+          <thead>
+            <tr class="border-b border-gray-600">
+              <th class="text-left p-3 text-yellow-400 font-semibold">Date</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Status</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Duration</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Updated</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Success Rate</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @update_sessions.each do |session| %>
+              <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition-colors">
+                <td class="p-3">
+                  <div class="font-medium">
+                    <%= session.created_at.strftime("%b %d, %Y") %>
+                  </div>
+                  <div class="text-sm text-gray-400">
+                    <%= session.created_at.strftime("%I:%M %p") %>
+                  </div>
+                </td>
+                <td class="p-3">
+                  <span class="px-2 py-1 rounded text-xs font-semibold
+                    <%= case session.status
+                        when 'completed' then 'bg-green-600 text-white'
+                        when 'running' then 'bg-yellow-600 text-black'
+                        when 'failed' then 'bg-red-600 text-white'
+                        else 'bg-gray-600 text-white'
+                        end %>">
+                    <%= session.status.titleize %>
+                  </span>
+                </td>
+                <td class="p-3 text-gray-300 text-sm">
+                  <%= session.duration ? "#{session.duration.round(1)}s" : '-' %>
+                </td>
+                <td class="p-3 text-gray-300 text-sm">
+                  <%= session.updated_playlists || 0 %> / <%= session.total_playlists %>
+                </td>
+                <td class="p-3 text-gray-300 text-sm">
+                  <%= session.success_rate %>% 
+                </td>
+                <td class="p-3 text-center space-x-2">
+                  <%= link_to 'View Details', admin_update_session_path(session), 
+                              class: 'text-blue-400 hover:text-blue-300', title: 'View Details' %>
+                  <% if session.status == 'completed' && session.playlist_updates.pending.any? %>
+                    <%= link_to 'Apply Changes', apply_changes_admin_update_session_path(session), 
+                                class: 'text-green-400 hover:text-green-300', title: 'Apply Changes' %>
+                  <% end %>
+                  <%= link_to 'Delete', admin_update_session_path(session), 
+                              method: :delete, 
+                              data: { turbo_method: :delete, turbo_confirm: 'Delete this update session?' },
+                              class: 'text-red-400 hover:text-red-300', title: 'Delete' %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+      <%= paginate @update_sessions %>
+    <% else %>
+      <div class="text-center py-12">
+        <div class="text-6xl mb-4">🔄</div>
+        <h3 class="text-2xl font-bold text-white mb-4">No Update Sessions Yet</h3>
+        <p class="text-gray-400 mb-6">Start your first playlist update to check for changes from Spotify.</p>
+        <%= link_to 'Start Update Session', new_admin_update_session_path, 
+                    method: :post, 
+                    data: { turbo_method: :post },
+                    class: 'px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold' %>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_07_033654) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_08_020543) do
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.string "slug"
@@ -38,6 +38,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_07_033654) do
     t.index ["playlist_id"], name: "index_playlist_categories_on_playlist_id"
   end
 
+  create_table "playlist_updates", force: :cascade do |t|
+    t.integer "update_session_id", null: false
+    t.integer "playlist_id", null: false
+    t.string "field_name"
+    t.string "old_value"
+    t.string "new_value"
+    t.string "status"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["playlist_id"], name: "index_playlist_updates_on_playlist_id"
+    t.index ["update_session_id"], name: "index_playlist_updates_on_update_session_id"
+  end
+
   create_table "playlists", force: :cascade do |t|
     t.string "title"
     t.text "description"
@@ -53,7 +66,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_07_033654) do
     t.index ["category_id"], name: "index_playlists_on_category_id"
   end
 
+  create_table "update_sessions", force: :cascade do |t|
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.string "status"
+    t.integer "total_playlists"
+    t.integer "updated_playlists"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "playlist_categories", "categories"
   add_foreign_key "playlist_categories", "playlists"
+  add_foreign_key "playlist_updates", "playlists"
+  add_foreign_key "playlist_updates", "update_sessions"
 end
