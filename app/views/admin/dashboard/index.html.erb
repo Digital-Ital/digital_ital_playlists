@@ -62,13 +62,13 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <%= link_to admin_playlists_path, class: "group bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-center hover:scale-105 transition-transform duration-200" do %>
         <div class="text-4xl mb-3">🎵</div>
-        <h3 class="text-lg font-semibold text-black mb-2">Manage Playlists</h3>
-        <p class="text-black/80 text-sm">View, edit, and create playlists</p>
+        <h3 class="text-lg font-semibold text-black mb-2">Playlists</h3>
+        <p class="text-black/80 text-sm">Manage & update from Spotify</p>
       <% end %>
 
       <%= link_to admin_categories_path, class: "group bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-center hover:scale-105 transition-transform duration-200" do %>
         <div class="text-4xl mb-3">📁</div>
-        <h3 class="text-lg font-semibold text-white mb-2">Manage Categories</h3>
+        <h3 class="text-lg font-semibold text-white mb-2">Categories</h3>
         <p class="text-blue-100 text-sm">Organize your category tree</p>
       <% end %>
 
@@ -82,12 +82,6 @@
         <div class="text-4xl mb-3">🏷️</div>
         <h3 class="text-lg font-semibold text-white mb-2">New Category</h3>
         <p class="text-purple-100 text-sm">Add a new category</p>
-      <% end %>
-
-      <%= link_to admin_playlists_path, class: "group bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-center hover:scale-105 transition-transform duration-200" do %>
-        <div class="text-4xl mb-3">🔄</div>
-        <h3 class="text-lg font-semibold text-white mb-2">Update Playlists</h3>
-        <p class="text-orange-100 text-sm">Sync with Spotify</p>
       <% end %>
       
       <%= link_to admin_update_logs_path, class: "group bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl p-6 text-center hover:scale-105 transition-transform duration-200" do %>
