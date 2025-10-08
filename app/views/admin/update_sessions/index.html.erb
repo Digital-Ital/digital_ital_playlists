@@ -3,7 +3,7 @@
     <h1 class="text-2xl font-semibold text-white">Playlist Update Sessions</h1>
     <div class="space-x-2">
       <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
-      <%= link_to 'Start New Update', new_admin_update_session_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors', 
+      <%= link_to 'Start New Update', admin_update_sessions_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors', 
                   method: :post, 
                   data: { turbo_method: :post, turbo_confirm: 'Start checking all playlists for updates? This may take a few minutes.' } %>
     </div>
@@ -79,7 +79,7 @@
         <div class="text-6xl mb-4">🔄</div>
         <h3 class="text-2xl font-bold text-white mb-4">No Update Sessions Yet</h3>
         <p class="text-gray-400 mb-6">Start your first playlist update to check for changes from Spotify.</p>
-        <%= link_to 'Start Update Session', new_admin_update_session_path, 
+        <%= link_to 'Start Update Session', admin_update_sessions_path, 
                     method: :post, 
                     data: { turbo_method: :post },
                     class: 'px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold' %>
