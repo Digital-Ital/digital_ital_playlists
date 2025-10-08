@@ -1,18 +1,57 @@
 <div class="container mx-auto px-6 py-10 bg-black/50 rounded-xl backdrop-blur-sm">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-white">Playlist Update Sessions</h1>
+    <h1 class="text-2xl font-semibold text-white">Update Playlists</h1>
     <div class="space-x-2">
       <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
-      <%= link_to 'Start New Update', admin_update_sessions_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors', 
-                  method: :post, 
-                  data: { turbo_method: :post, turbo_confirm: 'Start checking all playlists for updates? This may take a few minutes.' } %>
+      <%= link_to 'Go to Playlists', admin_playlists_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
+      <%= link_to 'View Update History', admin_update_logs_path, class: 'px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-500 transition-colors' %>
     </div>
   </div>
 
   <div class="bg-gray-900/80 rounded-xl p-6 border border-gray-700">
-    <h2 class="text-xl text-white mb-4">Update History</h2>
+    <div class="text-center py-12">
+      <div class="text-6xl mb-6">🔄</div>
+      <h2 class="text-3xl font-bold text-white mb-4">Individual Playlist Updates</h2>
+      <p class="text-gray-400 mb-8 max-w-2xl mx-auto">
+        We've upgraded the update system! You can now update playlists individually to avoid timeouts. 
+        Each playlist has its own update button with timestamp tracking and detailed change history.
+      </p>
+      
+      <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <%= link_to admin_playlists_path, class: 'px-8 py-4 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold text-lg' do %>
+          <span class="text-2xl mr-2">🎵</span> Update Playlists Individually
+        <% end %>
+        
+        <%= link_to admin_update_logs_path, class: 'px-8 py-4 bg-pink-600 text-white rounded-lg hover:bg-pink-500 transition-colors font-semibold text-lg' do %>
+          <span class="text-2xl mr-2">📝</span> View Full Update History
+        <% end %>
+      </div>
+      
+      <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto text-left">
+        <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+          <div class="text-3xl mb-3">⚡</div>
+          <h3 class="text-white font-semibold mb-2">No Timeouts</h3>
+          <p class="text-gray-400 text-sm">Update one playlist at a time to avoid server timeouts</p>
+        </div>
+        
+        <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+          <div class="text-3xl mb-3">🎯</div>
+          <h3 class="text-white font-semibold mb-2">Track-Level Changes</h3>
+          <p class="text-gray-400 text-sm">See exactly which tracks were added or removed with real timestamps</p>
+        </div>
+        
+        <div class="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+          <div class="text-3xl mb-3">📊</div>
+          <h3 class="text-white font-semibold mb-2">Full History</h3>
+          <p class="text-gray-400 text-sm">View complete change log with metadata and track updates</p>
+        </div>
+      </div>
+    </div>
     
+    <!-- Old sessions (if any exist) -->
     <% if @update_sessions.any? %>
+      <div class="mt-12 pt-8 border-t border-gray-700">
+        <h3 class="text-xl text-white mb-4">Old Batch Update Sessions (Deprecated)</h3>
       <div class="overflow-x-auto">
         <table class="min-w-full text-white">
           <thead>
@@ -73,17 +112,9 @@
           </tbody>
         </table>
       </div>
-      <%= paginate @update_sessions %>
-    <% else %>
-      <div class="text-center py-12">
-        <div class="text-6xl mb-4">🔄</div>
-        <h3 class="text-2xl font-bold text-white mb-4">No Update Sessions Yet</h3>
-        <p class="text-gray-400 mb-6">Start your first playlist update to check for changes from Spotify.</p>
-        <%= link_to 'Start Update Session', admin_update_sessions_path, 
-                    method: :post, 
-                    data: { turbo_method: :post },
-                    class: 'px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold' %>
+        <%= paginate @update_sessions %>
       </div>
+      <% end %>
     <% end %>
   </div>
 </div>
