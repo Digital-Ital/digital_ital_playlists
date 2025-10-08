@@ -25,11 +25,18 @@ class Admin::UpdateSessionsController < Admin::BaseController
     # Run the update process immediately (synchronous for Heroku)
     begin
       updated_count = 0
+      processed_count = 0
+      
+      Rails.logger.info "Starting update session #{@update_session.id} for #{Playlist.count} playlists"
       
       Playlist.find_each do |playlist|
+        processed_count += 1
+        Rails.logger.info "Processing playlist #{processed_count}/#{Playlist.count}: #{playlist.title} (ID: #{playlist.spotify_id})"
+        
         spotify_data = fetch_playlist_data(playlist.spotify_id)
         
         if spotify_data
+          Rails.logger.info "Fetched data for #{playlist.title}: #{spotify_data.keys}"
           # Check for changes in each field
           check_field_change(playlist, @update_session, 'title', playlist.title, spotify_data[:title])
           check_field_change(playlist, @update_session, 'track_count', playlist.track_count, spotify_data[:track_count])
@@ -39,6 +46,7 @@ class Admin::UpdateSessionsController < Admin::BaseController
           
           updated_count += 1 if any_changes?(playlist, spotify_data)
         else
+          Rails.logger.warn "Failed to fetch data for #{playlist.title}"
           # Create update record for failed fetch
           PlaylistUpdate.create!(
             update_session: @update_session,
@@ -50,6 +58,8 @@ class Admin::UpdateSessionsController < Admin::BaseController
           )
         end
       end
+      
+      Rails.logger.info "Update session #{@update_session.id} completed: #{updated_count} playlists with changes, #{@update_session.playlist_updates.count} total updates"
       
       @update_session.update!(
         status: 'completed',
@@ -117,9 +127,27 @@ class Admin::UpdateSessionsController < Admin::BaseController
   def fetch_playlist_data(spotify_id)
     return nil unless spotify_id.present?
 
-    # Use your existing Spotify service
-    spotify_service = Spotify::PlaylistImporter.new("https://open.spotify.com/playlist/#{spotify_id}")
-    spotify_service.call
+    # Use your existing Spotify service with the full URL
+    spotify_url = "https://open.spotify.com/playlist/#{spotify_id}"
+    
+    # Check if we have Spotify API credentials
+    if ENV["SPOTIFY_CLIENT_ID"].present? && ENV["SPOTIFY_CLIENT_SECRET"].present?
+      spotify_service = Spotify::PlaylistImporter.new(spotify_url)
+      spotify_service.call
+    else
+      # Fallback to oEmbed if no API credentials
+      spotify_service = Spotify::OEmbedImporter.new(spotify_url)
+      data = spotify_service.call
+      # Convert oEmbed format to our expected format
+      {
+        title: data[:title],
+        description: nil, # oEmbed doesn't provide description
+        cover_image_url: data[:thumbnail_url],
+        track_count: nil, # oEmbed doesn't provide track count
+        duration: nil, # oEmbed doesn't provide duration
+        spotify_url: spotify_url
+      }
+    end
   rescue => e
     Rails.logger.error "Failed to fetch Spotify data for #{spotify_id}: #{e.message}"
     nil
