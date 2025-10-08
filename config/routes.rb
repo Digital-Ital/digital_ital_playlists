@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   resources :playlists, only: [ :show ]
   resources :categories, only: [ :show ]
+  get "whats-new", to: "pages#whats_new", as: :whats_new
 
       namespace :admin do
         root to: "dashboard#index"
@@ -11,12 +12,16 @@ Rails.application.routes.draw do
           collection do
             post :import_spotify
           end
+          member do
+            post :sync_with_spotify
+          end
         end
         resources :update_sessions do
           member do
             patch :apply_changes
           end
         end
+        resources :update_logs, only: [:index]
       end
 
   # API endpoints for infinite scroll

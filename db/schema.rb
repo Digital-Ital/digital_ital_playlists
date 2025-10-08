@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_08_020543) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_08_225338) do
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.string "slug"
@@ -38,6 +38,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_020543) do
     t.index ["playlist_id"], name: "index_playlist_categories_on_playlist_id"
   end
 
+  create_table "playlist_tracks", force: :cascade do |t|
+    t.integer "playlist_id", null: false
+    t.integer "track_id", null: false
+    t.datetime "added_at"
+    t.integer "position"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["playlist_id"], name: "index_playlist_tracks_on_playlist_id"
+    t.index ["track_id"], name: "index_playlist_tracks_on_track_id"
+  end
+
   create_table "playlist_updates", force: :cascade do |t|
     t.integer "update_session_id", null: false
     t.integer "playlist_id", null: false
@@ -63,7 +74,36 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_020543) do
     t.integer "position"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_updated_at"
     t.index ["category_id"], name: "index_playlists_on_category_id"
+  end
+
+  create_table "tracks", force: :cascade do |t|
+    t.string "spotify_id"
+    t.string "name"
+    t.string "artist"
+    t.string "album"
+    t.string "image_url"
+    t.integer "duration_ms"
+    t.string "preview_url"
+    t.string "external_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["spotify_id"], name: "index_tracks_on_spotify_id", unique: true
+  end
+
+  create_table "update_logs", force: :cascade do |t|
+    t.integer "playlist_id", null: false
+    t.string "log_type"
+    t.string "field_name"
+    t.text "old_value"
+    t.text "new_value"
+    t.integer "track_id", null: false
+    t.text "change_summary"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["playlist_id"], name: "index_update_logs_on_playlist_id"
+    t.index ["track_id"], name: "index_update_logs_on_track_id"
   end
 
   create_table "update_sessions", force: :cascade do |t|
@@ -79,6 +119,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_08_020543) do
   add_foreign_key "categories", "categories", column: "parent_id"
   add_foreign_key "playlist_categories", "categories"
   add_foreign_key "playlist_categories", "playlists"
+  add_foreign_key "playlist_tracks", "playlists"
+  add_foreign_key "playlist_tracks", "tracks"
   add_foreign_key "playlist_updates", "playlists"
   add_foreign_key "playlist_updates", "update_sessions"
+  add_foreign_key "update_logs", "playlists"
+  add_foreign_key "update_logs", "tracks"
 end

@@ -1,6 +1,9 @@
 class Playlist < ApplicationRecord
   has_and_belongs_to_many :categories, join_table: :playlist_categories
   has_many :playlist_updates, dependent: :destroy
+  has_many :playlist_tracks, dependent: :destroy
+  has_many :tracks, through: :playlist_tracks
+  has_many :update_logs, dependent: :destroy
 
   validates :title, presence: true
   validates :spotify_url, presence: true, uniqueness: true, format: { with: URI.regexp(%w[http https]) }
@@ -17,6 +20,8 @@ class Playlist < ApplicationRecord
         .distinct
     end
   end
+  scope :stale, -> { where("last_updated_at IS NULL OR last_updated_at < ?", 1.week.ago) }
+  scope :recently_updated, -> { where("last_updated_at >= ?", 1.week.ago).order(last_updated_at: :desc) }
 
   def duration_formatted
     return duration if duration.present?
@@ -26,5 +31,14 @@ class Playlist < ApplicationRecord
   def spotify_id
     return nil unless spotify_url.present?
     spotify_url.match(/playlist\/([a-zA-Z0-9]+)/)&.[](1)
+  end
+
+  def needs_update?
+    last_updated_at.nil? || last_updated_at < 1.day.ago
+  end
+
+  def last_updated_humanized
+    return "Never" if last_updated_at.nil?
+    time_ago_in_words(last_updated_at) + " ago"
   end
 end

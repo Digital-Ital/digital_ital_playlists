@@ -1,5 +1,5 @@
 class Admin::PlaylistsController < Admin::BaseController
-  before_action :set_playlist, only: [ :edit, :update, :destroy ]
+  before_action :set_playlist, only: [ :edit, :update, :destroy, :sync_with_spotify ]
 
   def index
     @categories = Category.ordered
@@ -51,6 +51,22 @@ class Admin::PlaylistsController < Admin::BaseController
     end
   rescue => e
     render json: { error: e.message }, status: :unprocessable_entity
+  end
+
+  # POST /admin/playlists/:id/sync_with_spotify
+  def sync_with_spotify
+    result = PlaylistUpdateService.new(@playlist).call
+    
+    if result[:success]
+      changes_count = result[:changes].size
+      if changes_count > 0
+        redirect_to admin_playlists_path, notice: "Playlist updated successfully! #{changes_count} changes detected."
+      else
+        redirect_to admin_playlists_path, notice: "Playlist is up to date. No changes detected."
+      end
+    else
+      redirect_to admin_playlists_path, alert: "Failed to update playlist: #{result[:error]}"
+    end
   end
 
   private
