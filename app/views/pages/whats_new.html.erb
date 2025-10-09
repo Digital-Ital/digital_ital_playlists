@@ -32,8 +32,25 @@
     </div>
   </section>
 
+  <!-- Category Filters -->
+  <section class="py-4">
+    <div class="container mx-auto px-6 max-w-6xl">
+      <div class="flex flex-wrap justify-center gap-3 mb-8">
+        <%= link_to 'All Categories', whats_new_path, 
+                    class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id].nil? ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}" %>
+        <% Category.main_families.each do |category| %>
+          <%= link_to whats_new_path(category_id: category.id), 
+                      class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id] == category.id.to_s ? 'bg-gradient-to-r text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}",
+                      style: params[:category_id] == category.id.to_s ? "background: #{category.family_color}" : "" do %>
+            <%= category.family_emoji %> <%= category.name %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
   <!-- Tracks List -->
-  <section class="py-8">
+  <section class="py-4">
     <div class="container mx-auto px-6 max-w-6xl">
       <% if @playlist_tracks.any? %>
         <div class="space-y-4 mb-8">
@@ -58,15 +75,15 @@
                         <%= playlist_track.track.name %>
                       </h3>
                     </a>
-                    <p class="text-gray-400 text-lg"><%= playlist_track.track.artist %></p>
+                    <p class="text-gray-300 text-lg font-medium"><%= playlist_track.track.artist %></p>
                     <% if playlist_track.track.album.present? %>
-                      <p class="text-gray-500 text-sm"><%= playlist_track.track.album %></p>
+                      <p class="text-gray-400 text-base"><%= playlist_track.track.album %></p>
                     <% end %>
                   </div>
                   
-                  <!-- Playlist Badge -->
-                  <div class="flex flex-wrap items-center gap-3">
-                    <span class="text-gray-400 text-sm">Added to:</span>
+                  <!-- Playlist Badge & Categories -->
+                  <div class="flex flex-wrap items-center gap-3 mb-3">
+                    <span class="text-gray-300 text-sm font-semibold">Added to:</span>
                     <a href="<%= playlist_track.playlist.spotify_url %>" target="_blank" 
                        class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 rounded-lg hover:from-green-400 hover:to-green-500 transition-all duration-300 transform hover:scale-105">
                       <span class="text-white font-semibold"><%= playlist_track.playlist.title %></span>
@@ -74,10 +91,24 @@
                     </a>
                   </div>
                   
+                  <!-- Category Tags -->
+                  <% if playlist_track.playlist.categories.any? %>
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                      <span class="text-gray-300 text-sm">Categories:</span>
+                      <% playlist_track.playlist.categories.each do |category| %>
+                        <%= link_to whats_new_path(category_id: category.id), 
+                                    class: "px-3 py-1 rounded-lg text-sm font-semibold text-white hover:scale-105 transition-transform",
+                                    style: "background-color: #{category.color || '#FDE68A'};" do %>
+                          <%= category.emoji %> <%= category.name %>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  <% end %>
+                  
                   <!-- Added Date -->
-                  <div class="mt-3 text-gray-500 text-sm">
+                  <div class="mt-2 text-yellow-400 text-sm font-semibold">
                     Added <%= time_ago_in_words(playlist_track.added_at) %> ago 
-                    <span class="text-gray-600">(<%= playlist_track.added_at.strftime("%b %d, %Y") %>)</span>
+                    <span class="text-gray-300">(<%= playlist_track.added_at.strftime("%b %d, %Y") %>)</span>
                   </div>
                 </div>
                 
