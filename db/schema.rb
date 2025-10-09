@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_08_225338) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_09_172941) do
+  create_table "batch_updates", force: :cascade do |t|
+    t.string "status"
+    t.integer "current_index"
+    t.integer "total_count"
+    t.string "current_playlist_title"
+    t.integer "changes_count"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.string "slug"
