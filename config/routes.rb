@@ -11,6 +11,8 @@ Rails.application.routes.draw do
         resources :playlists do
           collection do
             post :import_spotify
+            post :start_batch_update
+            get :batch_update_progress
           end
           member do
             post :sync_with_spotify

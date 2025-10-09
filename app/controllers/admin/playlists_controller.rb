@@ -69,7 +69,67 @@ class Admin::PlaylistsController < Admin::BaseController
     end
   end
 
+  # GET /admin/playlists/batch_update_progress
+  def batch_update_progress
+    render json: {
+      status: session[:batch_update_status] || 'idle',
+      current: session[:batch_update_current] || 0,
+      total: session[:batch_update_total] || 0,
+      current_playlist: session[:batch_update_current_playlist],
+      completed: session[:batch_update_completed] || false,
+      changes_count: session[:batch_update_changes_count] || 0
+    }
+  end
+
+  # POST /admin/playlists/start_batch_update
+  def start_batch_update
+    # Reset session tracking
+    session[:batch_update_status] = 'running'
+    session[:batch_update_current] = 0
+    session[:batch_update_total] = Playlist.count
+    session[:batch_update_completed] = false
+    session[:batch_update_changes_count] = 0
+    
+    # Start the batch update in a thread (background)
+    Thread.new do
+      ActiveRecord::Base.connection_pool.with_connection do
+        process_batch_update
+      end
+    end
+    
+    render json: { success: true, total: Playlist.count }
+  end
+
   private
+
+  def process_batch_update
+    playlists = Playlist.all
+    total_changes = 0
+    
+    playlists.each_with_index do |playlist, index|
+      session[:batch_update_current] = index + 1
+      session[:batch_update_current_playlist] = playlist.title
+      
+      begin
+        result = PlaylistUpdateService.new(playlist).call
+        if result[:success]
+          total_changes += result[:changes].size
+          session[:batch_update_changes_count] = total_changes
+        end
+      rescue => e
+        Rails.logger.error "Batch update failed for playlist #{playlist.id}: #{e.message}"
+      end
+      
+      # Wait 30 seconds between each playlist (except after the last one)
+      sleep(30) if index < playlists.size - 1
+    end
+    
+    session[:batch_update_status] = 'completed'
+    session[:batch_update_completed] = true
+  rescue => e
+    session[:batch_update_status] = 'failed'
+    Rails.logger.error "Batch update process failed: #{e.message}"
+  end
 
   def set_playlist
     @playlist = Playlist.find(params[:id])

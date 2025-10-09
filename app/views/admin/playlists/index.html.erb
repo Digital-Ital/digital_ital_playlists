@@ -5,6 +5,9 @@
       <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
       <%= link_to 'Update History', admin_update_logs_path, class: 'px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-500 transition-colors' %>
       <%= link_to 'Manage Categories', admin_categories_path, class: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors' %>
+      <button onclick="startBatchUpdate()" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-400 transition-colors font-semibold">
+        🔄 Update All Playlists
+      </button>
       <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
     </div>
   </div>
@@ -188,6 +191,107 @@
     }
     return false;
   }
+
+  // Batch Update Functions
+  let updateInterval = null;
+
+  async function startBatchUpdate() {
+    // Show modal
+    document.getElementById('batch-update-modal').classList.remove('hidden');
+    document.getElementById('progress-bar-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = 'Starting...';
+    document.getElementById('current-playlist').textContent = '';
+    document.getElementById('close-modal-btn').classList.add('hidden');
+    
+    try {
+      // Start the batch update
+      const response = await fetch('<%= start_batch_update_admin_playlists_path %>', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        // Start polling for progress
+        updateInterval = setInterval(checkProgress, 2000); // Check every 2 seconds
+      }
+    } catch (e) {
+      alert('Failed to start batch update: ' + e.message);
+      closeModal();
+    }
+  }
+
+  async function checkProgress() {
+    try {
+      const response = await fetch('<%= batch_update_progress_admin_playlists_path %>');
+      const data = await response.json();
+      
+      const percent = data.total > 0 ? Math.round((data.current / data.total) * 100) : 0;
+      document.getElementById('progress-bar-fill').style.width = percent + '%';
+      document.getElementById('progress-text').textContent = `Updating ${data.current} / ${data.total}`;
+      document.getElementById('current-playlist').textContent = data.current_playlist || '';
+      
+      if (data.completed) {
+        clearInterval(updateInterval);
+        document.getElementById('progress-text').textContent = `✅ Completed! ${data.changes_count} changes found`;
+        document.getElementById('current-playlist').textContent = 'All playlists updated successfully';
+        document.getElementById('close-modal-btn').classList.remove('hidden');
+        
+        // Reload the page after 3 seconds
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    } catch (e) {
+      console.error('Failed to check progress:', e);
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('batch-update-modal').classList.add('hidden');
+    if (updateInterval) {
+      clearInterval(updateInterval);
+    }
+  }
 </script>
 
+<!-- Batch Update Modal -->
+<div id="batch-update-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-6">
+  <div class="bg-gray-900 rounded-2xl p-8 max-w-2xl w-full border-2 border-yellow-500 shadow-2xl">
+    <h2 class="text-3xl font-bold text-white mb-6 text-center">
+      🔄 Updating All Playlists
+    </h2>
+    
+    <div class="space-y-6">
+      <!-- Progress Bar -->
+      <div class="bg-gray-800 rounded-full h-8 overflow-hidden border-2 border-gray-700">
+        <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 transition-all duration-500" style="width: 0%"></div>
+      </div>
+      
+      <!-- Progress Text -->
+      <div class="text-center">
+        <div id="progress-text" class="text-2xl font-bold text-yellow-400 mb-2">Starting...</div>
+        <div id="current-playlist" class="text-gray-300 text-lg min-h-[2rem]"></div>
+      </div>
+      
+      <!-- Info Box -->
+      <div class="bg-gray-800/50 rounded-lg p-4 border border-gray-700">
+        <p class="text-gray-400 text-sm text-center">
+          ⏱️ Processing with 30-second delays between playlists to respect Spotify rate limits.<br>
+          You can close this popup - the update will continue in the background.
+        </p>
+      </div>
+      
+      <!-- Close Button (hidden until complete) -->
+      <div class="text-center">
+        <button id="close-modal-btn" onclick="closeModal()" class="hidden px-6 py-3 bg-green-500 text-black rounded-lg hover:bg-green-400 transition-colors font-semibold">
+          Close & View Results
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
