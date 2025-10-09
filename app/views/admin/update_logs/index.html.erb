@@ -16,7 +16,7 @@
     <%= link_to 'Tracks Removed', admin_update_logs_path(type: 'track_removed'), 
                 class: "px-4 py-2 rounded-lg #{params[:type] == 'track_removed' ? 'bg-red-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
     <%= link_to 'Metadata Changes', admin_update_logs_path(type: 'playlist_metadata'), 
-                class: "px-4 py-2 rounded-lg #{params[:type] == 'playlist_metadata' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors' %>
+                class: "px-4 py-2 rounded-lg #{params[:type] == 'playlist_metadata' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
   </div>
 
   <div class="bg-gray-900/80 rounded-xl p-6 border border-gray-700">
