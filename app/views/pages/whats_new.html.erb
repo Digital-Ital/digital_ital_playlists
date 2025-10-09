@@ -63,34 +63,34 @@
         <div class="space-y-3 mb-8">
           <% @playlist_tracks.each do |playlist_track| %>
             <div class="bg-gray-900/80 rounded-xl p-4 border border-gray-700 hover:border-yellow-500 transition-all duration-300">
-              <div class="flex items-center gap-4">
+              <!-- Track Info Header -->
+              <div class="flex items-center gap-4 mb-3">
                 <!-- Track Cover -->
                 <% if playlist_track.track.image_url.present? %>
                   <a href="<%= playlist_track.track.external_url %>" target="_blank" class="flex-shrink-0">
                     <img src="<%= playlist_track.track.image_url %>" 
                          alt="<%= playlist_track.track.name %>" 
-                         class="w-20 h-20 rounded-lg shadow-lg hover:shadow-yellow-500/25 transition-shadow duration-300">
+                         class="w-16 h-16 rounded-lg shadow-lg hover:shadow-yellow-500/25 transition-shadow duration-300">
                   </a>
                 <% end %>
                 
-                <!-- Track Info -->
+                <!-- Track Details -->
                 <div class="flex-1 min-w-0">
-                  <!-- Track Name & Artist -->
                   <a href="<%= playlist_track.track.external_url %>" target="_blank" class="group">
-                    <h3 class="text-lg font-bold text-white group-hover:text-yellow-400 transition-colors mb-1">
+                    <h3 class="text-base font-bold text-white group-hover:text-yellow-400 transition-colors">
                       <%= playlist_track.track.name %>
                     </h3>
                   </a>
-                  <p class="text-gray-300 text-base font-medium mb-1"><%= playlist_track.track.artist %></p>
+                  <p class="text-gray-300 text-sm font-medium"><%= playlist_track.track.artist %></p>
                   
                   <!-- Playlist + Categories (inline) -->
-                  <div class="flex flex-wrap items-center gap-2 text-sm mb-1">
+                  <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
                     <a href="<%= playlist_track.playlist.spotify_url %>" target="_blank" 
                        class="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 rounded hover:from-green-400 hover:to-green-500 transition-all">
-                      <span class="text-white font-semibold"><%= playlist_track.playlist.title.truncate(40) %></span>
+                      <span class="text-white font-semibold"><%= playlist_track.playlist.title.truncate(30) %></span>
                     </a>
                     <% if playlist_track.playlist.categories.any? %>
-                      <% playlist_track.playlist.categories.first(3).each do |category| %>
+                      <% playlist_track.playlist.categories.first(2).each do |category| %>
                         <%= link_to whats_new_path(category_id: category.id), 
                                     class: "px-2 py-1 rounded text-xs font-semibold text-white hover:scale-105 transition-transform",
                                     style: "background-color: #{category.color || '#FDE68A'};" do %>
@@ -99,32 +99,31 @@
                       <% end %>
                     <% end %>
                   </div>
-                  
-                  <!-- Added Date + Curator -->
-                  <div class="text-yellow-400 text-xs font-semibold">
-                    Added <%= time_ago_in_words(playlist_track.added_at) %> ago by Digital Ital
-                  </div>
                 </div>
                 
-                <!-- Spotify Play Button -->
-                <div class="flex-shrink-0">
-                  <% if playlist_track.track.preview_url.present? %>
-                    <audio id="audio-<%= playlist_track.id %>" src="<%= playlist_track.track.preview_url %>"></audio>
-                    <button onclick="togglePlay('<%= playlist_track.id %>')" 
-                            id="play-btn-<%= playlist_track.id %>"
-                            class="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full hover:bg-green-400 transition-colors shadow-lg hover:shadow-green-500/25"
-                            title="Play 30s Preview">
-                      <span class="text-2xl">▶️</span>
-                    </button>
-                  <% else %>
-                    <a href="<%= playlist_track.track.external_url %>" target="_blank" 
-                       class="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full hover:bg-green-400 transition-colors shadow-lg hover:shadow-green-500/25"
-                       title="Open in Spotify">
-                      <span class="text-2xl">🎵</span>
-                    </a>
-                  <% end %>
+                <!-- Added Date + Curator -->
+                <div class="text-right flex-shrink-0">
+                  <div class="text-yellow-400 text-xs font-semibold">
+                    <%= time_ago_in_words(playlist_track.added_at) %> ago
+                  </div>
+                  <div class="text-gray-400 text-xs">by Digital Ital</div>
                 </div>
               </div>
+              
+              <!-- Spotify Embed Player -->
+              <% if playlist_track.track.spotify_id.present? %>
+                <div class="mt-2">
+                  <iframe 
+                    src="https://open.spotify.com/embed/track/<%= playlist_track.track.spotify_id %>?utm_source=generator&theme=0" 
+                    width="100%" 
+                    height="80" 
+                    frameborder="0" 
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                    loading="lazy"
+                    class="rounded-lg">
+                  </iframe>
+                </div>
+              <% end %>
             </div>
           <% end %>
         </div>
@@ -166,43 +165,4 @@
   }
 </style>
 
-<script>
-  let currentAudio = null;
-  let currentButtonId = null;
-
-  function togglePlay(trackId) {
-    const audio = document.getElementById('audio-' + trackId);
-    const button = document.getElementById('play-btn-' + trackId);
-    
-    // If another track is playing, stop it
-    if (currentAudio && currentAudio !== audio) {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-      if (currentButtonId) {
-        document.getElementById(currentButtonId).innerHTML = '<span class="text-2xl">▶️</span>';
-      }
-    }
-    
-    // Toggle current track
-    if (audio.paused) {
-      audio.play();
-      button.innerHTML = '<span class="text-2xl">⏸️</span>';
-      currentAudio = audio;
-      currentButtonId = 'play-btn-' + trackId;
-      
-      // Reset button when track ends
-      audio.onended = function() {
-        button.innerHTML = '<span class="text-2xl">▶️</span>';
-        currentAudio = null;
-        currentButtonId = null;
-      };
-    } else {
-      audio.pause();
-      audio.currentTime = 0;
-      button.innerHTML = '<span class="text-2xl">▶️</span>';
-      currentAudio = null;
-      currentButtonId = null;
-    }
-  }
-</script>
 
