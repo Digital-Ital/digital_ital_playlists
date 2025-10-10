@@ -85,8 +85,8 @@
                   <!-- Metadata Row -->
                   <div class="flex flex-wrap items-center gap-2 text-xs">
                     <a href="<%= playlist_track.playlist.spotify_url %>" target="_blank" 
-                       class="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 rounded hover:from-green-400 hover:to-green-500 transition-all">
-                      <span class="text-white font-semibold"><%= playlist_track.playlist.title.truncate(30) %></span>
+                       class="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 rounded hover:from-green-400 hover:to-green-500 transition-all max-w-full">
+                      <span class="text-white font-semibold truncate"><%= playlist_track.playlist.title %></span>
                     </a>
                     <% if playlist_track.playlist.categories.any? %>
                       <% playlist_track.playlist.categories.first(2).each do |category| %>
