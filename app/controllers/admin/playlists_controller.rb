@@ -3,8 +3,16 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def index
     @categories = Category.ordered
-    @playlists = Playlist.includes(:categories).ordered.page(params[:page]).per(20)
-    @uncategorized = Playlist.left_joins(:categories).where(categories: { id: nil }).ordered.page(params[:page]).per(10)
+    # Sort by followers count (popularity) by default, or by position/title
+    @playlists = Playlist.includes(:categories)
+                         .order(followers_count: :desc, position: :asc, title: :asc)
+                         .page(params[:page])
+                         .per(20)
+    @uncategorized = Playlist.left_joins(:categories)
+                             .where(categories: { id: nil })
+                             .order(followers_count: :desc, position: :asc, title: :asc)
+                             .page(params[:page])
+                             .per(10)
   end
 
   def new

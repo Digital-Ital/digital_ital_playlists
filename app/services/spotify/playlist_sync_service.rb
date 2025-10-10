@@ -45,8 +45,8 @@ module Spotify
     end
 
     def fetch_playlist_with_tracks(playlist_id, token)
-      # Request playlist with all track fields including added_at
-      url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,tracks(items(added_at,track(id,name,artists,album,duration_ms,preview_url,external_urls)),total,next)")
+      # Request playlist with all track fields including added_at and followers
+      url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,followers,tracks(items(added_at,track(id,name,artists,album,duration_ms,preview_url,external_urls)),total,next)")
       req = Net::HTTP::Get.new(url)
       req["Authorization"] = "Bearer #{token}"
 
@@ -64,7 +64,8 @@ module Spotify
         title: spotify_data["name"],
         description: sanitize_description(spotify_data["description"]),
         cover_image_url: (spotify_data["images"] || []).first&.dig("url"),
-        track_count: spotify_data.dig("tracks", "total") || 0
+        track_count: spotify_data.dig("tracks", "total") || 0,
+        followers_count: spotify_data.dig("followers", "total") || 0
       }
     end
 

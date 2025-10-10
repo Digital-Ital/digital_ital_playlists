@@ -60,13 +60,19 @@ class PlaylistUpdateService
       changed_fields << :track_count
     end
 
+    if @playlist.followers_count != metadata[:followers_count]
+      log_metadata_change('followers_count', @playlist.followers_count, metadata[:followers_count])
+      changed_fields << :followers_count
+    end
+
     # Update the playlist if there are changes
     if changed_fields.any?
       @playlist.update!(
         title: metadata[:title],
         description: metadata[:description],
         cover_image_url: metadata[:cover_image_url],
-        track_count: metadata[:track_count]
+        track_count: metadata[:track_count],
+        followers_count: metadata[:followers_count]
       )
     end
   end

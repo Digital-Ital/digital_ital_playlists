@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_09_172941) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_10_051343) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -87,6 +87,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_09_172941) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "last_updated_at"
+    t.integer "followers_count", default: 0
     t.index ["category_id"], name: "index_playlists_on_category_id"
   end
 

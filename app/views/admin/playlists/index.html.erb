@@ -29,7 +29,8 @@
           <tr class="border-b border-gray-600">
             <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
             <th class="text-left p-3 text-yellow-400 font-semibold">Categories</th>
-            <th class="text-left p-3 text-yellow-400 font-semibold">#</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">Tracks</th>
+            <th class="text-left p-3 text-yellow-400 font-semibold">❤️ Saves</th>
             <th class="text-left p-3 text-yellow-400 font-semibold">Pos</th>
             <th class="text-left p-3 text-yellow-400 font-semibold">⭐</th>
             <th class="text-left p-3 text-yellow-400 font-semibold">🔗</th>
@@ -58,6 +59,7 @@
                 <% end %>
               </td>
               <td class="p-3 text-gray-300 text-sm"><%= playlist.track_count || 0 %></td>
+              <td class="p-3 text-gray-300 text-sm font-semibold"><%= number_with_delimiter(playlist.followers_count || 0) %></td>
               <td class="p-3 text-gray-300 text-sm"><%= playlist.position || '-' %></td>
               <td class="p-3 text-center">
                 <% if playlist.featured? %>
@@ -106,7 +108,8 @@
           <thead>
             <tr class="border-b border-gray-600">
               <th class="text-left p-3 text-yellow-400 font-semibold">Title</th>
-              <th class="text-left p-3 text-yellow-400 font-semibold">#</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">Tracks</th>
+              <th class="text-left p-3 text-yellow-400 font-semibold">❤️ Saves</th>
               <th class="text-left p-3 text-yellow-400 font-semibold">Pos</th>
               <th class="text-left p-3 text-yellow-400 font-semibold">⭐</th>
               <th class="text-left p-3 text-yellow-400 font-semibold">🔗</th>
@@ -121,6 +124,7 @@
                   <div class="max-w-md"><%= playlist.title %></div>
                 </td>
                 <td class="p-3 text-gray-300 text-sm"><%= playlist.track_count || 0 %></td>
+                <td class="p-3 text-gray-300 text-sm font-semibold"><%= number_with_delimiter(playlist.followers_count || 0) %></td>
                 <td class="p-3 text-gray-300 text-sm"><%= playlist.position || '-' %></td>
                 <td class="p-3 text-center">
                   <% if playlist.featured? %>
