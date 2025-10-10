@@ -41,7 +41,7 @@
         <% Category.main_families.each do |category| %>
           <% if params[:category_id] == category.id.to_s %>
             <%= link_to whats_new_path(category_id: category.id), 
-                        class: "px-4 py-2 rounded-lg font-semibold transition-all text-white border-2 border-yellow-400",
+                        class: "px-4 py-2 rounded-lg font-bold transition-all text-black border-2 border-yellow-400 shadow-lg",
                         style: "background: #{category.family_color};" do %>
               <%= category.family_emoji %> <%= category.name %>
             <% end %>
@@ -107,9 +107,10 @@
                 <!-- Spotify Link Button -->
                 <div class="flex-shrink-0">
                   <a href="<%= playlist_track.track.external_url %>" target="_blank" 
-                     class="flex items-center justify-center w-12 h-12 bg-green-500 rounded-full hover:bg-green-400 transition-colors shadow-lg hover:shadow-green-500/25"
-                     title="Open in Spotify">
-                    <span class="text-2xl">▶️</span>
+                     class="flex flex-col items-center justify-center px-3 py-2 bg-green-500 rounded-lg hover:bg-green-400 transition-colors shadow-lg hover:shadow-green-500/25"
+                     title="Play on Spotify">
+                    <span class="text-2xl mb-1">▶️</span>
+                    <span class="text-white text-xs font-semibold">Spotify</span>
                   </a>
                 </div>
               </div>
