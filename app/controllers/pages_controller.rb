@@ -2,6 +2,7 @@ class PagesController < ApplicationController
   def home
     @categories = Category.roots.includes(children: :children)
     @main_families = Category.main_families.includes(children: :children)
+    @featured_playlists = Playlist.featured.includes(:categories).limit(4)
   end
 
   def whats_new

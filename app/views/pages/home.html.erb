@@ -67,6 +67,73 @@
     </div>
   </section>
 
+  <!-- Featured Playlists Section -->
+  <% if @featured_playlists.any? %>
+    <section class="py-12 bg-gradient-to-b from-gray-900/50 to-transparent">
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-8">
+          <h3 class="text-3xl font-bold text-white mb-2">
+            <span class="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 bg-clip-text text-transparent">
+              ⭐ Featured Playlists ⭐
+            </span>
+          </h3>
+          <p class="text-gray-400 text-lg">Hand-picked selections from the collection</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          <% @featured_playlists.each do |playlist| %>
+            <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105" onclick="window.open('<%= playlist.spotify_url %>', '_blank')">
+              <div class="relative overflow-hidden rounded-2xl bg-gray-900 border-2 border-yellow-400/50 hover:border-yellow-400 transition-all shadow-xl hover:shadow-yellow-500/50">
+                <!-- Cover Image -->
+                <div class="relative aspect-square overflow-hidden">
+                  <% if playlist.cover_image_url %>
+                    <img src="<%= playlist.cover_image_url %>" alt="<%= playlist.title %>" class="w-full h-full object-cover">
+                  <% else %>
+                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                      <div class="text-6xl">🎵</div>
+                    </div>
+                  <% end %>
+                  <!-- Overlay on hover -->
+                  <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div class="text-center">
+                      <div class="text-6xl mb-2">▶️</div>
+                      <span class="text-white font-bold text-lg">Play on Spotify</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Playlist Info -->
+                <div class="p-4">
+                  <h4 class="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-yellow-400 transition-colors">
+                    <%= playlist.title %>
+                  </h4>
+                  <div class="flex items-center gap-2 text-sm text-gray-400 mb-3">
+                    <span><%= playlist.track_count %> tracks</span>
+                    <% if playlist.duration %>
+                      <span>• <%= playlist.duration %></span>
+                    <% end %>
+                  </div>
+                  
+                  <!-- Categories -->
+                  <% if playlist.categories.any? %>
+                    <div class="flex flex-wrap gap-1">
+                      <% playlist.categories.first(2).each do |category| %>
+                        <span class="featured-category-tag px-2 py-0.5 rounded text-xs font-semibold"
+                              data-color="<%= category.color || '#FDE68A' %>">
+                          <%= category.emoji %> <%= category.name %>
+                        </span>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
   <!-- Categories Navigation -->
   <section class="py-8">
     <div class="container mx-auto px-6 max-w-4xl">
@@ -613,9 +680,27 @@
     }
   }
   
+  // Style featured category tags
+  function styleFeaturedCategoryTags() {
+    document.querySelectorAll('.featured-category-tag').forEach(tag => {
+      const hex = (tag.dataset.color || '').trim();
+      const bg = isValidHex(hex) ? hex : '#FDE68A';
+      const text = getReadableTextColor(bg);
+      tag.style.backgroundColor = bg;
+      tag.style.color = text;
+    });
+  }
+
   // Initialize on both DOMContentLoaded (first page load) and turbo:load (Turbo navigation)
-  document.addEventListener('DOMContentLoaded', initializePlaylistLoader);
-  document.addEventListener('turbo:load', initializePlaylistLoader);
+  document.addEventListener('DOMContentLoaded', () => {
+    initializePlaylistLoader();
+    styleFeaturedCategoryTags();
+  });
+  
+  document.addEventListener('turbo:load', () => {
+    initializePlaylistLoader();
+    styleFeaturedCategoryTags();
+  });
   
   // Cleanup before Turbo caches the page
   document.addEventListener('turbo:before-cache', () => {
