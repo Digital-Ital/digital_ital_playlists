@@ -316,6 +316,16 @@
     }
     
     init() {
+      // Clear any existing playlists from previous page loads (Turbo cache)
+      if (this.container) {
+        this.container.innerHTML = '';
+      }
+      
+      // Hide counters initially
+      if (this.counterTop) this.counterTop.classList.add('hidden');
+      if (this.counterBottom) this.counterBottom.classList.add('hidden');
+      if (this.endOfContent) this.endOfContent.classList.add('hidden');
+      
       this.loadPlaylists();
       this.setupInfiniteScroll();
       this.setupCategoryButtons();
@@ -461,8 +471,8 @@
           this.currentOffset += data.playlists.length;
           this.hasMore = data.has_more; // will be false when all=true
           
-          // Update total site count ONLY on initial load of all playlists (no category selected)
-          if (!this.currentCategory && this.currentOffset === data.playlists.length && !this.hasMore) {
+          // Update total site count ONLY on FIRST load with all=true (no category, offset was 0)
+          if (!this.currentCategory && this.currentOffset > 0 && !this.hasMore && this.totalPlaylistsOnSite === 0) {
             this.totalPlaylistsOnSite = data.playlists.length;
           }
         } else {
