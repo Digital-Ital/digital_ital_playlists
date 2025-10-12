@@ -5,8 +5,11 @@ class Api::PlaylistsController < ApplicationController
     if params[:all].to_s == 'true'
       scope = Playlist.left_joins(:categories).includes(:categories).distinct.ordered
       if params[:category_ids].present?
-        ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq
-        scope = Playlist.by_category_ids(ids).includes(:categories).ordered
+        ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
+        # Only filter if we have valid category IDs
+        if ids.any?
+          scope = Playlist.by_category_ids(ids).includes(:categories).ordered
+        end
       end
       playlists = scope.to_a
       render json: { playlists: playlists.map { |p| playlist_json(p) }, has_more: false }
@@ -20,8 +23,11 @@ class Api::PlaylistsController < ApplicationController
     # Use left_joins to include playlists even if they have no categories
     scope = Playlist.left_joins(:categories).includes(:categories).distinct
     if params[:category_ids].present?
-      ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq
-      scope = Playlist.by_category_ids(ids).includes(:categories) # ensures correct join semantics
+      ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
+      # Only filter if we have valid category IDs
+      if ids.any?
+        scope = Playlist.by_category_ids(ids).includes(:categories) # ensures correct join semantics
+      end
     end
     scope = scope.ordered
 

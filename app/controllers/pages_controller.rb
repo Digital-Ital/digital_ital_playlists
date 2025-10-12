@@ -10,14 +10,26 @@ class PagesController < ApplicationController
     
     # Filter by category if requested
     if params[:category_id].present?
-      category = Category.find(params[:category_id])
-      # Get all descendant category IDs
-      category_ids = [ category.id ] + category.descendant_ids
-      # Filter playlists that belong to any of these categories
-      @playlist_tracks = @playlist_tracks.joins(:playlist)
-                                         .joins("INNER JOIN playlist_categories ON playlist_categories.playlist_id = playlists.id")
-                                         .where(playlist_categories: { category_id: category_ids })
-                                         .distinct
+      begin
+        category = Category.find_by(id: params[:category_id])
+        
+        if category
+          # Get all descendant category IDs
+          category_ids = [ category.id ] + category.descendant_ids
+          # Filter playlists that belong to any of these categories
+          @playlist_tracks = @playlist_tracks.joins(:playlist)
+                                             .joins("INNER JOIN playlist_categories ON playlist_categories.playlist_id = playlists.id")
+                                             .where(playlist_categories: { category_id: category_ids })
+                                             .distinct
+        else
+          # Invalid category ID - redirect to whats_new without filter
+          redirect_to whats_new_path and return
+        end
+      rescue => e
+        # Handle any other errors gracefully
+        Rails.logger.error "Error filtering by category: #{e.message}"
+        redirect_to whats_new_path and return
+      end
     end
     
     @playlist_tracks = @playlist_tracks.page(params[:page]).per(50)
