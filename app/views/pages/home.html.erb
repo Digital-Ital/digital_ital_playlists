@@ -154,19 +154,17 @@
           <% @main_families.each do |family| %>
             <div class="tree-node" id="family-<%= family.id %>-node" data-family-id="<%= family.id %>">
               <% family_has_children = family.children.any? %>
-              <div class="tree-header <%= family_has_children ? 'cursor-pointer' : '' %> flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" <%= family_has_children ? "onclick=\"toggleTreeSection('family-#{family.id}')\"" : '' %>>
+              <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" 
+                   data-tree-toggle="family-<%= family.id %>"
+                   data-category-id="<%= family.id %>"
+                   data-category-slug="<%= family.slug %>">
                 <div class="flex items-center gap-3">
                   <% if family_has_children %>
                     <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
                   <% end %>
-                  <button class="category-btn text-xl font-bold text-white drop-shadow-lg hover:text-yellow-300"
-                          data-category-id="<%= family.id %>"
-                          data-category-name="<%= family.name %>"
-                          data-category-color="<%= family.color %>"
-                          data-category-slug="<%= family.slug %>"
-                          onclick="event.stopPropagation(); toggleTreeSection('family-<%= family.id %>'); showOnlyFamilyByChildCategory(<%= family.id %>); updateUrl('<%= family.slug %>');">
+                  <span class="text-xl font-bold text-white drop-shadow-lg">
                     <%= family.family_emoji || '🎵' %> <%= family.name.upcase %> <%= family.family_emoji || '🎵' %>
-                  </button>
+                  </span>
                   <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
                     <%= family.playlists.count %> playlists / <%= family.playlists.sum(:track_count) %> tracks
                   </span>
@@ -177,19 +175,17 @@
                 <% family.children.order(:position, :name).each do |root_category| %>
                   <div class="tree-node">
                     <% root_has_children = root_category.children.any? %>
-                    <div class="tree-header <%= root_has_children ? 'cursor-pointer' : '' %> flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30" <%= root_has_children ? "onclick=\"toggleTreeSection('root-#{root_category.id}')\"" : '' %>>
+                    <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30"
+                         data-tree-toggle="root-<%= root_category.id %>"
+                         data-category-id="<%= root_category.id %>"
+                         data-category-slug="<%= root_category.slug %>">
                       <div class="flex items-center gap-2">
                         <% if root_has_children %>
                           <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
                         <% end %>
-                        <button class="category-btn text-white hover:text-yellow-300 transition-colors font-bold text-lg" 
-                                data-category-id="<%= root_category.id %>"
-                                data-category-name="<%= root_category.name %>"
-                                data-category-color="<%= root_category.color %>"
-                                data-category-slug="<%= root_category.slug %>"
-                                onclick="event.stopPropagation(); toggleTreeSection('root-<%= root_category.id %>'); showOnlyFamilyByChildCategory(<%= root_category.id %>); updateUrl('<%= root_category.slug %>');">
+                        <span class="text-white font-bold text-lg">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
-                        </button>
+                        </span>
                         <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
                       </div>
                     </div>
@@ -200,8 +196,7 @@
                                   data-category-id="<%= child.id %>"
                                   data-category-name="<%= child.name %>"
                                   data-category-color="<%= child.color %>"
-                                  data-category-slug="<%= child.slug %>"
-                                  onclick="window.playlistLoader.selectCategory(<%= child.id %>, '<%= child.name %>', '<%= child.color %>'); showOnlyFamilyByChildCategory(<%= child.id %>); updateUrl('<%= child.slug %>');">
+                                  data-category-slug="<%= child.slug %>">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
                           </button>
                           <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
@@ -328,7 +323,48 @@
       
       this.loadPlaylists();
       this.setupInfiniteScroll();
+      this.setupTreeToggleHandlers();
       this.setupCategoryButtons();
+    }
+    
+    setupTreeToggleHandlers() {
+      // Set up click handlers for all tree headers
+      document.querySelectorAll('[data-tree-toggle]').forEach(header => {
+        // Remove any old listeners by cloning and replacing
+        const newHeader = header.cloneNode(true);
+        header.parentNode.replaceChild(newHeader, header);
+        
+        newHeader.addEventListener('click', (e) => {
+          const toggleId = newHeader.dataset.treeToggle;
+          const categoryId = newHeader.dataset.categoryId;
+          const categorySlug = newHeader.dataset.categorySlug;
+          
+          // Toggle the tree section
+          const content = document.getElementById(toggleId + '-content');
+          const arrow = document.getElementById(toggleId + '-arrow');
+          
+          if (content && arrow) {
+            const isHidden = content.classList.contains('hidden');
+            
+            if (isHidden) {
+              content.classList.remove('hidden');
+              arrow.style.transform = 'rotate(90deg)';
+            } else {
+              content.classList.add('hidden');
+              arrow.style.transform = 'rotate(0deg)';
+            }
+          }
+          
+          // Select the category and load playlists
+          if (categoryId) {
+            showOnlyFamilyByChildCategory(parseInt(categoryId));
+            this.selectCategory(categoryId, '', '');
+            if (categorySlug) {
+              updateUrl(categorySlug);
+            }
+          }
+        });
+      });
     }
     
     setupInfiniteScroll() {
@@ -356,36 +392,30 @@
     }
     
     setupCategoryButtons() {
+      // Only add listeners to child category buttons (not tree headers)
       document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const categoryId = e.target.dataset.categoryId;
+        // Remove old listeners by cloning
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent parent handlers from firing
           
-          // Update active button - reset all buttons
-          document.querySelectorAll('.category-btn').forEach(b => {
-            b.classList.remove('text-yellow-400', 'active');
-            b.classList.add('text-gray-300');
-          });
+          const categoryId = newBtn.dataset.categoryId;
+          const categoryName = newBtn.dataset.categoryName || '';
+          const categoryColor = newBtn.dataset.categoryColor || '';
+          const categorySlug = newBtn.dataset.categorySlug || '';
           
-          // Highlight selected button
-          e.target.classList.remove('text-gray-300');
-          e.target.classList.add('text-yellow-400', 'active');
+          // Select the category
+          this.selectCategory(categoryId, categoryName, categoryColor);
           
-          // Show/hide "Show All" button
-          const showAllContainer = document.getElementById('show-all-container');
-          if (categoryId) {
-            showAllContainer.style.display = 'block';
-          } else {
-            showAllContainer.style.display = 'none';
+          // Update URL
+          if (categorySlug) {
+            updateUrl(categorySlug);
           }
           
-          // Reset and load playlists
-          this.currentCategory = categoryId || null;
-          this.currentOffset = 0;
-          this.hasMore = true;
-          this.container.innerHTML = '';
-          this.endOfContent.classList.add('hidden');
-          
-          this.loadPlaylists();
+          // Hide other families and show only the one containing this category
+          showOnlyFamilyByChildCategory(parseInt(categoryId));
         });
       });
     }
@@ -579,33 +609,10 @@
     }
   }
   
-  // Tree toggle function - always toggles and selects the category
+  // Legacy function - kept for compatibility but no longer needed
   function toggleTreeSection(sectionId) {
-    const content = document.getElementById(sectionId + '-content');
-    const arrow = document.getElementById(sectionId + '-arrow');
-    
-    if (content && arrow) {
-      const isHidden = content.classList.contains('hidden');
-      
-      if (isHidden) {
-        // Expand this section
-        content.classList.remove('hidden');
-        arrow.style.transform = 'rotate(90deg)';
-      } else {
-        // Collapse this section
-        content.classList.add('hidden');
-        arrow.style.transform = 'rotate(0deg)';
-      }
-      
-      // Find the category button in this section and select it
-      const categoryBtn = content.closest('.tree-node').querySelector('.category-btn');
-      if (categoryBtn) {
-        const categoryId = categoryBtn.dataset.categoryId;
-        const categoryName = categoryBtn.dataset.categoryName || categoryBtn.textContent.trim();
-        const categoryColor = categoryBtn.dataset.categoryColor;
-        window.playlistLoader.selectCategory(categoryId, categoryName, categoryColor);
-      }
-    }
+    // This function is now handled by setupTreeToggleHandlers
+    // Kept for any remaining inline onclick references
   }
 
   // Expand the family content programmatically
