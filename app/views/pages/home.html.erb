@@ -243,6 +243,7 @@
       this.endOfContent = document.getElementById('end-of-content');
       this.counterTop = document.getElementById('playlist-counter-top');
       this.counterBottom = document.getElementById('playlist-counter-bottom');
+      this.observer = null;
       
       this.init();
     }
@@ -254,7 +255,12 @@
     }
     
     setupInfiniteScroll() {
-      const observer = new IntersectionObserver((entries) => {
+      // Clean up existing observer if any
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+      
+      this.observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting && this.hasMore && !this.isLoading) {
             this.loadPlaylists();
@@ -262,7 +268,14 @@
         });
       });
       
-      observer.observe(this.loadingSpinner);
+      this.observer.observe(this.loadingSpinner);
+    }
+    
+    cleanup() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
     }
     
     setupCategoryButtons() {
@@ -573,8 +586,12 @@
     window.history.pushState({}, '', newUrl);
   }
   
-  // Initialize when DOM is loaded
-  document.addEventListener('DOMContentLoaded', () => {
+  // Initialize when DOM is loaded (works with Turbo)
+  function initializePlaylistLoader() {
+    // Clean up any existing loader
+    if (window.playlistLoader && typeof window.playlistLoader.cleanup === 'function') {
+      window.playlistLoader.cleanup();
+    }
     window.playlistLoader = new PlaylistLoader();
 
     // Hook up Show All to restore visibility of all families and collapse all sections
@@ -593,6 +610,17 @@
           window.history.pushState({}, '', '/');
         });
       }
+    }
+  }
+  
+  // Initialize on both DOMContentLoaded (first page load) and turbo:load (Turbo navigation)
+  document.addEventListener('DOMContentLoaded', initializePlaylistLoader);
+  document.addEventListener('turbo:load', initializePlaylistLoader);
+  
+  // Cleanup before Turbo caches the page
+  document.addEventListener('turbo:before-cache', () => {
+    if (window.playlistLoader && typeof window.playlistLoader.cleanup === 'function') {
+      window.playlistLoader.cleanup();
     }
   });
 
