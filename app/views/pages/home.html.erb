@@ -79,6 +79,43 @@
               <span>Random Dig</span>
             </span>
           </div>
+          
+          <!-- Fresh Picks - Last 30 Days -->
+          <div class="mt-10 pt-8 border-t border-gray-600">
+            <h3 class="text-xl font-bold text-white mb-4 text-center">
+              🔥 Fresh Picks - Last 30 Days
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <% 
+                # Find specific playlists by title (adjust these titles to match your actual playlists)
+                smooth_reggae = Playlist.where("LOWER(title) LIKE ?", "%smooth%reggae%").or(Playlist.where("LOWER(title) LIKE ?", "%reggae%smooth%")).first
+                raw_reggae = Playlist.where("LOWER(title) LIKE ?", "%raw%reggae%").or(Playlist.where("LOWER(title) LIKE ?", "%reggae%raw%")).first
+                lyrical_rap = Playlist.where("LOWER(title) LIKE ?", "%lyrical%rap%").or(Playlist.where("LOWER(title) LIKE ?", "%conscious%rap%")).first
+                
+                fresh_picks = [smooth_reggae, raw_reggae, lyrical_rap].compact
+              %>
+              
+              <% if fresh_picks.any? %>
+                <% fresh_picks.each do |playlist| %>
+                  <a href="<%= playlist.spotify_url %>" target="_blank" class="group block bg-gray-900/60 rounded-lg p-4 border border-gray-600 hover:border-yellow-500 transition-all duration-200 hover:scale-105">
+                    <div class="flex items-center gap-3 mb-2">
+                      <span class="text-2xl">🎵</span>
+                      <h4 class="text-white font-semibold text-sm group-hover:text-yellow-400 transition-colors line-clamp-2 flex-1">
+                        <%= playlist.title %>
+                      </h4>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-400">
+                      <span><%= playlist.track_count %> tracks</span>
+                      <span>•</span>
+                      <span class="text-green-400">Updated</span>
+                    </div>
+                  </a>
+                <% end %>
+              <% else %>
+                <p class="col-span-3 text-center text-gray-500 text-sm">Fresh picks coming soon...</p>
+              <% end %>
+            </div>
+          </div>
         </div>
         
         <!-- What's New Link -->
