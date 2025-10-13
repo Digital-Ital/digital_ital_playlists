@@ -132,9 +132,23 @@
     </div>
     
     <!-- Pagination -->
-    <div class="mt-6 flex justify-center">
-      <%= paginate @spotify_opens, theme: 'twitter-bootstrap-4' %>
-    </div>
+    <% if @spotify_opens.total_pages > 1 %>
+      <div class="mt-6 flex justify-center">
+        <div class="flex gap-2 items-center">
+          <% if @spotify_opens.prev_page %>
+            <%= link_to "← Previous", admin_spotify_opens_path(page: @spotify_opens.prev_page), class: "px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors" %>
+          <% end %>
+          
+          <span class="px-4 py-2 text-gray-300">
+            Page <%= @spotify_opens.current_page %> of <%= @spotify_opens.total_pages %>
+          </span>
+          
+          <% if @spotify_opens.next_page %>
+            <%= link_to "Next →", admin_spotify_opens_path(page: @spotify_opens.next_page), class: "px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
   </div>
 </div>
 
