@@ -2,11 +2,11 @@
   <!-- Hero Section -->
   <section class="relative overflow-hidden">
     <!-- Animated Background -->
-    <div class="absolute inset-0 opacity-20">
-      <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-400 via-red-500 to-green-500 animate-pulse"></div>
-      <div class="absolute top-10 left-10 w-32 h-32 bg-yellow-400 rounded-full blur-3xl animate-bounce"></div>
-      <div class="absolute top-40 right-20 w-24 h-24 bg-red-500 rounded-full blur-2xl animate-pulse delay-1000"></div>
-      <div class="absolute bottom-20 left-1/3 w-28 h-28 bg-green-500 rounded-full blur-3xl animate-bounce delay-500"></div>
+    <div class="absolute inset-0 opacity-15">
+      <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-900 via-red-900 to-green-900 animate-pulse"></div>
+      <div class="absolute top-10 left-10 w-32 h-32 bg-yellow-800 rounded-full blur-3xl animate-bounce"></div>
+      <div class="absolute top-40 right-20 w-24 h-24 bg-red-900 rounded-full blur-2xl animate-pulse delay-1000"></div>
+      <div class="absolute bottom-20 left-1/3 w-28 h-28 bg-green-900 rounded-full blur-3xl animate-bounce delay-500"></div>
     </div>
     
     <div class="relative z-10 container mx-auto px-6 py-12">
@@ -14,21 +14,21 @@
       <div class="text-center mb-8">
         <%= link_to root_path, class: "inline-block" do %>
           <h1 class="text-5xl md:text-7xl font-bold mb-4">
-            <span class="bg-gradient-to-r from-yellow-400 via-red-500 to-green-500 bg-clip-text text-transparent">
+            <span class="bg-gradient-to-r from-yellow-600 via-red-900 to-green-700 bg-clip-text text-transparent drop-shadow-lg">
               Digital Ital Crates
             </span>
           </h1>
         <% end %>
         
         <h2 class="text-3xl md:text-4xl font-bold mb-3">
-          <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+          <span class="bg-gradient-to-r from-orange-700 to-red-900 bg-clip-text text-transparent drop-shadow-lg">
             🎵 What's New 🎵
           </span>
         </h2>
         <p class="text-yellow-400 text-lg font-bold mb-4 drop-shadow-lg">
           Latest Tracks Added Across All Playlists
         </p>
-        <%= link_to root_path, class: "inline-block px-6 py-3 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors font-semibold shadow-lg" do %>
+        <%= link_to root_path, class: "inline-block px-6 py-3 bg-yellow-700 text-white rounded-lg hover:bg-yellow-600 transition-colors font-semibold shadow-lg" do %>
           ← Back to All Playlists
         <% end %>
       </div>
@@ -40,7 +40,7 @@
     <div class="container mx-auto px-6 max-w-6xl">
       <div class="flex flex-wrap justify-center gap-3 mb-8">
         <%= link_to 'All Categories', whats_new_path, 
-                    class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id].nil? ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}" %>
+                    class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id].nil? ? 'bg-yellow-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'}" %>
         <% Category.main_families.each do |category| %>
           <% if params[:category_id] == category.id.to_s %>
             <%= link_to whats_new_path(category_id: category.id), 
@@ -50,7 +50,7 @@
             <% end %>
           <% else %>
             <%= link_to whats_new_path(category_id: category.id), 
-                        class: "px-4 py-2 rounded-lg font-semibold transition-all bg-gray-700 text-white hover:bg-gray-600" do %>
+                        class: "px-4 py-2 rounded-lg font-semibold transition-all bg-gray-800 text-white hover:bg-gray-700" do %>
               <%= category.family_emoji %> <%= category.name %>
             <% end %>
           <% end %>
