@@ -87,10 +87,13 @@
         
         <!-- What's New Link -->
         <div class="flex justify-center mt-6">
-          <%= link_to whats_new_path, class: "group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-yellow-700 via-orange-700 to-red-900 rounded-full hover:from-yellow-600 hover:via-orange-600 hover:to-red-800 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-orange-700/50" do %>
-            <span class="text-2xl">🎵</span>
-            <span class="text-white font-bold text-lg">What's New</span>
-            <span class="text-2xl">✨</span>
+          <%= link_to whats_new_path, class: "group flex flex-col items-center gap-2 px-8 py-4 bg-gradient-to-r from-yellow-700 via-orange-700 to-red-900 rounded-full hover:from-yellow-600 hover:via-orange-600 hover:to-red-800 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-orange-700/50" do %>
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🎵</span>
+              <span class="text-white font-bold text-lg">What's New</span>
+              <span class="text-2xl">✨</span>
+            </div>
+            <span class="text-yellow-200 text-sm font-medium">→ View Latest Tracks Added</span>
           <% end %>
         </div>
       </div>
