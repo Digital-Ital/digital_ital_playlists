@@ -23,10 +23,29 @@ class Api::PlaylistsController < ApplicationController
     # Use left_joins to include playlists even if they have no categories
     scope = Playlist.left_joins(:categories).includes(:categories)
     
-    # Search filter (case-insensitive)
+    # Multi-field search (case-insensitive): playlist title, artist, track name, album
     if params[:search].present?
       search_term = "%#{params[:search].downcase}%"
-      scope = scope.where("LOWER(playlists.title) LIKE ? OR LOWER(playlists.description) LIKE ?", search_term, search_term)
+      
+      # Find playlists by title
+      playlist_ids_from_title = Playlist.where("LOWER(playlists.title) LIKE ?", search_term).pluck(:id)
+      
+      # Find playlists that contain tracks matching artist, track name, or album
+      playlist_ids_from_tracks = Track.joins(:playlist_tracks)
+                                      .where("LOWER(tracks.artist) LIKE ? OR LOWER(tracks.name) LIKE ? OR LOWER(tracks.album) LIKE ?", 
+                                             search_term, search_term, search_term)
+                                      .pluck('playlist_tracks.playlist_id')
+                                      .uniq
+      
+      # Combine both search results
+      matching_playlist_ids = (playlist_ids_from_title + playlist_ids_from_tracks).uniq
+      
+      if matching_playlist_ids.any?
+        scope = scope.where(id: matching_playlist_ids)
+      else
+        # No matches - return empty scope
+        scope = scope.where(id: nil)
+      end
     end
     
     # Ensure distinct playlists (important when joined with categories)

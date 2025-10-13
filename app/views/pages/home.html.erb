@@ -323,7 +323,7 @@
               <h3 class="text-3xl font-bold text-white drop-shadow-xl mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">
                 💿 Dig Through The Crates 💿
               </h3>
-              <p class="text-white text-sm font-semibold drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">Search for playlists by title or description</p>
+              <p class="text-white text-sm font-semibold drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">Search by playlist, artist, track, or album</p>
             </div>
             
             <!-- Search Input -->
@@ -334,7 +334,7 @@
               <input 
                 type="text" 
                 id="crate-search-input"
-                placeholder="Type to dig... (roots, smooth, raw)"
+                placeholder="Search: roots, protoje, steppers, dub..."
                 class="w-full pl-12 pr-12 py-4 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-lg font-medium shadow-inner"
               />
               <button 
@@ -558,7 +558,18 @@
               <div class="text-6xl mb-4">📦</div>
               <h3 class="text-2xl font-bold text-white mb-4">No Playlists Found</h3>
               <p class="text-gray-400 mb-6">Couldn't find any playlists matching "${query}"</p>
-              <p class="text-gray-500 text-sm">Try: roots, smooth, raw, dubwise, political</p>
+              <div class="space-y-2">
+                <p class="text-gray-500 text-sm font-semibold">Try searching for:</p>
+                <p class="text-gray-400 text-sm">
+                  <span class="inline-block bg-gray-800 px-3 py-1 rounded-full mx-1">Artists:</span> protoje, chronixx, damian marley, nas
+                </p>
+                <p class="text-gray-400 text-sm">
+                  <span class="inline-block bg-gray-800 px-3 py-1 rounded-full mx-1">Vibes:</span> roots, dubwise, steppers, conscious
+                </p>
+                <p class="text-gray-400 text-sm">
+                  <span class="inline-block bg-gray-800 px-3 py-1 rounded-full mx-1">Styles:</span> reggae, hip-hop, dub, dancehall
+                </p>
+              </div>
             </div>
           `;
           const searchInfo = document.getElementById('search-results-info');
