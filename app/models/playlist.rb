@@ -4,6 +4,7 @@ class Playlist < ApplicationRecord
   has_many :playlist_tracks, dependent: :destroy
   has_many :tracks, through: :playlist_tracks
   has_many :update_logs, dependent: :destroy
+  has_many :share_events, dependent: :destroy
 
   validates :title, presence: true
   validates :spotify_url, presence: true, uniqueness: true, format: { with: URI.regexp(%w[http https]) }

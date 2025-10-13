@@ -1,0 +1,124 @@
+<div class="container mx-auto px-6 py-8">
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-2">📊 Share Analytics</h1>
+    <p class="text-gray-400">Track how users are sharing your playlists across platforms</p>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <div class="text-gray-400 text-sm font-semibold mb-2">Total Shares</div>
+      <div class="text-4xl font-bold text-yellow-400"><%= @total_shares %></div>
+    </div>
+    
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <div class="text-gray-400 text-sm font-semibold mb-2">Shares Today</div>
+      <div class="text-4xl font-bold text-green-400"><%= @shares_today %></div>
+    </div>
+    
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <div class="text-gray-400 text-sm font-semibold mb-2">Shares This Week</div>
+      <div class="text-4xl font-bold text-blue-400"><%= @shares_this_week %></div>
+    </div>
+  </div>
+
+  <!-- Shares by Platform -->
+  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+    <h2 class="text-2xl font-bold text-white mb-4">📱 Shares by Platform</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <% @shares_by_platform.each do |platform, count| %>
+        <div class="bg-gray-900 rounded-lg p-4 border border-gray-700">
+          <div class="text-gray-400 text-sm mb-1"><%= platform.titleize %></div>
+          <div class="text-2xl font-bold text-white"><%= count %></div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Most Shared Playlists -->
+  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+    <h2 class="text-2xl font-bold text-white mb-4">🔥 Most Shared Playlists</h2>
+    <div class="space-y-3">
+      <% @most_shared_playlists.each_with_index do |playlist, index| %>
+        <div class="flex items-center gap-4 bg-gray-900 rounded-lg p-4 border border-gray-700">
+          <div class="text-2xl font-bold text-yellow-400 w-8">#<%= index + 1 %></div>
+          <% if playlist.cover_image_url %>
+            <img src="<%= playlist.cover_image_url %>" alt="<%= playlist.title %>" class="w-16 h-16 rounded-lg">
+          <% end %>
+          <div class="flex-1">
+            <h3 class="text-white font-semibold"><%= playlist.title %></h3>
+            <div class="text-sm text-gray-400"><%= playlist.track_count %> tracks</div>
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold text-green-400"><%= playlist.shares_count %></div>
+            <div class="text-xs text-gray-400">shares</div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Recent Share Events -->
+  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+    <h2 class="text-2xl font-bold text-white mb-4">🕐 Recent Share Events</h2>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-700">
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold">Time</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold">Playlist</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold">Platform</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold">Shared Content</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold">User Info</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @share_events.each do |event| %>
+            <tr class="border-b border-gray-700/50 hover:bg-gray-700/30">
+              <td class="py-3 px-4 text-gray-300 text-sm">
+                <%= time_ago_in_words(event.created_at) %> ago
+                <div class="text-xs text-gray-500"><%= event.created_at.strftime('%b %d, %Y %I:%M %p') %></div>
+              </td>
+              <td class="py-3 px-4">
+                <div class="font-semibold text-white"><%= event.playlist.title %></div>
+                <div class="text-xs text-gray-400"><%= event.playlist.track_count %> tracks</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-1 rounded text-xs font-semibold bg-gray-900 text-yellow-400 border border-gray-700">
+                  <%= event.platform %>
+                </span>
+              </td>
+              <td class="py-3 px-4 text-gray-300 text-sm max-w-xs">
+                <% if event.shared_content.present? %>
+                  <div class="truncate"><%= event.shared_content %></div>
+                <% else %>
+                  <span class="text-gray-500">-</span>
+                <% end %>
+              </td>
+              <td class="py-3 px-4 text-xs text-gray-400">
+                <div class="mb-1"><strong>IP:</strong> <%= event.ip_address || 'N/A' %></div>
+                <% if event.user_agent.present? %>
+                  <div class="truncate max-w-xs" title="<%= event.user_agent %>">
+                    <strong>Agent:</strong> <%= event.user_agent.truncate(40) %>
+                  </div>
+                <% end %>
+                <% if event.referrer.present? %>
+                  <div class="truncate max-w-xs" title="<%= event.referrer %>">
+                    <strong>From:</strong> <%= event.referrer.truncate(40) %>
+                  </div>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="mt-6">
+      <%= paginate @share_events %>
+    </div>
+  </div>
+</div>
+

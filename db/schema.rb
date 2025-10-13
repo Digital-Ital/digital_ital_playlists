@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_10_051343) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_13_035853) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -88,7 +88,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_10_051343) do
     t.datetime "updated_at", null: false
     t.datetime "last_updated_at"
     t.integer "followers_count", default: 0
+    t.integer "reaction_count", default: 0, null: false
     t.index ["category_id"], name: "index_playlists_on_category_id"
+  end
+
+  create_table "share_events", force: :cascade do |t|
+    t.integer "playlist_id", null: false
+    t.string "platform"
+    t.text "shared_content"
+    t.string "user_agent"
+    t.string "referrer"
+    t.string "ip_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_share_events_on_created_at"
+    t.index ["platform"], name: "index_share_events_on_platform"
+    t.index ["playlist_id"], name: "index_share_events_on_playlist_id"
   end
 
   create_table "tracks", force: :cascade do |t|
@@ -136,6 +151,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_10_051343) do
   add_foreign_key "playlist_tracks", "tracks"
   add_foreign_key "playlist_updates", "playlists"
   add_foreign_key "playlist_updates", "update_sessions"
+  add_foreign_key "share_events", "playlists"
   add_foreign_key "update_logs", "playlists"
   add_foreign_key "update_logs", "tracks"
 end

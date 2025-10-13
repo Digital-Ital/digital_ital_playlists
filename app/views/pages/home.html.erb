@@ -314,11 +314,19 @@
               </button>
             </div>
             
-            <!-- Search hint -->
-            <div id="search-hint" class="mt-3 text-center">
+            <!-- Search hint and Random Dig -->
+            <div id="search-hint" class="mt-4 text-center flex flex-col items-center gap-3">
               <span class="inline-block bg-black/50 px-3 py-1 rounded text-white text-xs font-semibold">
                 🎵 Start digging to find your sound
               </span>
+              <div class="text-gray-400 text-xs">OR</div>
+              <button 
+                id="random-dig-btn"
+                onclick="randomDig()"
+                class="px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-900 hover:from-purple-600 hover:to-purple-800 text-white font-bold rounded-xl shadow-xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 border-2 border-purple-500/50">
+                🎲 Random Dig 🎲
+                <div class="text-xs font-normal mt-1">Discover a random gem</div>
+              </button>
             </div>
             
             <!-- Search results count -->
@@ -767,6 +775,28 @@
                   ▶️ Open on Spotify
                 </button>
               </div>
+              
+              <!-- Interaction buttons -->
+              <div class="flex flex-wrap items-center gap-2 mb-3 justify-center md:justify-start">
+                <!-- Reaction button -->
+                <button 
+                  class="reaction-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-yellow-600/20 border border-gray-700 hover:border-yellow-500 transition-all duration-200 group"
+                  data-playlist-id="${playlist.id}"
+                  onclick="event.stopPropagation(); handleReaction(${playlist.id}, this)"
+                  title="React to this playlist">
+                  <span class="text-lg group-hover:scale-125 transition-transform">🔥</span>
+                  <span class="reaction-count text-gray-300 font-semibold text-xs">${playlist.reaction_count || 0}</span>
+                </button>
+                
+                <!-- Share button -->
+                <button 
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-200 group"
+                  onclick="event.stopPropagation(); sharePlaylist(${playlist.id}, '${playlist.title.replace(/'/g, "\\'")}', '${playlist.spotify_url}')"
+                  title="Share this playlist">
+                  <span class="text-sm group-hover:scale-110 transition-transform">📤</span>
+                  <span class="text-gray-300 font-semibold text-xs">Share</span>
+                </button>
+              </div>
               <!-- Category tags with improved styling -->
               <div class="flex flex-wrap gap-2 items-start justify-center md:justify-start">
                 ${playlist.categories
@@ -930,6 +960,127 @@
     }
   });
 
+  // --- Interaction Functions ---
+  
+  // Handle reactions (with localStorage to prevent spam)
+  async function handleReaction(playlistId, button) {
+    const storageKey = `reacted_${playlistId}`;
+    
+    // Check if already reacted
+    if (localStorage.getItem(storageKey)) {
+      // Show feedback that they already reacted
+      button.classList.add('animate-pulse');
+      setTimeout(() => button.classList.remove('animate-pulse'), 500);
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/api/playlists/${playlistId}/react`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update count
+        const countEl = button.querySelector('.reaction-count');
+        countEl.textContent = data.reaction_count;
+        
+        // Store in localStorage
+        localStorage.setItem(storageKey, 'true');
+        
+        // Visual feedback
+        button.classList.add('border-yellow-500', 'bg-yellow-600/20');
+        const emoji = button.querySelector('span:first-child');
+        emoji.classList.add('animate-bounce');
+      }
+    } catch (error) {
+      console.error('Error reacting:', error);
+    }
+  }
+  
+  // Share playlist with tracking
+  async function sharePlaylist(playlistId, title, url) {
+    const shareData = {
+      title: title,
+      text: `Check out this playlist: ${title}`,
+      url: url
+    };
+    
+    // Try native share API first (mobile)
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        trackShare(playlistId, 'native', `${shareData.text} - ${url}`);
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          copyToClipboard(playlistId, title, url);
+        }
+      }
+    } else {
+      // Fallback to copy link
+      copyToClipboard(playlistId, title, url);
+    }
+  }
+  
+  // Copy link to clipboard with tracking
+  function copyToClipboard(playlistId, title, url) {
+    navigator.clipboard.writeText(url).then(() => {
+      trackShare(playlistId, 'copy_link', url);
+      
+      // Show success message
+      const message = document.createElement('div');
+      message.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-pulse';
+      message.textContent = '✅ Link copied to clipboard!';
+      document.body.appendChild(message);
+      
+      setTimeout(() => {
+        message.remove();
+      }, 2000);
+    }).catch(err => {
+      console.error('Could not copy:', err);
+    });
+  }
+  
+  // Track share event
+  async function trackShare(playlistId, platform, content) {
+    try {
+      await fetch(`/api/playlists/${playlistId}/share`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          platform: platform,
+          shared_content: content
+        })
+      });
+    } catch (error) {
+      console.error('Error tracking share:', error);
+    }
+  }
+  
+  // Random Dig - Open random playlist
+  async function randomDig() {
+    try {
+      const response = await fetch('/api/playlists?all=true');
+      const data = await response.json();
+      
+      if (data.playlists && data.playlists.length > 0) {
+        const randomPlaylist = data.playlists[Math.floor(Math.random() * data.playlists.length)];
+        
+        // Visual feedback
+        const btn = document.getElementById('random-dig-btn');
+        btn.classList.add('animate-spin');
+        
+        setTimeout(() => {
+          window.open(randomPlaylist.spotify_url, '_blank');
+          btn.classList.remove('animate-spin');
+        }, 500);
+      }
+    } catch (error) {
+      console.error('Error getting random playlist:', error);
+    }
+  }
+  
   // --- Color utilities ---
   function isValidHex(hex) {
     return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(hex);
