@@ -8,6 +8,9 @@
       <button onclick="startBatchUpdate()" class="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-400 transition-colors font-semibold">
         🔄 Update All Playlists
       </button>
+      <button onclick="forceRestartBatch()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors font-semibold">
+        ⚠️ Force Restart (Unstick)
+      </button>
       <%= link_to 'New Playlist', new_admin_playlist_path, class: 'px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors' %>
     </div>
   </div>
@@ -224,6 +227,36 @@
       }
     } catch (e) {
       alert('Failed to start batch update: ' + e.message);
+      closeModal();
+    }
+  }
+
+  async function forceRestartBatch() {
+    if (!confirm('Force stop any stuck batch and start a new one?')) return;
+    // Show modal
+    document.getElementById('batch-update-modal').classList.remove('hidden');
+    document.getElementById('progress-bar-fill').style.width = '0%';
+    document.getElementById('progress-text').textContent = 'Forcing restart...';
+    document.getElementById('current-playlist').textContent = '';
+    document.getElementById('close-modal-btn').classList.add('hidden');
+
+    try {
+      const response = await fetch('<%= start_batch_update_admin_playlists_path %>?force=true', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        updateInterval = setInterval(checkProgress, 2000);
+      } else {
+        alert(data.message || 'Failed to force restart');
+        closeModal();
+      }
+    } catch (e) {
+      alert('Failed to force restart: ' + e.message);
       closeModal();
     }
   }

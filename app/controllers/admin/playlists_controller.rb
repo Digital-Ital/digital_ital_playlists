@@ -104,6 +104,16 @@ class Admin::PlaylistsController < Admin::BaseController
 
   # POST /admin/playlists/start_batch_update
   def start_batch_update
+    # If a batch is active and stale, fail it; otherwise block unless force=true
+    if (active = BatchUpdate.active.first)
+      stale_threshold_minutes = 20
+      if params[:force] == 'true' || active.updated_at < stale_threshold_minutes.minutes.ago
+        active.update!(status: 'failed')
+      else
+        render json: { success: false, status: 'running', message: 'Batch already running', batch_id: active.id }, status: :ok and return
+      end
+    end
+
     # Create a new batch update record
     batch = BatchUpdate.create!(
       status: 'running',
@@ -116,7 +126,12 @@ class Admin::PlaylistsController < Admin::BaseController
     # Start the batch update in a thread (background)
     Thread.new do
       ActiveRecord::Base.connection_pool.with_connection do
-        process_batch_update(batch.id)
+        begin
+          process_batch_update(batch.id)
+        rescue => e
+          Rails.logger.error "Batch update failed: #{e.message}\n#{e.backtrace.join("\n")}"
+          batch.update!(status: 'failed')
+        end
       end
     end
     
