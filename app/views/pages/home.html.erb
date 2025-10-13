@@ -1125,11 +1125,11 @@
     modal.className = 'fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4 overflow-y-auto';
     
     modal.innerHTML = `
-      <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 max-w-md w-full my-4 border-2 border-yellow-500 shadow-2xl transform animate-scale-in max-h-[90vh] overflow-y-auto">
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 max-w-md w-full my-4 border-2 border-yellow-600/70 shadow-2xl transform animate-scale-in max-h-[90vh] overflow-y-auto">
         <div class="text-center mb-4">
-          <div class="text-4xl mb-2 animate-bounce">🎲✨</div>
-          <h3 class="text-2xl font-bold text-yellow-400 mb-1">Random Dig!</h3>
-          <p class="text-gray-300 text-xs font-medium">Found a hidden gem</p>
+          <div class="text-4xl mb-2">💿📀</div>
+          <h3 class="text-2xl font-bold text-yellow-500 mb-1">Pulled From The Crates</h3>
+          <p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Sound System Selection</p>
         </div>
         
         ${track.image_url ? `<img src="${track.image_url}" alt="${track.name}" class="w-full rounded-xl mb-4 shadow-2xl ring-2 ring-yellow-500/50">` : ''}
@@ -1141,8 +1141,8 @@
         </div>
         
         <div class="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-lg p-3 mb-4 border border-yellow-600/40">
-          <p class="text-xs text-gray-400 mb-1 uppercase tracking-wide">Dug from crate:</p>
-          <p class="text-sm font-bold text-yellow-400 line-clamp-2">${playlist.title}</p>
+          <p class="text-xs text-gray-500 mb-1 uppercase tracking-wider">Found in crate:</p>
+          <p class="text-sm font-bold text-yellow-500 line-clamp-2">${playlist.title}</p>
         </div>
         
         <div class="flex gap-2 mb-3">
@@ -1161,8 +1161,8 @@
         <div class="text-center">
           <button 
             onclick="this.closest('.fixed').remove(); setTimeout(() => randomDig(), 100);"
-            class="text-yellow-400 hover:text-yellow-300 text-xs font-semibold underline">
-            🔄 Dig Again
+            class="text-yellow-500 hover:text-yellow-400 text-xs font-semibold underline">
+            🔄 Pull Another One
           </button>
         </div>
       </div>
