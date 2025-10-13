@@ -152,62 +152,6 @@
     </section>
   <% end %>
 
-  <!-- Vinyl Crate Search Section -->
-  <section class="py-12 relative">
-    <div class="container mx-auto px-6 max-w-3xl">
-      <div class="relative">
-        <!-- Vinyl Crate Search Box -->
-        <div class="bg-gradient-to-br from-amber-900/40 to-yellow-900/30 border-4 border-amber-800/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-          <!-- Wood grain texture effect -->
-          <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 69, 19, 0.3) 2px, rgba(139, 69, 19, 0.3) 4px);"></div>
-          
-          <div class="relative z-10">
-            <!-- Header -->
-            <div class="text-center mb-6">
-              <h3 class="text-3xl font-bold text-yellow-400 drop-shadow-lg mb-2">
-                💿 Dig Through The Crates 💿
-              </h3>
-              <p class="text-amber-200 text-sm font-medium">Search for playlists by title or vibe</p>
-            </div>
-            
-            <!-- Search Input -->
-            <div class="relative">
-              <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-xl">
-                🔍
-              </div>
-              <input 
-                type="text" 
-                id="crate-search-input"
-                placeholder="Type to dig... (e.g., 'dubwise', 'political', 'weed')"
-                class="w-full pl-12 pr-12 py-4 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-500 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-lg font-medium shadow-inner"
-              />
-              <button 
-                id="clear-search-btn"
-                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-2xl"
-                title="Clear search"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <!-- Search hint -->
-            <div id="search-hint" class="mt-3 text-center text-amber-300/80 text-xs font-medium">
-              🎵 Start typing to uncover hidden gems from the collection
-            </div>
-            
-            <!-- Search results count -->
-            <div id="search-results-info" class="mt-4 text-center hidden">
-              <div class="inline-block bg-black/50 px-4 py-2 rounded-lg border border-yellow-600/50">
-                <span class="text-yellow-400 font-bold" id="search-results-count">0</span>
-                <span class="text-gray-300"> playlists found</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- Categories Navigation -->
   <section class="py-12">
     <div class="container mx-auto px-6 max-w-5xl">
@@ -332,6 +276,64 @@
     </div>
   </section>
 
+  <!-- Vinyl Crate Search Section -->
+  <section class="py-12 relative">
+    <div class="container mx-auto px-6 max-w-3xl">
+      <div class="relative">
+        <!-- Vinyl Crate Search Box -->
+        <div class="bg-gradient-to-br from-amber-900/40 to-yellow-900/30 border-4 border-amber-800/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+          <!-- Wood grain texture effect -->
+          <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 69, 19, 0.3) 2px, rgba(139, 69, 19, 0.3) 4px);"></div>
+          
+          <div class="relative z-10">
+            <!-- Header -->
+            <div class="text-center mb-6">
+              <h3 class="text-3xl font-bold text-white drop-shadow-xl mb-2" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">
+                💿 Dig Through The Crates 💿
+              </h3>
+              <p class="text-white text-sm font-semibold drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">Search for playlists by title or description</p>
+            </div>
+            
+            <!-- Search Input -->
+            <div class="relative">
+              <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-xl">
+                🔍
+              </div>
+              <input 
+                type="text" 
+                id="crate-search-input"
+                placeholder="Type to dig... (roots, smooth, raw)"
+                class="w-full pl-12 pr-12 py-4 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-lg font-medium shadow-inner"
+              />
+              <button 
+                id="clear-search-btn"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-2xl"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <!-- Search hint -->
+            <div id="search-hint" class="mt-3 text-center">
+              <span class="inline-block bg-black/50 px-3 py-1 rounded text-white text-xs font-semibold">
+                🎵 Start digging to find your sound
+              </span>
+            </div>
+            
+            <!-- Search results count -->
+            <div id="search-results-info" class="mt-4 text-center hidden">
+              <div class="inline-block bg-black/50 px-4 py-2 rounded-lg border border-yellow-600/50">
+                <span class="text-yellow-400 font-bold" id="search-results-count">0</span>
+                <span class="text-gray-300"> playlists found</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Infinite Scroll Playlists -->
   <section id="playlists-section" class="py-16 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
@@ -422,17 +424,24 @@
       
       if (!searchInput) return;
       
+      // Remove old listeners by cloning
+      const newSearchInput = searchInput.cloneNode(true);
+      searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+      
+      const newClearBtn = clearBtn.cloneNode(true);
+      clearBtn.parentNode.replaceChild(newClearBtn, clearBtn);
+      
       let searchTimeout;
       
-      searchInput.addEventListener('input', (e) => {
+      newSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.trim();
         
         // Show/hide clear button
         if (query) {
-          clearBtn.classList.remove('hidden');
+          newClearBtn.classList.remove('hidden');
           searchHint.classList.add('hidden');
         } else {
-          clearBtn.classList.add('hidden');
+          newClearBtn.classList.add('hidden');
           searchHint.classList.remove('hidden');
           searchInfo.classList.add('hidden');
         }
@@ -445,9 +454,9 @@
       });
       
       // Clear button
-      clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        clearBtn.classList.add('hidden');
+      newClearBtn.addEventListener('click', () => {
+        newSearchInput.value = '';
+        newClearBtn.classList.add('hidden');
         searchHint.classList.remove('hidden');
         searchInfo.classList.add('hidden');
         this.performSearch('');
@@ -455,13 +464,22 @@
     }
     
     async performSearch(query) {
-      // Reset state
+      // Prevent multiple simultaneous searches
+      if (this.isLoading) {
+        return;
+      }
+      
+      // Reset state and clear container FIRST
       this.currentOffset = 0;
       this.hasMore = query ? false : true; // Disable infinite scroll during search
-      this.container.innerHTML = '';
       this.endOfContent.classList.add('hidden');
       this.counterTop.classList.add('hidden');
       this.counterBottom.classList.add('hidden');
+      
+      // Clear container
+      if (this.container) {
+        this.container.innerHTML = '';
+      }
       
       if (!query) {
         // No search query - load normal playlists
@@ -495,7 +513,7 @@
               <div class="text-6xl mb-4">📦</div>
               <h3 class="text-2xl font-bold text-white mb-4">No Playlists Found</h3>
               <p class="text-gray-400 mb-6">Couldn't find any playlists matching "${query}"</p>
-              <p class="text-gray-500 text-sm">Try different keywords like "dubwise", "political", or "weed"</p>
+              <p class="text-gray-500 text-sm">Try: roots, smooth, raw, dubwise, political</p>
             </div>
           `;
           const searchInfo = document.getElementById('search-results-info');

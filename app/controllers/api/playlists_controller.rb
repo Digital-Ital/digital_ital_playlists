@@ -21,13 +21,16 @@ class Api::PlaylistsController < ApplicationController
     offset = (params[:offset] || 0).to_i
 
     # Use left_joins to include playlists even if they have no categories
-    scope = Playlist.left_joins(:categories).includes(:categories).distinct
+    scope = Playlist.left_joins(:categories).includes(:categories)
     
-    # Search filter
+    # Search filter (case-insensitive)
     if params[:search].present?
-      search_term = "%#{params[:search]}%"
-      scope = scope.where("playlists.title LIKE ? OR playlists.description LIKE ?", search_term, search_term)
+      search_term = "%#{params[:search].downcase}%"
+      scope = scope.where("LOWER(playlists.title) LIKE ? OR LOWER(playlists.description) LIKE ?", search_term, search_term)
     end
+    
+    # Ensure distinct playlists (important when joined with categories)
+    scope = scope.distinct
     
     if params[:category_ids].present?
       ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact

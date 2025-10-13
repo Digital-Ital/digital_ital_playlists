@@ -1,15 +1,43 @@
 <svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
-  <!-- Reggae colors background -->
-  <rect width="512" height="171" fill="#DC143C" y="0"/>
-  <rect width="512" height="171" fill="#FFD700" y="171"/>
-  <rect width="512" height="170" fill="#228B22" y="342"/>
+  <!-- Dark background -->
+  <rect width="512" height="512" fill="#0d0d0d"/>
   
-  <!-- Vinyl record in center -->
-  <circle cx="256" cy="256" r="140" fill="#1a1a1a"/>
-  <circle cx="256" cy="256" r="120" fill="#2a2a2a"/>
-  <circle cx="256" cy="256" r="50" fill="#1a1a1a"/>
-  <circle cx="256" cy="256" r="20" fill="#333"/>
+  <!-- Wooden crate -->
+  <rect x="80" y="150" width="352" height="280" fill="#5D4037" rx="8"/>
+  <rect x="90" y="160" width="332" height="260" fill="#4E342E" rx="4"/>
   
-  <!-- Music notes -->
-  <text x="256" y="280" font-size="80" fill="white" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold">♪</text>
+  <!-- Wood grain lines -->
+  <line x1="90" y1="200" x2="422" y2="200" stroke="#3E2723" stroke-width="2" opacity="0.5"/>
+  <line x1="90" y1="280" x2="422" y2="280" stroke="#3E2723" stroke-width="2" opacity="0.5"/>
+  <line x1="90" y1="360" x2="422" y2="360" stroke="#3E2723" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Vinyl records sticking out of crate -->
+  <!-- Record 1 (left) -->
+  <ellipse cx="180" cy="180" rx="60" ry="8" fill="#1a1a1a" opacity="0.8"/>
+  <circle cx="180" cy="180" r="55" fill="#1a1a1a"/>
+  <circle cx="180" cy="180" r="48" fill="#2a2a2a"/>
+  <circle cx="180" cy="180" r="20" fill="#1a1a1a"/>
+  <circle cx="180" cy="180" r="8" fill="#FFD700"/>
+  
+  <!-- Record 2 (middle) -->
+  <ellipse cx="256" cy="170" rx="60" ry="8" fill="#1a1a1a" opacity="0.8"/>
+  <circle cx="256" cy="170" r="55" fill="#1a1a1a"/>
+  <circle cx="256" cy="170" r="48" fill="#2a2a2a"/>
+  <circle cx="256" cy="170" r="20" fill="#1a1a1a"/>
+  <circle cx="256" cy="170" r="8" fill="#FFD700"/>
+  
+  <!-- Record 3 (right) -->
+  <ellipse cx="332" cy="185" rx="60" ry="8" fill="#1a1a1a" opacity="0.8"/>
+  <circle cx="332" cy="185" r="55" fill="#1a1a1a"/>
+  <circle cx="332" cy="185" r="48" fill="#2a2a2a"/>
+  <circle cx="332" cy="185" r="20" fill="#1a1a1a"/>
+  <circle cx="332" cy="185" r="8" fill="#FFD700"/>
+  
+  <!-- Magnifying glass (searching through crates) -->
+  <circle cx="370" cy="360" r="35" fill="none" stroke="#FFD700" stroke-width="6"/>
+  <circle cx="370" cy="360" r="28" fill="rgba(255, 215, 0, 0.1)"/>
+  <line x1="395" y1="385" x2="425" y2="415" stroke="#FFD700" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Subtle text hint -->
+  <text x="256" y="470" font-size="28" fill="#FFD700" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold">DIG</text>
 </svg>
