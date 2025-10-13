@@ -93,7 +93,7 @@
               <span class="text-white font-bold text-lg">What's New</span>
               <span class="text-2xl">✨</span>
             </div>
-            <span class="text-yellow-200 text-sm font-medium">→ View Latest Tracks Added</span>
+            <span class="text-yellow-200 text-sm font-medium">→ Click to View Latest Tracks Added</span>
           <% end %>
         </div>
       </div>
@@ -188,16 +188,6 @@
                   
                   <!-- Interaction buttons -->
                   <div class="flex gap-2 mb-3">
-                    <!-- Reaction button -->
-                    <button 
-                      class="reaction-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-yellow-600/20 border border-gray-700 hover:border-yellow-500 transition-all duration-200 group flex-1 justify-center"
-                      data-playlist-id="<%= playlist.id %>"
-                      onclick="event.stopPropagation(); handleReaction(<%= playlist.id %>, this)"
-                      title="React to this playlist">
-                      <span class="text-base group-hover:scale-125 transition-transform">🔥</span>
-                      <span class="reaction-count text-gray-300 font-semibold text-xs"><%= playlist.reaction_count || 0 %></span>
-                    </button>
-                    
                     <!-- Share button -->
                     <button 
                       class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-200 group flex-1 justify-center"
@@ -870,16 +860,6 @@
               
               <!-- Interaction buttons -->
               <div class="flex flex-wrap items-center gap-2 mb-3 justify-center md:justify-start">
-                <!-- Reaction button -->
-                <button 
-                  class="reaction-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-yellow-600/20 border border-gray-700 hover:border-yellow-500 transition-all duration-200 group"
-                  data-playlist-id="${playlist.id}"
-                  onclick="event.stopPropagation(); handleReaction(${playlist.id}, this)"
-                  title="React to this playlist">
-                  <span class="text-lg group-hover:scale-125 transition-transform">🔥</span>
-                  <span class="reaction-count text-gray-300 font-semibold text-xs">${playlist.reaction_count || 0}</span>
-                </button>
-                
                 <!-- Share button -->
                 <button 
                   class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-200 group"
@@ -1054,42 +1034,6 @@
 
   // --- Interaction Functions ---
   
-  // Handle reactions (with localStorage to prevent spam)
-  async function handleReaction(playlistId, button) {
-    const storageKey = `reacted_${playlistId}`;
-    
-    // Check if already reacted
-    if (localStorage.getItem(storageKey)) {
-      // Show feedback that they already reacted
-      button.classList.add('animate-pulse');
-      setTimeout(() => button.classList.remove('animate-pulse'), 500);
-      return;
-    }
-    
-    try {
-      const response = await fetch(`/api/playlists/${playlistId}/react`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      const data = await response.json();
-      
-      if (data.success) {
-        // Update count
-        const countEl = button.querySelector('.reaction-count');
-        countEl.textContent = data.reaction_count;
-        
-        // Store in localStorage
-        localStorage.setItem(storageKey, 'true');
-        
-        // Visual feedback
-        button.classList.add('border-yellow-500', 'bg-yellow-600/20');
-        const emoji = button.querySelector('span:first-child');
-        emoji.classList.add('animate-bounce');
-      }
-    } catch (error) {
-      console.error('Error reacting:', error);
-    }
-  }
   
   // Share playlist with tracking
   async function sharePlaylist(playlistId, title, url) {
