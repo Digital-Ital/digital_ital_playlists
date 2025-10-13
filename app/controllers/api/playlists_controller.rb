@@ -22,6 +22,13 @@ class Api::PlaylistsController < ApplicationController
 
     # Use left_joins to include playlists even if they have no categories
     scope = Playlist.left_joins(:categories).includes(:categories).distinct
+    
+    # Search filter
+    if params[:search].present?
+      search_term = "%#{params[:search]}%"
+      scope = scope.where("playlists.title LIKE ? OR playlists.description LIKE ?", search_term, search_term)
+    end
+    
     if params[:category_ids].present?
       ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
       # Only filter if we have valid category IDs
