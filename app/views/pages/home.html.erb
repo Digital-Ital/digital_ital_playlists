@@ -71,35 +71,51 @@
 
   <!-- Featured Playlists Section -->
   <% if @featured_playlists.any? %>
-    <section class="py-12 bg-gradient-to-b from-gray-900/50 to-transparent">
-      <div class="container mx-auto px-6">
-        <div class="text-center mb-8">
-          <h3 class="text-4xl font-bold mb-2">
-            <span class="text-yellow-400 drop-shadow-lg">⭐</span>
-            <span class="text-white drop-shadow-lg">Featured Playlists</span>
-            <span class="text-yellow-400 drop-shadow-lg">⭐</span>
-          </h3>
-          <p class="text-gray-400 text-lg">Hand-picked selections from the collection</p>
+    <section class="py-16 bg-gradient-to-b from-gray-900/80 to-transparent relative">
+      <!-- Decorative elements -->
+      <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-10 left-10 w-32 h-32 bg-yellow-600/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-10 right-10 w-32 h-32 bg-red-900/10 rounded-full blur-3xl"></div>
+      </div>
+      
+      <div class="container mx-auto px-6 relative z-10">
+        <div class="text-center mb-12">
+          <div class="inline-block mb-4">
+            <h3 class="text-4xl md:text-5xl font-bold mb-3">
+              <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
+              <span class="text-white drop-shadow-lg">Featured Playlists</span>
+              <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
+            </h3>
+          </div>
+          <p class="text-gray-300 text-lg font-medium">Hand-picked selections from the collection</p>
+          <div class="w-24 h-1 bg-gradient-to-r from-yellow-600 via-red-900 to-green-700 mx-auto mt-4 rounded-full"></div>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           <% @featured_playlists.each do |playlist| %>
-            <div class="group cursor-pointer transform transition-all duration-300 hover:scale-105" onclick="window.open('<%= playlist.spotify_url %>', '_blank')">
-              <div class="relative overflow-hidden rounded-2xl bg-gray-900 border-2 border-yellow-400/50 hover:border-yellow-400 transition-all shadow-xl hover:shadow-yellow-500/50">
+            <div class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2" onclick="window.open('<%= playlist.spotify_url %>', '_blank')">
+              <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-yellow-500/40 hover:border-yellow-400 transition-all shadow-2xl hover:shadow-yellow-500/40 ring-1 ring-yellow-500/20">
+                <!-- Shine effect -->
+                <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                
                 <!-- Cover Image -->
                 <div class="relative aspect-square overflow-hidden">
                   <% if playlist.cover_image_url %>
                     <img src="<%= playlist.cover_image_url %>" alt="<%= playlist.title %>" class="w-full h-full object-cover">
                   <% else %>
-                    <div class="w-full h-full bg-gray-800 flex items-center justify-center">
+                    <div class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
                       <div class="text-6xl">🎵</div>
                     </div>
                   <% end %>
+                  <!-- Featured badge -->
+                  <div class="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold shadow-lg">
+                    ⭐ FEATURED
+                  </div>
                   <!-- Overlay on hover -->
-                  <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="text-center">
-                      <div class="text-6xl mb-2">▶️</div>
-                      <span class="text-white font-bold text-lg">Play on Spotify</span>
+                  <div class="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
+                    <div class="text-center transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      <div class="text-6xl mb-2 animate-pulse">▶️</div>
+                      <span class="text-white font-bold text-lg drop-shadow-lg">Play on Spotify</span>
                     </div>
                   </div>
                 </div>
@@ -137,8 +153,8 @@
   <% end %>
 
   <!-- Categories Navigation -->
-  <section class="py-8">
-    <div class="container mx-auto px-6 max-w-4xl">
+  <section class="py-12">
+    <div class="container mx-auto px-6 max-w-5xl">
       
       <!-- Show All Button -->
       <div id="show-all-container" class="text-center mb-6" style="display: none;">
@@ -152,56 +168,58 @@
       
       <!-- Dynamic Collapsible Tree Structure -->
       <% if @main_families.any? %>
-        <div class="space-y-4">
+        <div class="space-y-6">
           <% @main_families.each do |family| %>
             <div class="tree-node" id="family-<%= family.id %>-node" data-family-id="<%= family.id %>">
               <% family_has_children = family.children.any? %>
-              <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-600/80 to-gray-500/80' %> hover:from-gray-500/90 hover:to-gray-400/90 transition-all duration-300 transform hover:scale-102 shadow-lg border-2 border-yellow-400/50" 
+              <div class="tree-header cursor-pointer flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r <%= family.family_color || 'from-gray-700/90 to-gray-600/90' %> hover:from-gray-600 hover:to-gray-500 transition-all duration-300 transform hover:-translate-y-0.5 shadow-xl hover:shadow-2xl border-2 border-yellow-400/40 hover:border-yellow-400/70 ring-1 ring-yellow-500/20" 
                    data-tree-toggle="family-<%= family.id %>"
                    data-category-id="<%= family.id %>"
                    data-category-slug="<%= family.slug %>">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4 flex-wrap">
                   <% if family_has_children %>
-                    <span class="tree-arrow text-2xl text-yellow-300 transform transition-transform duration-200 font-bold" id="family-<%= family.id %>-arrow">▶</span>
+                    <span class="tree-arrow text-3xl text-yellow-300 transform transition-transform duration-300 font-bold drop-shadow-lg" id="family-<%= family.id %>-arrow">▶</span>
                   <% end %>
-                  <span class="text-xl font-bold text-white drop-shadow-lg">
+                  <span class="text-2xl font-extrabold text-white drop-shadow-lg tracking-wide">
                     <%= family.family_emoji || '🎵' %> <%= family.name.upcase %> <%= family.family_emoji || '🎵' %>
                   </span>
-                  <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/50">
+                  <span class="px-4 py-1.5 bg-black/40 rounded-full text-sm font-bold text-yellow-300 border-2 border-yellow-400/60 shadow-lg backdrop-blur-sm">
                     <%= family.playlists.count %> playlists / <%= family.playlists.sum(:track_count) %> tracks
                   </span>
                 </div>
               </div>
-              <div class="tree-content hidden ml-6 mt-3 space-y-2 border-l-4 border-yellow-500/50 pl-4" id="family-<%= family.id %>-content">
+              <div class="tree-content hidden ml-8 mt-4 space-y-3 border-l-4 border-yellow-500/60 pl-6 bg-black/10 rounded-r-xl py-3" id="family-<%= family.id %>-content">
                 <!-- Family Root Categories -->
                 <% family.children.order(:position, :name).each do |root_category| %>
                   <div class="tree-node">
                     <% root_has_children = root_category.children.any? %>
-                    <div class="tree-header cursor-pointer flex items-center justify-between p-3 rounded-lg bg-gradient-to-r <%= family.family_color || 'from-gray-700/60 to-gray-600/60' %> hover:from-gray-600/70 hover:to-gray-500/70 transition-all duration-200 border border-gray-400/30"
+                    <div class="tree-header cursor-pointer flex items-center justify-between p-4 rounded-xl bg-gradient-to-r <%= family.family_color || 'from-gray-800/80 to-gray-700/80' %> hover:from-gray-700/90 hover:to-gray-600/90 transition-all duration-300 border border-gray-600/50 hover:border-yellow-500/50 shadow-md hover:shadow-lg transform hover:-translate-x-1"
                          data-tree-toggle="root-<%= root_category.id %>"
                          data-category-id="<%= root_category.id %>"
                          data-category-slug="<%= root_category.slug %>">
-                      <div class="flex items-center gap-2">
+                      <div class="flex items-center gap-3 flex-wrap">
                         <% if root_has_children %>
-                          <span class="tree-arrow text-lg text-yellow-300 transform transition-transform duration-200 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
+                          <span class="tree-arrow text-xl text-yellow-300 transform transition-transform duration-300 font-bold" id="root-<%= root_category.id %>-arrow">▶</span>
                         <% end %>
-                        <span class="text-white font-bold text-lg">
+                        <span class="text-white font-bold text-lg drop-shadow-md">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
                         </span>
-                        <span class="px-2 py-1 bg-black/30 rounded text-xs font-bold text-yellow-300"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
+                        <span class="px-3 py-1 bg-black/40 rounded-full text-xs font-bold text-yellow-300 border border-yellow-400/50"><%= root_category.playlists.count %> playlists / <%= root_category.playlists.sum(:track_count) %> tracks</span>
                       </div>
                     </div>
-                    <div class="tree-content hidden ml-6 mt-2 space-y-1" id="root-<%= root_category.id %>-content">
+                    <div class="tree-content hidden ml-8 mt-3 space-y-2 bg-black/20 rounded-xl p-3" id="root-<%= root_category.id %>-content">
                       <% root_category.children.order(:position, :name).each do |child| %>
-                        <div class="flex items-center gap-2 p-2 rounded-lg bg-gray-900/30 hover:bg-gray-800/50 transition-colors border border-gray-700/30">
-                          <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold" 
+                        <div class="flex items-center gap-2 p-3 rounded-lg bg-gray-900/60 hover:bg-gray-800/80 transition-all duration-200 border border-gray-700/40 hover:border-gray-600 shadow-sm hover:shadow-md transform hover:translate-x-1">
+                          <button class="category-btn text-gray-200 hover:text-yellow-400 transition-colors font-semibold text-sm" 
                                   data-category-id="<%= child.id %>"
                                   data-category-name="<%= child.name %>"
                                   data-category-color="<%= child.color %>"
                                   data-category-slug="<%= child.slug %>">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
                           </button>
-                          <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>)</span>
+                          <span class="px-2.5 py-1 bg-black/40 rounded-full text-xs font-bold text-gray-400 border border-gray-700/50">
+                            <%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>
+                          </span>
                         </div>
                       <% end %>
                     </div>
@@ -259,13 +277,14 @@
   </section>
 
   <!-- Infinite Scroll Playlists -->
-  <section id="playlists-section" class="py-16">
+  <section id="playlists-section" class="py-16 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
       <!-- Playlist Counter - Top -->
-      <div id="playlist-counter-top" class="text-center mb-8 hidden">
-        <div class="inline-block bg-gray-800/80 rounded-full px-6 py-3 border border-gray-600">
-          <span class="text-yellow-400 font-bold text-lg">
-            <span id="current-count-top">0</span> / <span id="total-count-top">0</span> playlists
+      <div id="playlist-counter-top" class="text-center mb-10 hidden">
+        <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-8 py-4 border-2 border-yellow-500/40 shadow-xl ring-1 ring-yellow-500/20">
+          <span class="text-yellow-400 font-bold text-xl drop-shadow-lg">
+            <span id="current-count-top">0</span> <span class="text-gray-400">/</span> <span id="total-count-top">0</span> 
+            <span class="text-gray-300 font-semibold ml-1">playlists</span>
           </span>
         </div>
       </div>
@@ -276,23 +295,27 @@
       
       <!-- Loading Spinner -->
       <div id="loading-spinner" class="text-center py-12 hidden">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-        <p class="text-gray-400 mt-4">Loading more playlists...</p>
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-4 border-gray-700 border-t-yellow-500 shadow-lg"></div>
+        <p class="text-gray-300 mt-6 text-lg font-medium">Loading more playlists...</p>
       </div>
       
       <!-- Playlist Counter - Bottom -->
-      <div id="playlist-counter-bottom" class="text-center mt-8 hidden">
-        <div class="inline-block bg-gray-800/80 rounded-full px-6 py-3 border border-gray-600">
-          <span class="text-yellow-400 font-bold text-lg">
-            <span id="current-count-bottom">0</span> / <span id="total-count-bottom">0</span> playlists
+      <div id="playlist-counter-bottom" class="text-center mt-10 hidden">
+        <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-8 py-4 border-2 border-yellow-500/40 shadow-xl ring-1 ring-yellow-500/20">
+          <span class="text-yellow-400 font-bold text-xl drop-shadow-lg">
+            <span id="current-count-bottom">0</span> <span class="text-gray-400">/</span> <span id="total-count-bottom">0</span> 
+            <span class="text-gray-300 font-semibold ml-1">playlists</span>
           </span>
         </div>
       </div>
 
       <!-- End of Content -->
-      <div id="end-of-content" class="text-center py-12 hidden">
-        <p class="text-gray-500">You've reached the end of the playlist collection</p>
-        <div class="mt-4 text-4xl">🎵</div>
+      <div id="end-of-content" class="text-center py-16 hidden">
+        <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-8 py-6 border-2 border-gray-700/50 shadow-xl">
+          <div class="text-6xl mb-4">🎵</div>
+          <p class="text-gray-300 text-lg font-medium mb-2">You've reached the end</p>
+          <p class="text-gray-500 text-sm">That's all the playlists in this selection</p>
+        </div>
       </div>
     </div>
   </section>
@@ -532,28 +555,46 @@
     
     renderPlaylist(playlist) {
       const playlistElement = document.createElement('div');
-      playlistElement.className = 'group cursor-pointer transform transition-all duration-300 hover:scale-105';
+      playlistElement.className = 'group cursor-pointer transform transition-all duration-300 hover:-translate-y-1';
       playlistElement.onclick = () => window.open(playlist.spotify_url, '_blank');
       
       playlistElement.innerHTML = `
-        <div class="relative overflow-hidden rounded-2xl bg-gray-900 p-4 hover:shadow-xl transition">
-          <div class="flex flex-col md:flex-row gap-4 items-start">
-            <div class="w-full md:w-40 flex justify-center md:justify-start">
+        <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 border border-gray-700/50 hover:border-yellow-500/50 shadow-lg hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300">
+          <!-- Subtle shine effect on hover -->
+          <div class="absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          
+          <div class="relative flex flex-col md:flex-row gap-6 items-start">
+            <!-- Album Cover with enhanced styling -->
+            <div class="w-full md:w-48 flex justify-center md:justify-start flex-shrink-0">
               ${playlist.cover_image_url ? 
-                `<img src="${playlist.cover_image_url}" alt="${playlist.title}" class="w-40 h-40 object-cover rounded-xl flex-shrink-0">` :
-                `<div class=\"w-40 h-40 bg-gray-800 rounded-xl flex-shrink-0 flex items-center justify-center\"><div class=\"text-3xl\">🎵</div></div>`
+                `<div class="relative">
+                  <img src="${playlist.cover_image_url}" alt="${playlist.title}" class="w-48 h-48 object-cover rounded-xl shadow-xl ring-2 ring-gray-700 group-hover:ring-yellow-500/50 transition-all duration-300">
+                  <div class="absolute inset-0 rounded-xl bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                </div>` :
+                `<div class="w-48 h-48 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl flex-shrink-0 flex items-center justify-center shadow-xl ring-2 ring-gray-700">
+                  <div class="text-5xl">🎵</div>
+                </div>`
               }
             </div>
-            <div class="flex-1 w-full md:w-auto">
-              <h4 class="text-2xl font-semibold text-white mb-2 text-center md:text-left">
+            
+            <!-- Content -->
+            <div class="flex-1 w-full md:w-auto min-w-0">
+              <h4 class="text-2xl font-bold text-white mb-3 text-center md:text-left group-hover:text-yellow-400 transition-colors line-clamp-2">
                 ${playlist.title}
               </h4>
-              ${playlist.description ? `<p class=\"text-gray-300 text-sm mb-3 text-center md:text-left\">${playlist.description}</p>` : ''}
-              <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-3 justify-center md:justify-start">
-                <span>${playlist.track_count} tracks</span>
-                ${playlist.duration ? `<span>• ${playlist.duration}</span>` : ''}
-                <button class="px-3 py-1 rounded-md bg-green-500 text-black font-semibold hover:bg-green-400" onclick="event.stopPropagation(); window.open('${playlist.spotify_url}','_blank')">Open on Spotify</button>
+              ${playlist.description ? `<p class=\"text-gray-300 text-sm mb-4 text-center md:text-left line-clamp-2 leading-relaxed\">${playlist.description}</p>` : ''}
+              
+              <!-- Metadata row with better styling -->
+              <div class="flex flex-wrap items-center gap-3 text-sm mb-4 justify-center md:justify-start">
+                <span class="px-3 py-1.5 bg-gray-800/80 rounded-full text-yellow-400 font-semibold border border-gray-700">
+                  🎵 ${playlist.track_count} tracks
+                </span>
+                ${playlist.duration ? `<span class=\"text-gray-400\">• ${playlist.duration}</span>` : ''}
+                <button class="px-4 py-1.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200" onclick="event.stopPropagation(); window.open('${playlist.spotify_url}','_blank')">
+                  ▶️ Open on Spotify
+                </button>
               </div>
+              <!-- Category tags with improved styling -->
               <div class="flex flex-wrap gap-2 items-start justify-center md:justify-start">
                 ${playlist.categories
                   .sort((a, b) => {
@@ -562,7 +603,7 @@
                     return a.name.localeCompare(b.name);
                   })
                   .map(category => 
-                    `<button class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 ${category.is_root ? 'bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-gray-100 border border-gray-600 hover:from-gray-700/90 hover:to-gray-600/90 font-semibold shadow-lg' : ''}\"
+                    `<button class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs font-semibold hover:scale-110 hover:-translate-y-0.5 transition-all duration-200 shadow-md hover:shadow-lg ${category.is_root ? 'bg-gradient-to-r from-gray-800 to-gray-700 text-gray-100 border-2 border-gray-600 hover:border-yellow-500/50 ring-1 ring-gray-600/50' : 'border border-gray-600/50 hover:border-current'}\"
                      data-category-id=\"${category.id}\" 
                      data-category-name=\"${category.name}\"
                      data-category-color=\"${category.color}\"
