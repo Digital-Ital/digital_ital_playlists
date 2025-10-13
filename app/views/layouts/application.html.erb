@@ -47,6 +47,81 @@
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     
+    <!-- Analytics Tracking -->
+    <script>
+      (function() {
+        let sessionId = localStorage.getItem('analytics_session_id');
+        if (!sessionId) {
+          sessionId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('analytics_session_id', sessionId);
+        }
+        
+        let pageStartTime = Date.now();
+        let currentUrl = window.location.pathname;
+        
+        function trackPageView() {
+          const data = {
+            session_id: sessionId,
+            url: currentUrl,
+            page_type: detectPageType(),
+            category_id: getCategoryId(),
+            playlist_id: getPlaylistId(),
+            action_type: 'page_view',
+            time_on_page: Math.floor((Date.now() - pageStartTime) / 1000)
+          };
+          
+          fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          }).catch(() => {}); // Silent fail
+        }
+        
+        function detectPageType() {
+          const path = window.location.pathname;
+          if (path === '/') return 'home';
+          if (path.startsWith('/categories/')) return 'category';
+          if (path.startsWith('/playlists/')) return 'playlist';
+          if (path === '/whats-new') return 'whats_new';
+          return 'other';
+        }
+        
+        function getCategoryId() {
+          const match = window.location.pathname.match(/\/categories\/([^\/]+)/);
+          return match ? match[1] : null;
+        }
+        
+        function getPlaylistId() {
+          const match = window.location.pathname.match(/\/playlists\/(\d+)/);
+          return match ? parseInt(match[1]) : null;
+        }
+        
+        // Track on page load
+        document.addEventListener('DOMContentLoaded', trackPageView);
+        document.addEventListener('turbo:load', trackPageView);
+        
+        // Track before leaving (capture time on page)
+        document.addEventListener('turbo:before-visit', trackPageView);
+        window.addEventListener('beforeunload', trackPageView);
+        
+        // Track search queries
+        window.trackSearch = function(query) {
+          fetch('/api/analytics/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              session_id: sessionId,
+              url: currentUrl,
+              page_type: 'search',
+              search_query: query,
+              action_type: 'search',
+              time_on_page: Math.floor((Date.now() - pageStartTime) / 1000)
+            })
+          }).catch(() => {});
+        };
+      })();
+    </script>
+    
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       

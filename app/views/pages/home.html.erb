@@ -499,6 +499,11 @@
       this.isLoading = true;
       this.loadingSpinner.classList.remove('hidden');
       
+      // Track search query
+      if (window.trackSearch) {
+        window.trackSearch(query);
+      }
+      
       try {
         const url = `/api/playlists?search=${encodeURIComponent(query)}&per_page=100`;
         const response = await fetch(url);
@@ -1058,27 +1063,74 @@
     }
   }
   
-  // Random Dig - Open random playlist
+  // Random Dig - Open random track with playlist context
   async function randomDig() {
+    const btn = document.getElementById('random-dig-btn');
+    btn.classList.add('animate-spin', 'opacity-50');
+    btn.disabled = true;
+    
     try {
-      const response = await fetch('/api/playlists?all=true');
+      const response = await fetch('/api/random_track');
       const data = await response.json();
       
-      if (data.playlists && data.playlists.length > 0) {
-        const randomPlaylist = data.playlists[Math.floor(Math.random() * data.playlists.length)];
+      if (data.track && data.playlist) {
+        // Show modal with track and playlist info
+        showRandomTrackModal(data.track, data.playlist);
         
-        // Visual feedback
-        const btn = document.getElementById('random-dig-btn');
-        btn.classList.add('animate-spin');
-        
+        // Open track after brief delay
         setTimeout(() => {
-          window.open(randomPlaylist.spotify_url, '_blank');
-          btn.classList.remove('animate-spin');
-        }, 500);
+          window.open(data.track.external_url, '_blank');
+        }, 800);
       }
     } catch (error) {
-      console.error('Error getting random playlist:', error);
+      console.error('Error getting random track:', error);
+    } finally {
+      setTimeout(() => {
+        btn.classList.remove('animate-spin', 'opacity-50');
+        btn.disabled = false;
+      }, 1000);
     }
+  }
+  
+  // Show random track modal
+  function showRandomTrackModal(track, playlist) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in';
+    modal.onclick = () => modal.remove();
+    
+    modal.innerHTML = `
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 max-w-md mx-4 border-2 border-yellow-500 shadow-2xl transform animate-scale-in" onclick="event.stopPropagation()">
+        <div class="text-center mb-6">
+          <div class="text-4xl mb-3">🎲✨</div>
+          <h3 class="text-2xl font-bold text-yellow-400 mb-2">Random Dig!</h3>
+          <p class="text-gray-400 text-sm">Found a gem for you</p>
+        </div>
+        
+        ${track.image_url ? `<img src="${track.image_url}" alt="${track.name}" class="w-full rounded-xl mb-4 shadow-xl">` : ''}
+        
+        <div class="text-center mb-4">
+          <h4 class="text-xl font-bold text-white mb-2">${track.name}</h4>
+          <p class="text-gray-300 mb-1">${track.artist}</p>
+          ${track.album ? `<p class="text-gray-500 text-sm">${track.album}</p>` : ''}
+        </div>
+        
+        <div class="bg-black/40 rounded-lg p-3 mb-4 border border-gray-700">
+          <p class="text-xs text-gray-400 mb-1">From playlist:</p>
+          <p class="text-sm font-semibold text-yellow-400">${playlist.title}</p>
+        </div>
+        
+        <div class="text-center text-gray-400 text-sm">
+          Opening in Spotify...
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      modal.remove();
+    }, 3000);
   }
   
   // --- Color utilities ---

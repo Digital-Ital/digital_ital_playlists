@@ -84,6 +84,38 @@ class Api::PlaylistsController < ApplicationController
       render json: { error: "Category not found" }, status: :not_found
     end
   end
+  
+  def random_track
+    # Get a random track from all playlists
+    random_track = Track.joins(:playlist_tracks)
+                       .where.not(external_url: nil)
+                       .order("RANDOM()")
+                       .limit(1)
+                       .first
+    
+    if random_track
+      # Get the playlist this track is in (pick first if in multiple)
+      playlist = random_track.playlists.first
+      
+      render json: {
+        track: {
+          id: random_track.id,
+          name: random_track.name,
+          artist: random_track.artist,
+          album: random_track.album,
+          image_url: random_track.image_url,
+          external_url: random_track.external_url
+        },
+        playlist: {
+          id: playlist.id,
+          title: playlist.title,
+          spotify_url: playlist.spotify_url
+        }
+      }
+    else
+      render json: { error: "No tracks found" }, status: :not_found
+    end
+  end
 
   private
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_13_035853) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_13_041413) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -38,6 +38,25 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_035853) do
     t.string "family_color"
     t.string "family_emoji"
     t.index ["parent_id"], name: "index_categories_on_parent_id"
+  end
+
+  create_table "page_views", force: :cascade do |t|
+    t.integer "visit_session_id", null: false
+    t.string "url"
+    t.string "page_type"
+    t.integer "category_id"
+    t.integer "playlist_id"
+    t.string "search_query"
+    t.string "action_type"
+    t.integer "time_on_page", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_page_views_on_category_id"
+    t.index ["created_at"], name: "index_page_views_on_created_at"
+    t.index ["page_type"], name: "index_page_views_on_page_type"
+    t.index ["playlist_id"], name: "index_page_views_on_playlist_id"
+    t.index ["search_query"], name: "index_page_views_on_search_query"
+    t.index ["visit_session_id"], name: "index_page_views_on_visit_session_id"
   end
 
   create_table "playlist_categories", force: :cascade do |t|
@@ -144,7 +163,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_035853) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "visit_sessions", force: :cascade do |t|
+    t.string "session_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.string "referrer"
+    t.boolean "is_bot", default: false
+    t.string "first_page"
+    t.string "last_page"
+    t.integer "page_views_count", default: 0
+    t.datetime "started_at"
+    t.datetime "ended_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ip_address"], name: "index_visit_sessions_on_ip_address"
+    t.index ["is_bot"], name: "index_visit_sessions_on_is_bot"
+    t.index ["session_id"], name: "index_visit_sessions_on_session_id", unique: true
+    t.index ["started_at"], name: "index_visit_sessions_on_started_at"
+  end
+
   add_foreign_key "categories", "categories", column: "parent_id"
+  add_foreign_key "page_views", "visit_sessions"
   add_foreign_key "playlist_categories", "categories"
   add_foreign_key "playlist_categories", "playlists"
   add_foreign_key "playlist_tracks", "playlists"

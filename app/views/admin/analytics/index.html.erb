@@ -1,0 +1,242 @@
+<div class="container mx-auto px-6 py-8">
+  <div class="mb-8">
+    <h1 class="text-4xl font-bold text-white mb-2">📊 Analytics Dashboard</h1>
+    <p class="text-gray-400">Comprehensive traffic and user behavior analytics</p>
+  </div>
+
+  <!-- Top Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl p-6 border border-blue-700 shadow-xl">
+      <div class="text-blue-200 text-sm font-semibold mb-2">Total Visits</div>
+      <div class="text-4xl font-bold text-white"><%= @total_visits %></div>
+      <div class="text-xs text-blue-300 mt-2"><%= @human_visits %> human / <%= @bot_visits %> bots</div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-900 to-green-800 rounded-xl p-6 border border-green-700 shadow-xl">
+      <div class="text-green-200 text-sm font-semibold mb-2">Visits Today</div>
+      <div class="text-4xl font-bold text-white"><%= @visits_today %></div>
+      <div class="text-xs text-green-300 mt-2"><%= @human_visits_today %> real visitors</div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-900 to-purple-800 rounded-xl p-6 border border-purple-700 shadow-xl">
+      <div class="text-purple-200 text-sm font-semibold mb-2">This Week</div>
+      <div class="text-4xl font-bold text-white"><%= @visits_this_week %></div>
+      <div class="text-xs text-purple-300 mt-2"><%= @human_visits_this_week %> human visits</div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-yellow-900 to-yellow-800 rounded-xl p-6 border border-yellow-700 shadow-xl">
+      <div class="text-yellow-200 text-sm font-semibold mb-2">Avg Session</div>
+      <div class="text-4xl font-bold text-white"><%= (@avg_session_duration / 60.0).round(1) %>m</div>
+      <div class="text-xs text-yellow-300 mt-2">Time spent on site</div>
+    </div>
+  </div>
+
+  <!-- Traffic Sources & Bot Detection -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <!-- Traffic Sources -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>🌐</span> Traffic Sources
+      </h2>
+      <div class="space-y-2">
+        <% if @top_referrers.any? %>
+          <% @top_referrers.each do |referrer, count| %>
+            <div class="flex items-center justify-between bg-gray-900 rounded-lg p-3 border border-gray-700">
+              <div class="flex-1 truncate">
+                <div class="text-sm font-medium text-white truncate"><%= referrer %></div>
+                <div class="text-xs text-gray-500">Referrer</div>
+              </div>
+              <div class="text-xl font-bold text-yellow-400 ml-4"><%= count %></div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-gray-500 text-center py-4">No referrer data yet</p>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Bot Detection -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+        <span>🤖</span> Bot Traffic (This Week)
+      </h2>
+      <div class="mb-4 bg-gray-900 rounded-lg p-4 border border-gray-700">
+        <div class="flex justify-between items-center">
+          <span class="text-gray-400">Human Traffic</span>
+          <span class="text-2xl font-bold text-green-400"><%= @human_visits_this_week %></span>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+          <span class="text-gray-400">Bot Traffic</span>
+          <span class="text-2xl font-bold text-red-400"><%= @visits_this_week - @human_visits_this_week %></span>
+        </div>
+      </div>
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        <% @bot_types.each do |bot_agent, count| %>
+          <div class="bg-gray-900 rounded p-2 border border-gray-700/50 text-xs">
+            <div class="text-gray-300 truncate" title="<%= bot_agent %>"><%= bot_agent.truncate(50) %></div>
+            <div class="text-yellow-400 font-semibold"><%= count %> visits</div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Performance -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <!-- Top Categories -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-xl font-bold text-white mb-4">🎵 Top Categories</h2>
+      <div class="space-y-2">
+        <% @top_categories.each_with_index do |cat, index| %>
+          <div class="flex items-center gap-3 bg-gray-900 rounded-lg p-3">
+            <div class="text-yellow-400 font-bold text-sm w-6">#<%= index + 1 %></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-white font-medium text-sm truncate"><%= cat.name %></div>
+            </div>
+            <div class="text-green-400 font-bold"><%= cat.view_count %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Top Playlists -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-xl font-bold text-white mb-4">🔥 Most Clicked Playlists</h2>
+      <div class="space-y-2">
+        <% @top_playlists.each_with_index do |pl, index| %>
+          <div class="flex items-center gap-3 bg-gray-900 rounded-lg p-3">
+            <div class="text-yellow-400 font-bold text-sm w-6">#<%= index + 1 %></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-white font-medium text-sm truncate"><%= pl.title %></div>
+            </div>
+            <div class="text-green-400 font-bold"><%= pl.view_count %></div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Popular Searches -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h2 class="text-xl font-bold text-white mb-4">🔍 Top Searches</h2>
+      <div class="space-y-2">
+        <% if @top_searches.any? %>
+          <% @top_searches.each do |query, count| %>
+            <div class="flex items-center justify-between bg-gray-900 rounded-lg p-3">
+              <div class="flex-1 truncate">
+                <span class="text-white font-medium text-sm">"<%= query %>"</span>
+              </div>
+              <div class="text-yellow-400 font-bold ml-2"><%= count %></div>
+            </div>
+          <% end %>
+        <% else %>
+          <p class="text-gray-500 text-center py-4 text-sm">No searches yet</p>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Live Sessions -->
+  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+    <h2 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+      <span class="relative flex h-3 w-3">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+      </span>
+      Live & Recent Sessions (Human Only)
+    </h2>
+    
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-700">
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Time</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Duration</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Pages</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">First Page</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Last Page</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Source</th>
+            <th class="text-left py-3 px-4 text-gray-400 font-semibold text-sm">Device</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @recent_sessions.each do |session| %>
+            <tr class="border-b border-gray-700/50 hover:bg-gray-700/30">
+              <td class="py-3 px-4 text-gray-300 text-sm">
+                <%= time_ago_in_words(session.started_at) %> ago
+                <% if session.ended_at && session.ended_at > 5.minutes.ago %>
+                  <span class="text-green-400 text-xs">● ACTIVE</span>
+                <% end %>
+              </td>
+              <td class="py-3 px-4 text-gray-300 text-sm">
+                <%= session.duration_formatted %>
+              </td>
+              <td class="py-3 px-4 text-yellow-400 font-semibold">
+                <%= session.page_views_count %>
+              </td>
+              <td class="py-3 px-4 text-gray-300 text-sm truncate max-w-xs">
+                <%= session.first_page || 'N/A' %>
+              </td>
+              <td class="py-3 px-4 text-gray-300 text-sm truncate max-w-xs">
+                <%= session.last_page || 'N/A' %>
+              </td>
+              <td class="py-3 px-4 text-gray-400 text-xs truncate max-w-xs">
+                <% if session.referrer.present? %>
+                  <%= URI.parse(session.referrer).host rescue session.referrer.truncate(20) %>
+                <% else %>
+                  <span class="text-gray-600">Direct</span>
+                <% end %>
+              </td>
+              <td class="py-3 px-4 text-gray-400 text-xs">
+                <% if session.user_agent %>
+                  <% agent = session.user_agent %>
+                  <% if agent.match?(/mobile|android|iphone|ipad/i) %>
+                    📱 Mobile
+                  <% elsif agent.match?(/tablet/i) %>
+                    📱 Tablet
+                  <% else %>
+                    💻 Desktop
+                  <% end %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Hourly Traffic Chart (Simple Text Version) -->
+  <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+    <h2 class="text-2xl font-bold text-white mb-4">⏰ Traffic by Hour (Last 24h)</h2>
+    <div class="space-y-2">
+      <% 24.times do |hour| %>
+        <% hour_key = hour.to_s.rjust(2, '0') %>
+        <% count = @hourly_views[hour_key] || 0 %>
+        <% max_count = @hourly_views.values.max || 1 %>
+        <% width = (count.to_f / max_count * 100).round %>
+        <div class="flex items-center gap-3">
+          <div class="text-gray-400 text-sm w-16"><%= hour_key %>:00</div>
+          <div class="flex-1 bg-gray-900 rounded-full h-8 overflow-hidden">
+            <div class="bg-gradient-to-r from-yellow-600 to-yellow-500 h-full flex items-center justify-end pr-2 transition-all duration-300" style="width: <%= [width, 5].max %>%">
+              <% if count > 0 %>
+                <span class="text-xs font-bold text-white"><%= count %></span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out;
+  }
+</style>
+
