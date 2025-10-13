@@ -35,5 +35,28 @@ class Api::InteractionsController < ApplicationController
     Rails.logger.error "Error adding reaction: #{e.message}"
     render json: { error: "Failed to add reaction" }, status: :internal_server_error
   end
+  
+  # POST /api/playlists/:playlist_id/spotify_open
+  def track_spotify_open
+    playlist = Playlist.find(params[:playlist_id])
+    
+    # Get session ID from frontend analytics
+    session_id = params[:session_id] || request.session_options[:id]
+    
+    spotify_open = playlist.spotify_opens.create(
+      location: params[:location] || 'unknown', # featured, regular, category, search, whats_new
+      session_id: session_id,
+      user_agent: request.user_agent,
+      referrer: request.referrer,
+      ip_address: request.remote_ip
+    )
+    
+    render json: { success: true, open_id: spotify_open.id }
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: "Playlist not found" }, status: :not_found
+  rescue => e
+    Rails.logger.error "Error tracking Spotify open: #{e.message}"
+    render json: { error: "Failed to track open" }, status: :internal_server_error
+  end
 end
 

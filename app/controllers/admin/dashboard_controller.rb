@@ -18,10 +18,13 @@ class Admin::DashboardController < Admin::BaseController
       @total_reactions = Playlist.sum(:reaction_count) || 0
       @total_shares = ShareEvent.count || 0
       @shares_today = ShareEvent.where('created_at >= ?', Time.current.beginning_of_day).count || 0
+      @total_spotify_opens = SpotifyOpen.count || 0
+      @spotify_opens_today = SpotifyOpen.where('created_at >= ?', Time.current.beginning_of_day).count || 0
     rescue => e
       Rails.logger.error "Dashboard Analytics Error: #{e.message}"
       @total_visits = @human_visits = @visits_today = @visits_this_week = 0
       @total_reactions = @total_shares = @shares_today = 0
+      @total_spotify_opens = @spotify_opens_today = 0
     end
   end
 end

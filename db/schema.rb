@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_13_041413) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_13_050958) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -125,6 +125,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_041413) do
     t.index ["playlist_id"], name: "index_share_events_on_playlist_id"
   end
 
+  create_table "spotify_opens", force: :cascade do |t|
+    t.integer "playlist_id", null: false
+    t.string "location"
+    t.string "session_id"
+    t.string "user_agent"
+    t.string "referrer"
+    t.string "ip_address"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_spotify_opens_on_created_at"
+    t.index ["location"], name: "index_spotify_opens_on_location"
+    t.index ["playlist_id"], name: "index_spotify_opens_on_playlist_id"
+    t.index ["session_id"], name: "index_spotify_opens_on_session_id"
+  end
+
   create_table "tracks", force: :cascade do |t|
     t.string "spotify_id"
     t.string "name"
@@ -191,6 +206,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_13_041413) do
   add_foreign_key "playlist_updates", "playlists"
   add_foreign_key "playlist_updates", "update_sessions"
   add_foreign_key "share_events", "playlists"
+  add_foreign_key "spotify_opens", "playlists"
   add_foreign_key "update_logs", "playlists"
   add_foreign_key "update_logs", "tracks"
 end

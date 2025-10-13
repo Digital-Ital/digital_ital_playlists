@@ -138,7 +138,7 @@
                   
                   <!-- Spotify Button -->
                   <button class="w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
-                          onclick="event.stopPropagation(); window.open('<%= playlist.spotify_url %>','_blank')">
+                          onclick="event.stopPropagation(); trackSpotifyOpen(<%= playlist.id %>, 'featured', '<%= playlist.spotify_url %>')">
                     ▶️ Open on Spotify
                   </button>
                   
@@ -808,7 +808,7 @@
                   🎵 ${playlist.track_count} tracks
                 </span>
                 ${playlist.duration ? `<span class=\"text-gray-400\">• ${playlist.duration}</span>` : ''}
-                <button class="px-4 py-1.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200" onclick="event.stopPropagation(); window.open('${playlist.spotify_url}','_blank')">
+                <button class="px-4 py-1.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200" onclick="event.stopPropagation(); trackSpotifyOpen(${playlist.id}, 'regular', '${playlist.spotify_url}')">
                   ▶️ Open on Spotify
                 </button>
               </div>
@@ -1095,6 +1095,28 @@
     }
   }
   
+  // Track Spotify open
+  async function trackSpotifyOpen(playlistId, location, url) {
+    try {
+      // Get analytics session ID
+      const sessionId = localStorage.getItem('analytics_session_id') || 'unknown';
+      
+      await fetch(`/api/playlists/${playlistId}/spotify_open`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: location, // 'featured', 'regular', 'category', 'search', 'whats_new'
+          session_id: sessionId
+        })
+      });
+    } catch (error) {
+      console.error('Error tracking Spotify open:', error);
+    }
+    
+    // Open Spotify regardless of tracking success
+    window.open(url, '_blank');
+  }
+  
   // Random Dig - Open random track with playlist context
   async function randomDig() {
     const btn = document.getElementById('random-dig-btn');
@@ -1147,7 +1169,7 @@
         
         <div class="flex gap-2 mb-3">
           <button 
-            onclick="window.open('${track.external_url}', '_blank'); this.closest('.fixed').remove();"
+            onclick="trackSpotifyOpen(${playlist.id}, 'random_dig', '${track.external_url}'); this.closest('.fixed').remove();"
             class="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/50 transition-all duration-200 text-sm">
             ▶️ Play on Spotify
           </button>

@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         end
         resources :update_logs, only: [:index]
         resources :share_events, only: [:index]
+        resources :spotify_opens, only: [:index]
         get 'analytics', to: 'analytics#index'
       end
 
@@ -36,6 +37,7 @@ Rails.application.routes.draw do
   # API endpoints for interactions
   post "api/playlists/:playlist_id/share", to: "api/interactions#track_share"
   post "api/playlists/:playlist_id/react", to: "api/interactions#react"
+  post "api/playlists/:playlist_id/spotify_open", to: "api/interactions#track_spotify_open"
   
   # API endpoints for analytics
   post "api/analytics/track", to: "api/analytics#track"
