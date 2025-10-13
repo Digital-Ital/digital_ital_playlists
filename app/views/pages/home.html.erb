@@ -125,11 +125,43 @@
                   <h4 class="text-lg font-bold text-white mb-2 line-clamp-2 group-hover:text-yellow-400 transition-colors">
                     <%= playlist.title %>
                   </h4>
-                  <div class="flex items-center gap-2 text-sm text-gray-400 mb-3">
-                    <span><%= playlist.track_count %> tracks</span>
+                  
+                  <!-- Metadata -->
+                  <div class="flex flex-wrap items-center gap-2 text-sm text-gray-400 mb-3">
+                    <span class="px-2 py-1 bg-gray-800/60 rounded-full text-yellow-400 font-semibold">
+                      🎵 <%= playlist.track_count %> tracks
+                    </span>
                     <% if playlist.duration %>
-                      <span>• <%= playlist.duration %></span>
+                      <span><%= playlist.duration %></span>
                     <% end %>
+                  </div>
+                  
+                  <!-- Spotify Button -->
+                  <button class="w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
+                          onclick="event.stopPropagation(); window.open('<%= playlist.spotify_url %>','_blank')">
+                    ▶️ Open on Spotify
+                  </button>
+                  
+                  <!-- Interaction buttons -->
+                  <div class="flex gap-2 mb-3">
+                    <!-- Reaction button -->
+                    <button 
+                      class="reaction-btn flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-yellow-600/20 border border-gray-700 hover:border-yellow-500 transition-all duration-200 group flex-1 justify-center"
+                      data-playlist-id="<%= playlist.id %>"
+                      onclick="event.stopPropagation(); handleReaction(<%= playlist.id %>, this)"
+                      title="React to this playlist">
+                      <span class="text-base group-hover:scale-125 transition-transform">🔥</span>
+                      <span class="reaction-count text-gray-300 font-semibold text-xs"><%= playlist.reaction_count || 0 %></span>
+                    </button>
+                    
+                    <!-- Share button -->
+                    <button 
+                      class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-800/60 hover:bg-blue-600/20 border border-gray-700 hover:border-blue-500 transition-all duration-200 group flex-1 justify-center"
+                      onclick="event.stopPropagation(); sharePlaylist(<%= playlist.id %>, '<%= playlist.title.gsub("'", "\\'") %>', '<%= playlist.spotify_url %>')"
+                      title="Share this playlist">
+                      <span class="text-sm group-hover:scale-110 transition-transform">📤</span>
+                      <span class="text-gray-300 font-semibold text-xs">Share</span>
+                    </button>
                   </div>
                   
                   <!-- Categories -->
@@ -1090,46 +1122,46 @@
   // Show random track modal
   function showRandomTrackModal(track, playlist) {
     const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4';
+    modal.className = 'fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4 overflow-y-auto';
     
     modal.innerHTML = `
-      <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 max-w-lg w-full mx-4 border-2 border-yellow-500 shadow-2xl transform animate-scale-in">
-        <div class="text-center mb-6">
-          <div class="text-5xl mb-3 animate-bounce">🎲✨</div>
-          <h3 class="text-3xl font-bold text-yellow-400 mb-2">Random Dig!</h3>
-          <p class="text-gray-300 text-sm font-medium">Found a hidden gem for you</p>
+      <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 max-w-md w-full my-4 border-2 border-yellow-500 shadow-2xl transform animate-scale-in max-h-[90vh] overflow-y-auto">
+        <div class="text-center mb-4">
+          <div class="text-4xl mb-2 animate-bounce">🎲✨</div>
+          <h3 class="text-2xl font-bold text-yellow-400 mb-1">Random Dig!</h3>
+          <p class="text-gray-300 text-xs font-medium">Found a hidden gem</p>
         </div>
         
-        ${track.image_url ? `<img src="${track.image_url}" alt="${track.name}" class="w-full rounded-xl mb-6 shadow-2xl ring-2 ring-yellow-500/50">` : ''}
+        ${track.image_url ? `<img src="${track.image_url}" alt="${track.name}" class="w-full rounded-xl mb-4 shadow-2xl ring-2 ring-yellow-500/50">` : ''}
         
-        <div class="text-center mb-6">
-          <h4 class="text-2xl font-bold text-white mb-3 leading-tight">${track.name}</h4>
-          <p class="text-gray-200 text-lg mb-1 font-medium">${track.artist}</p>
-          ${track.album ? `<p class="text-gray-400 text-sm">${track.album}</p>` : ''}
+        <div class="text-center mb-4">
+          <h4 class="text-xl font-bold text-white mb-2 leading-tight line-clamp-2">${track.name}</h4>
+          <p class="text-gray-200 text-base mb-1 font-medium line-clamp-1">${track.artist}</p>
+          ${track.album ? `<p class="text-gray-400 text-sm line-clamp-1">${track.album}</p>` : ''}
         </div>
         
-        <div class="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-xl p-4 mb-6 border border-yellow-600/40">
-          <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide">Dug from crate:</p>
-          <p class="text-base font-bold text-yellow-400">${playlist.title}</p>
+        <div class="bg-gradient-to-r from-yellow-900/30 to-amber-900/30 rounded-lg p-3 mb-4 border border-yellow-600/40">
+          <p class="text-xs text-gray-400 mb-1 uppercase tracking-wide">Dug from crate:</p>
+          <p class="text-sm font-bold text-yellow-400 line-clamp-2">${playlist.title}</p>
         </div>
         
-        <div class="flex gap-3">
+        <div class="flex gap-2 mb-3">
           <button 
             onclick="window.open('${track.external_url}', '_blank'); this.closest('.fixed').remove();"
-            class="flex-1 px-6 py-4 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/50 transition-all duration-200 transform hover:scale-105">
+            class="flex-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg hover:shadow-green-500/50 transition-all duration-200 text-sm">
             ▶️ Play on Spotify
           </button>
           <button 
             onclick="this.closest('.fixed').remove();"
-            class="px-6 py-4 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200">
+            class="px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200">
             ✕
           </button>
         </div>
         
-        <div class="text-center mt-4">
+        <div class="text-center">
           <button 
             onclick="this.closest('.fixed').remove(); setTimeout(() => randomDig(), 100);"
-            class="text-yellow-400 hover:text-yellow-300 text-sm font-semibold underline">
+            class="text-yellow-400 hover:text-yellow-300 text-xs font-semibold underline">
             🔄 Dig Again
           </button>
         </div>
