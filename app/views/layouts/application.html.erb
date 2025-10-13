@@ -1,11 +1,26 @@
 <!DOCTYPE html>
 <html class="h-full">
   <head>
-    <title><%= content_for(:title) || "Digital Ital's List of Playlists" %></title>
+    <title><%= content_for(:title) || "Digital Ital Crates" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="description" content="Daily curation and discoveries - Digital Ital's List of Playlists">
+    <meta name="description" content="Curated Reggae & Hip-Hop playlists - Daily discoveries from Digital Ital">
+    
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:title" content="<%= content_for(:title) || 'Digital Ital Crates' %>">
+    <meta property="og:description" content="Curated Reggae & Hip-Hop playlists - Daily discoveries from Digital Ital">
+    <meta property="og:image" content="<%= request.base_url %>/icon.svg">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Digital Ital Crates">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= content_for(:title) || 'Digital Ital Crates' %>">
+    <meta name="twitter:description" content="Curated Reggae & Hip-Hop playlists - Daily discoveries from Digital Ital">
+    <meta name="twitter:image" content="<%= request.base_url %>/icon.svg">
+    
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
