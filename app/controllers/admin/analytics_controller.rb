@@ -1,4 +1,4 @@
-class Admin::AnalyticsController < ApplicationController
+class Admin::AnalyticsController < Admin::BaseController
   def index
     # Time periods
     @today = Time.current.beginning_of_day

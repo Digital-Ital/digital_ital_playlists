@@ -1,4 +1,4 @@
-class Admin::ShareEventsController < ApplicationController
+class Admin::ShareEventsController < Admin::BaseController
   def index
     @share_events = ShareEvent.includes(:playlist)
                                .order(created_at: :desc)
