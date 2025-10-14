@@ -74,7 +74,10 @@
           
           fetch('/api/analytics/track', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
             body: JSON.stringify(data)
           }).then(response => {
             console.log('Analytics response:', response.status);
@@ -117,7 +120,10 @@
         window.trackSearch = function(query) {
           fetch('/api/analytics/track', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+            },
             body: JSON.stringify({
               session_id: sessionId,
               url: currentUrl,

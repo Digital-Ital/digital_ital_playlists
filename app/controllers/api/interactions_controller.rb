@@ -1,5 +1,6 @@
 class Api::InteractionsController < ApplicationController
   protect_from_forgery with: :null_session
+  skip_before_action :verify_authenticity_token
   
   # POST /api/playlists/:playlist_id/share
   def track_share
