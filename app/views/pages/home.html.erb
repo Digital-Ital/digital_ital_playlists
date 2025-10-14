@@ -181,16 +181,16 @@
                   </div>
                   
                   <!-- Spotify Embed Player -->
-                  <div class="mb-3 rounded-lg overflow-hidden">
+                  <div class="mb-3 rounded-lg overflow-hidden pointer-events-none">
                     <iframe 
-                      src="https://open.spotify.com/embed/playlist/<%= playlist.spotify_id %>?utm_source=generator&theme=0" 
+                      src="https://open.spotify.com/embed/playlist/<%= playlist.spotify_id %>?utm_source=generator&theme=0&view=list&cover=false" 
                       width="100%" 
                       height="152" 
                       frameBorder="0" 
                       allowfullscreen="" 
                       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
                       loading="lazy"
-                      style="border-radius: 12px;"
+                      style="border-radius: 12px; pointer-events: none;"
                       onclick="event.stopPropagation();">
                     </iframe>
                   </div>
