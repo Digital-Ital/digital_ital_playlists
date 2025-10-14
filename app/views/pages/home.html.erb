@@ -183,11 +183,13 @@
                     <!-- Track List -->
                     <div class="space-y-1 max-h-24 overflow-y-auto">
                       <% playlist.tracks.order(created_at: :desc).limit(5).each do |track| %>
-                        <div class="flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-colors">
-                          <span class="text-green-400">▶</span>
-                          <span class="truncate flex-1"><%= track.name %></span>
-                          <span class="text-gray-500 text-xs"><%= track.artist %></span>
-                          <span class="text-gray-600 text-xs" data-timestamp="<%= track.created_at.to_i %>">
+                        <div class="flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors">
+                          <span class="text-green-400 text-xs">▶</span>
+                          <div class="flex-1 min-w-0">
+                            <div class="truncate font-medium"><%= track.name %></div>
+                            <div class="truncate text-gray-500 text-xs"><%= track.artist %></div>
+                          </div>
+                          <span class="text-gray-600 text-xs whitespace-nowrap ml-1" data-timestamp="<%= track.created_at.to_i %>">
                             <span class="relative-time"></span>
                           </span>
                         </div>
