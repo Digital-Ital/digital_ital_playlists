@@ -9,6 +9,9 @@ class Admin::DashboardController < Admin::BaseController
     @subcategories = Category.where.not(parent_id: nil).count
     @recent_playlists = Playlist.includes(:categories).order(created_at: :desc).limit(5)
     
+    # Batch update info
+    @latest_batch = BatchUpdate.order(created_at: :desc).first
+    
     # Analytics stats
     begin
       @total_visits = VisitSession.count || 0
