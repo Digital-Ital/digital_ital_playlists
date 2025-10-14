@@ -187,6 +187,9 @@
                           <span class="text-green-400">▶</span>
                           <span class="truncate flex-1"><%= track.name %></span>
                           <span class="text-gray-500 text-xs"><%= track.artist %></span>
+                          <span class="text-gray-600 text-xs" data-timestamp="<%= track.created_at.to_i %>">
+                            <span class="relative-time"></span>
+                          </span>
                         </div>
                       <% end %>
                     </div>
@@ -1308,6 +1311,41 @@
     const luminance = 0.2126 * R + 0.7152 * G + 0.0722 * B;
     return luminance > 0.5 ? '#111111' : '#FFFFFF';
   }
+
+  // Relative time function for track timestamps
+  function updateRelativeTimes() {
+    const timeElements = document.querySelectorAll('.relative-time');
+    const now = Math.floor(Date.now() / 1000);
+    
+    timeElements.forEach(element => {
+      const timestamp = parseInt(element.parentElement.dataset.timestamp);
+      const diff = now - timestamp;
+      
+      let relativeTime;
+      if (diff < 60) {
+        relativeTime = 'just now';
+      } else if (diff < 3600) {
+        const minutes = Math.floor(diff / 60);
+        relativeTime = `${minutes}m ago`;
+      } else if (diff < 86400) {
+        const hours = Math.floor(diff / 3600);
+        relativeTime = `${hours}h ago`;
+      } else if (diff < 604800) {
+        const days = Math.floor(diff / 86400);
+        relativeTime = `${days}d ago`;
+      } else {
+        const weeks = Math.floor(diff / 604800);
+        relativeTime = `${weeks}w ago`;
+      }
+      
+      element.textContent = relativeTime;
+    });
+  }
+
+  // Update relative times on page load and every minute
+  document.addEventListener('DOMContentLoaded', updateRelativeTimes);
+  document.addEventListener('turbo:load', updateRelativeTimes);
+  setInterval(updateRelativeTimes, 60000); // Update every minute
 </script>
 
 <style>
