@@ -145,6 +145,9 @@ class Admin::PlaylistsController < Admin::BaseController
     playlists = Playlist.all.to_a  # Load all to avoid connection issues
     total_changes = 0
     
+    # Get a single access token to reuse across all playlists
+    access_token = fetch_spotify_token
+    
     playlists.each_with_index do |playlist, index|
       batch.update!(
         current_index: index + 1,
@@ -152,7 +155,7 @@ class Admin::PlaylistsController < Admin::BaseController
       )
       
       begin
-        result = PlaylistUpdateService.new(playlist).call
+        result = PlaylistUpdateService.new(playlist).call_with_token(access_token)
         if result[:success]
           total_changes += result[:changes].size
           batch.update!(changes_count: total_changes)
@@ -161,8 +164,8 @@ class Admin::PlaylistsController < Admin::BaseController
         Rails.logger.error "Batch update failed for playlist #{playlist.id}: #{e.message}"
       end
       
-      # Wait 30 seconds between each playlist (except after the last one)
-      sleep(30) if index < playlists.size - 1
+      # Small delay to respect rate limits (1 second instead of 30)
+      sleep(1) if index < playlists.size - 1
     end
     
     batch.update!(
@@ -172,6 +175,22 @@ class Admin::PlaylistsController < Admin::BaseController
   rescue => e
     batch.update!(status: 'failed') if batch
     Rails.logger.error "Batch update process failed: #{e.message}"
+  end
+  
+  def fetch_spotify_token
+    return nil unless ENV["SPOTIFY_CLIENT_ID"].present? && ENV["SPOTIFY_CLIENT_SECRET"].present?
+    
+    uri = URI("https://accounts.spotify.com/api/token")
+    req = Net::HTTP::Post.new(uri)
+    req.set_form_data({ grant_type: "client_credentials" })
+    req.basic_auth(ENV["SPOTIFY_CLIENT_ID"], ENV["SPOTIFY_CLIENT_SECRET"])
+    
+    res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
+      http.request(req)
+    end
+    
+    return nil unless res.is_a?(Net::HTTPSuccess)
+    JSON.parse(res.body)["access_token"]
   end
 
   def set_playlist

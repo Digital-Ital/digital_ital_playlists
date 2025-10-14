@@ -28,6 +28,19 @@ module Spotify
       }
     end
 
+    # Optimized sync method that reuses an access token
+    def sync_with_token(access_token)
+      playlist_id = @playlist.spotify_id
+      raise ArgumentError, "Invalid Spotify playlist URL" unless playlist_id
+
+      spotify_data = fetch_playlist_with_tracks(playlist_id, access_token)
+
+      {
+        metadata: extract_metadata(spotify_data),
+        tracks: extract_tracks(spotify_data, access_token)
+      }
+    end
+
     private
 
     def fetch_access_token

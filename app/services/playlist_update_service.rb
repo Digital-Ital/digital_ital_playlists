@@ -34,6 +34,39 @@ class PlaylistUpdateService
     }
   end
 
+  # Optimized version that reuses an access token
+  def call_with_token(access_token)
+    return call unless access_token # Fallback to normal method if no token provided
+    
+    # Fetch fresh data from Spotify using provided token
+    spotify_service = Spotify::PlaylistSyncService.new(@playlist)
+    spotify_data = spotify_service.sync_with_token(access_token)
+
+    ActiveRecord::Base.transaction do
+      # Update playlist metadata and log changes
+      update_metadata(spotify_data[:metadata])
+      
+      # Sync tracks and log additions/removals
+      sync_tracks(spotify_data[:tracks])
+      
+      # Update last_updated_at timestamp
+      @playlist.update!(last_updated_at: Time.current)
+    end
+
+    {
+      success: true,
+      changes: @changes,
+      playlist: @playlist
+    }
+  rescue => e
+    Rails.logger.error "Failed to update playlist #{@playlist.id}: #{e.message}"
+    {
+      success: false,
+      error: e.message,
+      playlist: @playlist
+    }
+  end
+
   private
 
   def update_metadata(metadata)
