@@ -173,19 +173,26 @@
                     <% end %>
                   </div>
                   
-                  <!-- Preview Section -->
+                  <!-- Latest Tracks Preview -->
                   <div class="mb-3 rounded-lg bg-gradient-to-r from-green-900/20 to-green-800/20 border border-green-500/30 p-3">
-                    <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
-                        <span class="text-white text-xl">🎵</span>
-                      </div>
-                      <div class="flex-1">
-                        <p class="text-green-400 text-sm font-semibold">Preview Available</p>
-                        <p class="text-gray-300 text-xs">Click "Open on Spotify" to listen</p>
-                      </div>
-                      <div class="text-green-400">
-                        <span class="text-2xl">▶️</span>
-                      </div>
+                    <div class="mb-2">
+                      <p class="text-green-400 text-sm font-semibold mb-1">Latest Tracks</p>
+                      <div class="text-xs text-gray-400">Recent additions to this playlist</div>
+                    </div>
+                    
+                    <!-- Track List -->
+                    <div class="space-y-1 max-h-24 overflow-y-auto">
+                      <% playlist.tracks.order(created_at: :desc).limit(5).each do |track| %>
+                        <div class="flex items-center gap-2 text-xs text-gray-300 hover:text-white transition-colors">
+                          <span class="text-green-400">▶</span>
+                          <span class="truncate flex-1"><%= track.name %></span>
+                          <span class="text-gray-500 text-xs"><%= track.artist %></span>
+                        </div>
+                      <% end %>
+                    </div>
+                    
+                    <div class="mt-2 text-center">
+                      <span class="text-green-400 text-xs">Click "Open on Spotify" to play</span>
                     </div>
                   </div>
                   
