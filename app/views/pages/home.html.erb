@@ -1084,9 +1084,21 @@
   // Social Media Share Functions
   function shareToInstagram(title, url) {
     const text = `Check out this playlist: ${title}`;
-    const instagramUrl = `https://www.instagram.com/`;
-    window.open(instagramUrl, '_blank');
-    trackShare(0, 'instagram', `${text} - ${url}`);
+    // Copy to clipboard since Instagram doesn't have direct share URLs
+    navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+      alert('Link copied! Paste it in your Instagram story or post.');
+      trackShare(0, 'instagram', `${text} - ${url}`);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = `${text} ${url}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Link copied! Paste it in your Instagram story or post.');
+      trackShare(0, 'instagram', `${text} - ${url}`);
+    });
   }
   
   function shareToX(title, url) {
@@ -1099,9 +1111,21 @@
   
   function shareToMixcloud(title, url) {
     const text = `Check out this playlist: ${title}`;
-    const mixcloudUrl = `https://www.mixcloud.com/`;
-    window.open(mixcloudUrl, '_blank');
-    trackShare(0, 'mixcloud', `${text} - ${url}`);
+    // Copy to clipboard since Mixcloud doesn't have direct share URLs
+    navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+      alert('Link copied! Paste it in your Mixcloud post or message.');
+      trackShare(0, 'mixcloud', `${text} - ${url}`);
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = `${text} ${url}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Link copied! Paste it in your Mixcloud post or message.');
+      trackShare(0, 'mixcloud', `${text} - ${url}`);
+    });
   }
   
   // Copy link to clipboard with tracking
