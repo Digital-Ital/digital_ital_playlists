@@ -41,6 +41,37 @@ module Spotify
       }
     end
 
+    # Ultra-optimized: Check track count first, skip full sync if no changes
+    def quick_check_with_token(access_token)
+      playlist_id = @playlist.spotify_id
+      raise ArgumentError, "Invalid Spotify playlist URL" unless playlist_id
+
+      # Minimal API call - just get basic playlist info (no tracks)
+      url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,followers,tracks(total)")
+      req = Net::HTTP::Get.new(url)
+      req["Authorization"] = "Bearer #{access_token}"
+
+      res = Net::HTTP.start(url.host, url.port, use_ssl: true) do |http|
+        http.request(req)
+      end
+
+      return { skip: true, reason: "API error" } unless res.is_a?(Net::HTTPSuccess)
+
+      spotify_data = JSON.parse(res.body)
+      current_track_count = @playlist.track_count || 0
+      spotify_track_count = spotify_data.dig("tracks", "total") || 0
+
+      # If track count is the same, skip full sync
+      if current_track_count == spotify_track_count
+        Rails.logger.info "Skipping playlist #{@playlist.id} - no track changes (#{spotify_track_count} tracks)"
+        return { skip: true, reason: "no_track_changes" }
+      end
+
+      # Track count changed - do full sync
+      Rails.logger.info "Playlist #{@playlist.id} has track changes: #{current_track_count} -> #{spotify_track_count}"
+      sync_with_token(access_token)
+    end
+
     private
 
     def fetch_access_token

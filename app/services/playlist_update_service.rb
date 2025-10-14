@@ -38,9 +38,24 @@ class PlaylistUpdateService
   def call_with_token(access_token)
     return call unless access_token # Fallback to normal method if no token provided
     
-    # Fetch fresh data from Spotify using provided token
+    # Quick check first - skip if no track changes
     spotify_service = Spotify::PlaylistSyncService.new(@playlist)
-    spotify_data = spotify_service.sync_with_token(access_token)
+    result = spotify_service.quick_check_with_token(access_token)
+    
+    # If no changes detected, skip processing
+    if result[:skip]
+      Rails.logger.info "Skipped playlist #{@playlist.id}: #{result[:reason]}"
+      return {
+        success: true,
+        changes: [],
+        playlist: @playlist,
+        skipped: true,
+        reason: result[:reason]
+      }
+    end
+
+    # Track count changed - do full sync
+    spotify_data = result
 
     ActiveRecord::Base.transaction do
       # Update playlist metadata and log changes
@@ -128,8 +143,8 @@ class PlaylistUpdateService
         t.external_url = track_data[:external_url]
       end
 
-      # Update track info if it exists (in case Spotify metadata changed)
-      track.update!(
+      # Update track info only if it actually changed (avoid unnecessary DB writes)
+      track_attributes = {
         name: track_data[:name],
         artist: track_data[:artist],
         album: track_data[:album],
@@ -137,7 +152,18 @@ class PlaylistUpdateService
         duration_ms: track_data[:duration_ms],
         preview_url: track_data[:preview_url],
         external_url: track_data[:external_url]
-      )
+      }
+      
+      # Only update if any field actually changed
+      if track.name != track_attributes[:name] ||
+         track.artist != track_attributes[:artist] ||
+         track.album != track_attributes[:album] ||
+         track.image_url != track_attributes[:image_url] ||
+         track.duration_ms != track_attributes[:duration_ms] ||
+         track.preview_url != track_attributes[:preview_url] ||
+         track.external_url != track_attributes[:external_url]
+        track.update!(track_attributes)
+      end
 
       spotify_track_ids[track_data[:position]] = track.id
 

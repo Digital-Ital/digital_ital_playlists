@@ -18,11 +18,6 @@ Rails.application.routes.draw do
             post :sync_with_spotify
           end
         end
-        resources :update_sessions do
-          member do
-            patch :apply_changes
-          end
-        end
         resources :update_logs, only: [:index]
         resources :share_events, only: [:index]
         resources :spotify_opens, only: [:index]
