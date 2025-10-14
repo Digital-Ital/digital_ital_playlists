@@ -180,6 +180,21 @@
                     <% end %>
                   </div>
                   
+                  <!-- Spotify Embed Player -->
+                  <div class="mb-3 rounded-lg overflow-hidden">
+                    <iframe 
+                      src="https://open.spotify.com/embed/playlist/<%= playlist.spotify_id %>?utm_source=generator&theme=0" 
+                      width="100%" 
+                      height="152" 
+                      frameBorder="0" 
+                      allowfullscreen="" 
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+                      loading="lazy"
+                      style="border-radius: 12px;"
+                      onclick="event.stopPropagation();">
+                    </iframe>
+                  </div>
+                  
                   <!-- Spotify Button -->
                   <button class="w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
                           onclick="event.stopPropagation(); trackSpotifyOpen(<%= playlist.id %>, 'featured', '<%= playlist.spotify_url %>')">
