@@ -41,12 +41,12 @@ module Spotify
       }
     end
 
-    # Ultra-optimized: Check track count first, skip full sync if no changes
+    # Smart check: Compare track count AND metadata, skip only if truly unchanged
     def quick_check_with_token(access_token)
       playlist_id = @playlist.spotify_id
       raise ArgumentError, "Invalid Spotify playlist URL" unless playlist_id
 
-      # Minimal API call - just get basic playlist info (no tracks)
+      # Get basic playlist info including metadata
       url = URI("https://api.spotify.com/v1/playlists/#{playlist_id}?fields=name,description,images,followers,tracks(total)")
       req = Net::HTTP::Get.new(url)
       req["Authorization"] = "Bearer #{access_token}"
@@ -58,17 +58,30 @@ module Spotify
       return { skip: true, reason: "API error" } unless res.is_a?(Net::HTTPSuccess)
 
       spotify_data = JSON.parse(res.body)
+      
+      # Check track count
       current_track_count = @playlist.track_count || 0
       spotify_track_count = spotify_data.dig("tracks", "total") || 0
+      
+      # Check metadata changes
+      current_title = @playlist.title
+      spotify_title = spotify_data["name"]
+      current_description = @playlist.description
+      spotify_description = sanitize_description(spotify_data["description"])
+      current_cover = @playlist.cover_image_url
+      spotify_cover = (spotify_data["images"] || []).first&.dig("url")
 
-      # If track count is the same, skip full sync
-      if current_track_count == spotify_track_count
-        Rails.logger.info "Skipping playlist #{@playlist.id} - no track changes (#{spotify_track_count} tracks)"
-        return { skip: true, reason: "no_track_changes" }
+      # Skip only if EVERYTHING is identical
+      if current_track_count == spotify_track_count &&
+         current_title == spotify_title &&
+         current_description == spotify_description &&
+         current_cover == spotify_cover
+        Rails.logger.info "Skipping playlist #{@playlist.id} - no changes detected"
+        return { skip: true, reason: "no_changes" }
       end
 
-      # Track count changed - do full sync
-      Rails.logger.info "Playlist #{@playlist.id} has track changes: #{current_track_count} -> #{spotify_track_count}"
+      # Something changed - do full sync
+      Rails.logger.info "Playlist #{@playlist.id} has changes - doing full sync"
       sync_with_token(access_token)
     end
 
