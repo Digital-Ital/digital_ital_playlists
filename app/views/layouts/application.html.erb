@@ -70,11 +70,20 @@
             time_on_page: Math.floor((Date.now() - pageStartTime) / 1000)
           };
           
+          console.log('Analytics tracking:', data); // Debug log
+          
           fetch('/api/analytics/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
-          }).catch(() => {}); // Silent fail
+          }).then(response => {
+            console.log('Analytics response:', response.status);
+            return response.json();
+          }).then(data => {
+            console.log('Analytics success:', data);
+          }).catch(error => {
+            console.error('Analytics error:', error);
+          });
         }
         
         function detectPageType() {
