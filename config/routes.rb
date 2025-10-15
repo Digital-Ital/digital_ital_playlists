@@ -21,6 +21,7 @@ Rails.application.routes.draw do
         resources :update_logs, only: [:index]
         resources :share_events, only: [:index]
         resources :spotify_opens, only: [:index]
+        resources :batch_updates, only: [:index, :show]
         get 'analytics', to: 'analytics#index'
       end
 

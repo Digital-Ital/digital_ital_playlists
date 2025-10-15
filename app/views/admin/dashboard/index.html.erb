@@ -53,6 +53,10 @@
             </div>
           </div>
         </div>
+        <div class="border-t border-green-500/20 pt-3 mt-3">
+          <%= link_to "📊 View Complete History", admin_batch_updates_path, 
+              class: "inline-flex items-center px-3 py-2 bg-green-700/30 text-green-400 rounded-lg hover:bg-green-700/50 transition-colors text-sm" %>
+        </div>
       <% else %>
         <div class="border-t border-green-500/20 pt-3">
           <p class="text-gray-400 text-sm">No automated updates have run yet</p>
