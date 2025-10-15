@@ -126,9 +126,9 @@ class PlaylistUpdateService
   end
 
   def sync_tracks(spotify_tracks)
-    # Get current tracks in our database
-    current_track_ids = @playlist.playlist_tracks.pluck(:track_id, :position).to_h.invert
-    spotify_track_ids = {}
+    # Build a map of existing playlist track associations by track_id -> position
+    existing_track_id_to_position = @playlist.playlist_tracks.pluck(:track_id, :position).to_h
+    spotify_track_ids = []
 
     # Process each track from Spotify
     spotify_tracks.each do |track_data|
@@ -165,33 +165,29 @@ class PlaylistUpdateService
         track.update!(track_attributes)
       end
 
-      spotify_track_ids[track_data[:position]] = track.id
+      spotify_track_ids << track.id
 
-      # Check if this is a new track for this playlist
-      unless current_track_ids.key?(track_data[:position]) && current_track_ids[track_data[:position]] == track.id
-        # Find or update the playlist_track association
-        playlist_track = @playlist.playlist_tracks.find_or_initialize_by(track_id: track.id)
-        
-        if playlist_track.new_record?
-          # New track - log it
-          playlist_track.assign_attributes(
-            added_at: track_data[:added_at],
-            position: track_data[:position]
-          )
-          playlist_track.save!
-          
-          log_track_added(track)
-        else
-          # Track exists but position might have changed
-          if playlist_track.position != track_data[:position]
-            playlist_track.update!(position: track_data[:position])
-          end
+      # Determine if this track is already associated to this playlist
+      if existing_track_id_to_position.key?(track.id)
+        # Track exists but position may have changed
+        existing_position = existing_track_id_to_position[track.id]
+        if existing_position != track_data[:position]
+          @playlist.playlist_tracks.where(track_id: track.id).update_all(position: track_data[:position])
         end
+      else
+        # New track for this playlist: create association with correct added_at and position
+        @playlist.playlist_tracks.create!(
+          track_id: track.id,
+          added_at: track_data[:added_at],
+          position: track_data[:position]
+        )
+        log_track_added(track)
       end
     end
 
     # Find removed tracks (tracks in our DB but not in Spotify response)
-    removed_track_ids = current_track_ids.values - spotify_track_ids.values
+    current_track_ids_in_db = existing_track_id_to_position.keys
+    removed_track_ids = current_track_ids_in_db - spotify_track_ids
     removed_track_ids.each do |track_id|
       track = Track.find(track_id)
       @playlist.playlist_tracks.where(track_id: track_id).destroy_all
