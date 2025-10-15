@@ -152,7 +152,7 @@
                     </div>
                   <% end %>
                   <!-- Featured badge -->
-                  <div class="absolute bottom-3 left-3 bg-yellow-400/60 backdrop-blur-sm text-black px-2 py-1 rounded-full text-xs font-bold shadow-lg border border-yellow-300/60 ring-1 ring-yellow-300/40">
+                  <div class="absolute bottom-3 right-3 bg-yellow-400/60 backdrop-blur-sm text-black px-2 py-1 rounded-full text-xs font-bold shadow-lg border border-yellow-300/60 ring-1 ring-yellow-300/40">
                     ⭐ FEATURED
                   </div>
                 </div>
@@ -202,10 +202,11 @@
                   </div>
                   
                   <!-- Spotify Button -->
-                  <button class="spotify-open-btn w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
+                  <button class="spotify-open-btn w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200 cursor-pointer relative z-10"
                           data-playlist-id="<%= playlist.id %>"
                           data-location="featured"
-                          data-spotify-url="<%= playlist.spotify_url %>">
+                          data-spotify-url="<%= playlist.spotify_url %>"
+                          style="pointer-events: auto !important; position: relative; z-index: 10;">
                     ▶️ Open on Spotify
                   </button>
                   
@@ -1359,7 +1360,9 @@
   function setupSpotifyButtons() {
     document.querySelectorAll('.spotify-open-btn').forEach(button => {
       button.addEventListener('click', function(e) {
+        e.preventDefault();
         e.stopPropagation();
+        alert('Button clicked!'); // Simple test
         const playlistId = this.dataset.playlistId;
         const location = this.dataset.location;
         const spotifyUrl = this.dataset.spotifyUrl;
@@ -1367,6 +1370,7 @@
         trackSpotifyOpen(playlistId, location, spotifyUrl);
       });
     });
+    console.log('Setup Spotify buttons:', document.querySelectorAll('.spotify-open-btn').length);
   }
 
   // Setup buttons on page load and Turbo navigation
