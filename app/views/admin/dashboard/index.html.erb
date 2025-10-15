@@ -23,7 +23,7 @@
             <div>
               <p class="text-gray-300 text-sm font-medium">Last Run</p>
               <p class="text-white text-xs">
-                <%= @latest_batch.started_at.strftime("%b %d, %Y at %I:%M %p") %>
+                <%= @latest_batch.started_at.in_time_zone('America/Toronto').strftime("%b %d, %Y at %I:%M %p %Z") %>
                 <span class="text-gray-400">(<%= time_ago_in_words(@latest_batch.started_at) %> ago)</span>
               </p>
             </div>
@@ -52,6 +52,19 @@
               <% end %>
             </div>
           </div>
+        </div>
+        <div class="pt-3 mt-3 flex items-center gap-2">
+          <button type="button"
+                  class="inline-flex items-center px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-sm"
+                  onclick="runBatchNow()">
+            🔄 Run Now
+          </button>
+          <button type="button"
+                  class="inline-flex items-center px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-500 transition-colors text-sm"
+                  onclick="runBatchNow(true)">
+            ♻️ Force Restart
+          </button>
+          <span id="batch-run-status" class="text-xs text-gray-400"></span>
         </div>
         <div class="border-t border-green-500/20 pt-3 mt-3">
           <%= link_to "📊 View Complete History", admin_batch_updates_path, 
@@ -289,3 +302,27 @@
     </div>
   </div>
 </div>
+
+<script>
+  async function runBatchNow(force = false) {
+    const statusEl = document.getElementById('batch-run-status');
+    statusEl.textContent = 'Starting batch...';
+    try {
+      const res = await fetch('<%= start_batch_update_admin_playlists_path %>' + (force ? '?force=true' : ''), {
+        method: 'POST',
+        headers: {
+          'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        statusEl.textContent = 'Batch started. Refresh to see progress.';
+      } else {
+        statusEl.textContent = `Already running (batch #${data.batch_id}).`;
+      }
+    } catch (e) {
+      statusEl.textContent = 'Error starting batch.';
+      console.error(e);
+    }
+  }
+</script>
