@@ -202,8 +202,10 @@
                   </div>
                   
                   <!-- Spotify Button -->
-                  <button class="w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
-                          onclick="event.stopPropagation(); trackSpotifyOpen(<%= playlist.id %>, 'featured', '<%= playlist.spotify_url %>')">
+                  <button class="spotify-open-btn w-full px-3 py-2 mb-3 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200"
+                          data-playlist-id="<%= playlist.id %>"
+                          data-location="featured"
+                          data-spotify-url="<%= playlist.spotify_url %>">
                     ▶️ Open on Spotify
                   </button>
                   
@@ -1352,6 +1354,24 @@
   document.addEventListener('DOMContentLoaded', updateRelativeTimes);
   document.addEventListener('turbo:load', updateRelativeTimes);
   setInterval(updateRelativeTimes, 60000); // Update every minute
+
+  // Add event listeners for Spotify open buttons
+  function setupSpotifyButtons() {
+    document.querySelectorAll('.spotify-open-btn').forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const playlistId = this.dataset.playlistId;
+        const location = this.dataset.location;
+        const spotifyUrl = this.dataset.spotifyUrl;
+        console.log('Spotify button clicked:', { playlistId, location, spotifyUrl });
+        trackSpotifyOpen(playlistId, location, spotifyUrl);
+      });
+    });
+  }
+
+  // Setup buttons on page load and Turbo navigation
+  document.addEventListener('DOMContentLoaded', setupSpotifyButtons);
+  document.addEventListener('turbo:load', setupSpotifyButtons);
 </script>
 
 <style>
