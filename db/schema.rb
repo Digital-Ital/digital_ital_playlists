@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_15_005501) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_15_014818) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -22,6 +22,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_15_005501) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "failure_reason"
+    t.string "source"
   end
 
   create_table "categories", force: :cascade do |t|

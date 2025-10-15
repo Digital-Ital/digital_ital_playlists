@@ -25,7 +25,8 @@ namespace :playlists do
       current_index: 0,
       total_count: Playlist.count,
       changes_count: 0,
-      started_at: start_time
+      started_at: start_time,
+      source: 'heroku_scheduler'
     )
     
     playlists = Playlist.all.to_a
