@@ -135,24 +135,12 @@
       </table>
     </div>
     
-    <!-- Pagination -->
-    <% if @batch_updates.total_pages > 1 %>
-      <div class="px-6 py-4 border-t border-gray-700 flex justify-between items-center">
-        <div class="text-sm text-gray-400">
-          Showing <%= @batch_updates.offset + 1 %> to <%= [@batch_updates.offset + @batch_updates.limit, @batch_updates.total_count].min %> of <%= @batch_updates.total_count %> results
-        </div>
-        <div class="flex space-x-2">
-          <% if @batch_updates.prev_page %>
-            <%= link_to "← Previous", admin_batch_updates_path(page: @batch_updates.prev_page), 
-                class: "px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600" %>
-          <% end %>
-          <% if @batch_updates.next_page %>
-            <%= link_to "Next →", admin_batch_updates_path(page: @batch_updates.next_page), 
-                class: "px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600" %>
-          <% end %>
-        </div>
+    <!-- Simple Info -->
+    <div class="px-6 py-4 border-t border-gray-700">
+      <div class="text-sm text-gray-400 text-center">
+        Showing latest <%= @batch_updates.count %> batch updates
       </div>
-    <% end %>
+    </div>
   </div>
   
   <!-- Back to Dashboard -->
