@@ -1,3 +1,6 @@
+require 'net/http'
+require 'json'
+
 namespace :playlists do
   desc "Update all playlists with optimized batch processing"
   task update_all: :environment do
