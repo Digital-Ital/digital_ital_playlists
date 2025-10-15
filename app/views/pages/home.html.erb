@@ -1186,6 +1186,8 @@
   
   // Track Spotify open
   async function trackSpotifyOpen(playlistId, location, url) {
+    console.log('trackSpotifyOpen called:', { playlistId, location, url });
+    
     try {
       // Get analytics session ID
       const sessionId = localStorage.getItem('analytics_session_id') || 'unknown';
@@ -1198,11 +1200,13 @@
           session_id: sessionId
         })
       });
+      console.log('Spotify open tracked successfully');
     } catch (error) {
       console.error('Error tracking Spotify open:', error);
     }
     
     // Open Spotify regardless of tracking success
+    console.log('Opening Spotify URL:', url);
     window.open(url, '_blank');
   }
   
