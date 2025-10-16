@@ -180,7 +180,11 @@ module Spotify
     end
 
     def fetch_tracks_page(next_url, token)
+      # Remove fields parameter from pagination URLs as it causes empty responses
       url = URI(next_url)
+      url.query = url.query&.gsub(/[?&]fields=[^&]*/, '')&.gsub(/^&/, '')
+      url.query = nil if url.query&.empty?
+      
       req = Net::HTTP::Get.new(url)
       req["Authorization"] = "Bearer #{token}"
 
