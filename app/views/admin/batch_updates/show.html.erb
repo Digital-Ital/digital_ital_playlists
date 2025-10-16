@@ -154,11 +154,11 @@
   <% end %>
 
   <!-- Error Information -->
-  <% if @batch_update.status == 'failed' && @batch_update.error_message.present? %>
+  <% if @batch_update.status == 'failed' && @batch_update.failure_reason.present? %>
     <div class="mt-8 bg-red-900/20 rounded-xl border border-red-500/30 p-6">
       <h3 class="text-xl font-bold text-red-400 mb-4">❌ Error Details</h3>
       <div class="bg-gray-900/50 rounded-lg p-4">
-        <pre class="text-red-300 text-sm whitespace-pre-wrap"><%= @batch_update.error_message %></pre>
+        <pre class="text-red-300 text-sm whitespace-pre-wrap"><%= @batch_update.failure_reason %></pre>
       </div>
     </div>
   <% end %>
