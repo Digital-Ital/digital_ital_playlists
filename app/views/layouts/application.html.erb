@@ -207,48 +207,75 @@
     </footer>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        const footer = document.getElementById('sticky-footer');
-        let isFooterVisible = false;
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-
-        function updateFooter() {
+      // Global footer management
+      window.footerManager = {
+        footer: null,
+        isFooterVisible: false,
+        lastScrollY: 0,
+        ticking: false,
+        
+        init: function() {
+          this.footer = document.getElementById('sticky-footer');
+          if (!this.footer) return;
+          
+          // Ensure footer starts hidden
+          this.footer.classList.add('translate-y-full');
+          this.isFooterVisible = false;
+          this.lastScrollY = window.scrollY;
+          
+          // Bind scroll handler
+          window.addEventListener('scroll', this.requestTick.bind(this), { passive: true });
+        },
+        
+        updateFooter: function() {
+          if (!this.footer) return;
+          
           const scrollY = window.scrollY;
           const scrollThreshold = 100; // Show footer after scrolling 100px
           const hideThreshold = 50; // Hide footer when scrolling back up to top 50px
 
-          if (scrollY > scrollThreshold && !isFooterVisible) {
+          if (scrollY > scrollThreshold && !this.isFooterVisible) {
             // Show footer
-            footer.classList.remove('translate-y-full');
-            isFooterVisible = true;
-          } else if (scrollY <= hideThreshold && isFooterVisible) {
+            this.footer.classList.remove('translate-y-full');
+            this.isFooterVisible = true;
+          } else if (scrollY <= hideThreshold && this.isFooterVisible) {
             // Hide footer when back at top
-            footer.classList.add('translate-y-full');
-            isFooterVisible = false;
+            this.footer.classList.add('translate-y-full');
+            this.isFooterVisible = false;
           }
 
-          lastScrollY = scrollY;
-          ticking = false;
-        }
-
-        function requestTick() {
-          if (!ticking) {
-            requestAnimationFrame(updateFooter);
-            ticking = true;
-          }
-        }
-
-        // Listen for scroll events
-        window.addEventListener('scroll', requestTick, { passive: true });
+          this.lastScrollY = scrollY;
+          this.ticking = false;
+        },
         
-        // Also listen for turbo navigation
-        document.addEventListener('turbo:load', function() {
-          // Reset footer state on page navigation
-          footer.classList.add('translate-y-full');
-          isFooterVisible = false;
-          lastScrollY = window.scrollY;
-        });
+        requestTick: function() {
+          if (!this.ticking) {
+            requestAnimationFrame(this.updateFooter.bind(this));
+            this.ticking = true;
+          }
+        },
+        
+        reset: function() {
+          if (!this.footer) return;
+          this.footer.classList.add('translate-y-full');
+          this.isFooterVisible = false;
+          this.lastScrollY = window.scrollY;
+        }
+      };
+
+      // Initialize on DOM ready
+      document.addEventListener('DOMContentLoaded', function() {
+        window.footerManager.init();
+      });
+      
+      // Reset on turbo navigation
+      document.addEventListener('turbo:load', function() {
+        window.footerManager.reset();
+      });
+      
+      // Also reset on turbo:before-visit to ensure clean state
+      document.addEventListener('turbo:before-visit', function() {
+        window.footerManager.reset();
       });
     </script>
   </body>
