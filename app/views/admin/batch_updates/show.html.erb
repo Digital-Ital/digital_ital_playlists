@@ -26,10 +26,10 @@
         <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
           <span class="text-2xl">
             <% case @batch_update.status %>
-            <% when 'completed' %>✅
-            <% when 'running' %>🔄
-            <% when 'failed' %>❌
-            <% else %>⏸️
+            <% when 'completed' %>✓
+            <% when 'running' %>⟳
+            <% when 'failed' %>✗
+            <% else %>⏸
             <% end %>
           </span>
         </div>
