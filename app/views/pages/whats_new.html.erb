@@ -44,7 +44,7 @@
         
         <!-- Category Filter Buttons -->
         <div class="flex flex-wrap justify-center gap-3 mb-4">
-        <%= link_to 'All Categories', whats_new_path, 
+        <%= link_to 'All Categories', whats_new_path(hot_only: params[:hot_only]), 
                     class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id].nil? ? 'bg-yellow-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'}" %>
         
         <% Category.main_families.each do |category| %>
