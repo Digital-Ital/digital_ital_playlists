@@ -84,10 +84,6 @@
                 <span class="text-gray-300">HOT Songs (total)</span>
               </div>
               <div class="flex items-center justify-center gap-2">
-                <span class="text-red-300 font-semibold"><%= @grouped_tracks.select { |g| g[:total_playlists] >= 3 }.count %></span>
-                <span class="text-gray-300">HOT Songs (this page)</span>
-              </div>
-              <div class="flex items-center justify-center gap-2">
                 <span class="text-green-400 font-semibold">Page <%= @grouped_tracks.current_page %></span>
                 <span class="text-gray-400">of <%= @grouped_tracks.total_pages %></span>
               </div>
