@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_15_014818) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -111,6 +111,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_15_014818) do
     t.integer "followers_count", default: 0
     t.integer "reaction_count", default: 0, null: false
     t.index ["category_id"], name: "index_playlists_on_category_id"
+  end
+
+  create_table "scheduler_settings", force: :cascade do |t|
+    t.string "name"
+    t.string "value"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "share_events", force: :cascade do |t|

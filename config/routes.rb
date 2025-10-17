@@ -23,6 +23,10 @@ Rails.application.routes.draw do
         resources :spotify_opens, only: [:index]
         resources :batch_updates, only: [:index, :show]
         get 'analytics', to: 'analytics#index'
+        get 'scheduler', to: 'scheduler#index'
+        post 'scheduler/pause', to: 'scheduler#pause'
+        post 'scheduler/unpause', to: 'scheduler#unpause'
+        post 'scheduler/toggle_quick_updates', to: 'scheduler#toggle_quick_updates'
       end
 
   # API endpoints for infinite scroll

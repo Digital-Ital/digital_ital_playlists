@@ -107,6 +107,11 @@ class Admin::PlaylistsController < Admin::BaseController
 
   # POST /admin/playlists/start_batch_update
   def start_batch_update
+    # Check if scheduler is paused (unless this is a forced update)
+    if params[:force] != 'true' && SchedulerSetting.paused?
+      render json: { success: false, status: 'paused', message: 'Scheduler is paused. Use force=true to override.' }, status: :ok and return
+    end
+
     # If a batch is active and stale, fail it; otherwise block unless force=true
     if (active = BatchUpdate.active.first)
       stale_threshold_minutes = 20
