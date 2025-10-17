@@ -18,27 +18,27 @@ Rails.application.routes.draw do
             post :sync_with_spotify
           end
         end
-        resources :update_logs, only: [:index]
-        resources :share_events, only: [:index]
-        resources :spotify_opens, only: [:index]
-        resources :batch_updates, only: [:index, :show]
-        get 'analytics', to: 'analytics#index'
-        get 'scheduler', to: 'scheduler#index'
-        post 'scheduler/pause', to: 'scheduler#pause'
-        post 'scheduler/unpause', to: 'scheduler#unpause'
-        post 'scheduler/toggle_quick_updates', to: 'scheduler#toggle_quick_updates'
+        resources :update_logs, only: [ :index ]
+        resources :share_events, only: [ :index ]
+        resources :spotify_opens, only: [ :index ]
+        resources :batch_updates, only: [ :index, :show ]
+        get "analytics", to: "analytics#index"
+        get "scheduler", to: "scheduler#index"
+        post "scheduler/pause", to: "scheduler#pause"
+        post "scheduler/unpause", to: "scheduler#unpause"
+        post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
       end
 
   # API endpoints for infinite scroll
   get "api/playlists", to: "api/playlists#index"
   get "api/categories/:id/playlists", to: "api/playlists#by_category"
   get "api/random_track", to: "api/playlists#random_track"
-  
+
   # API endpoints for interactions
   post "api/playlists/:playlist_id/share", to: "api/interactions#track_share"
   post "api/playlists/:playlist_id/react", to: "api/interactions#react"
   post "api/playlists/:playlist_id/spotify_open", to: "api/interactions#track_spotify_open"
-  
+
   # API endpoints for analytics
   post "api/analytics/track", to: "api/analytics#track"
 

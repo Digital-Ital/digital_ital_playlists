@@ -2,7 +2,7 @@ class Api::PlaylistsController < ApplicationController
   protect_from_forgery with: :null_session
   def index
     # Return ALL playlists when all=true (no pagination)
-    if params[:all].to_s == 'true'
+    if params[:all].to_s == "true"
       scope = Playlist.left_joins(:categories).includes(:categories).distinct.ordered
       if params[:category_ids].present?
         ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
@@ -16,30 +16,30 @@ class Api::PlaylistsController < ApplicationController
       return
     end
 
-    per_page = [[params[:per_page].to_i, 1].max, 100].min rescue 30
+    per_page = [ [ params[:per_page].to_i, 1 ].max, 100 ].min rescue 30
     per_page = 30 if per_page.zero?
     offset = (params[:offset] || 0).to_i
 
     # Use left_joins to include playlists even if they have no categories
     scope = Playlist.left_joins(:categories).includes(:categories)
-    
+
     # Multi-field search (case-insensitive): playlist title, artist, track name, album
     if params[:search].present?
       search_term = "%#{params[:search].downcase}%"
-      
+
       # Find playlists by title
       playlist_ids_from_title = Playlist.where("LOWER(playlists.title) LIKE ?", search_term).pluck(:id)
-      
+
       # Find playlists that contain tracks matching artist, track name, or album
       playlist_ids_from_tracks = Track.joins(:playlist_tracks)
-                                      .where("LOWER(tracks.artist) LIKE ? OR LOWER(tracks.name) LIKE ? OR LOWER(tracks.album) LIKE ?", 
+                                      .where("LOWER(tracks.artist) LIKE ? OR LOWER(tracks.name) LIKE ? OR LOWER(tracks.album) LIKE ?",
                                              search_term, search_term, search_term)
-                                      .pluck('playlist_tracks.playlist_id')
+                                      .pluck("playlist_tracks.playlist_id")
                                       .uniq
-      
+
       # Combine both search results
       matching_playlist_ids = (playlist_ids_from_title + playlist_ids_from_tracks).uniq
-      
+
       if matching_playlist_ids.any?
         scope = scope.where(id: matching_playlist_ids)
       else
@@ -47,10 +47,10 @@ class Api::PlaylistsController < ApplicationController
         scope = scope.where(id: nil)
       end
     end
-    
+
     # Ensure distinct playlists (important when joined with categories)
     scope = scope.distinct
-    
+
     if params[:category_ids].present?
       ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
       # Only filter if we have valid category IDs
@@ -74,7 +74,7 @@ class Api::PlaylistsController < ApplicationController
     begin
       @category = Category.find(params[:id])
       ids = [ @category.id ] + @category.descendant_ids
-      per_page = [[params[:per_page].to_i, 1].max, 100].min rescue 20
+      per_page = [ [ params[:per_page].to_i, 1 ].max, 100 ].min rescue 20
       per_page = 20 if per_page.zero?
       offset = (params[:offset] || 0).to_i
 
@@ -103,7 +103,7 @@ class Api::PlaylistsController < ApplicationController
       render json: { error: "Category not found" }, status: :not_found
     end
   end
-  
+
   def random_track
     # Get a random track from all playlists
     random_track = Track.joins(:playlist_tracks)
@@ -111,11 +111,11 @@ class Api::PlaylistsController < ApplicationController
                        .order("RANDOM()")
                        .limit(1)
                        .first
-    
+
     if random_track
       # Get the playlist this track is in (pick first if in multiple)
       playlist = random_track.playlists.first
-      
+
       render json: {
         track: {
           id: random_track.id,
@@ -150,13 +150,13 @@ class Api::PlaylistsController < ApplicationController
       reaction_count: playlist.reaction_count || 0,
       categories: playlist.categories.reload.flat_map do |category|
         # Include the category itself and all its parent categories
-        categories_to_show = [category]
+        categories_to_show = [ category ]
         current = category.parent
         while current
           categories_to_show << current
           current = current.parent
         end
-        
+
         categories_to_show.map do |cat|
           {
             id: cat.id,

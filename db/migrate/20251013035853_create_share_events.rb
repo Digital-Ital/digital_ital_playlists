@@ -10,7 +10,7 @@ class CreateShareEvents < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
+
     add_index :share_events, :created_at
     add_index :share_events, :platform
   end

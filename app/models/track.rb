@@ -8,7 +8,7 @@ class Track < ApplicationRecord
   validates :artist, presence: true
 
   scope :recent, -> { order(created_at: :desc) }
-  
+
   def display_name
     "#{name} - #{artist}"
   end

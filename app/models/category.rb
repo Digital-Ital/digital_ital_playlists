@@ -7,7 +7,7 @@ class Category < ApplicationRecord
   validates :slug, presence: true, uniqueness: true
   validates :position, uniqueness: { scope: :parent_id }, allow_nil: true
 
-  before_validation :generate_slug, on: [:create, :update]
+  before_validation :generate_slug, on: [ :create, :update ]
   before_destroy :check_for_children
 
   scope :ordered, -> {
@@ -15,7 +15,7 @@ class Category < ApplicationRecord
   }
 
   scope :roots, -> { where(parent_id: nil).ordered }
-  
+
   # For main families, sort by display_order if present, else fall back to position; then name.
   scope :main_families, -> {
     where(is_main_family: true)

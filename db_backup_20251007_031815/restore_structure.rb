@@ -26,7 +26,7 @@ end
 # Set up parent-child relationships
 categories_data.each do |cat_data|
   next unless cat_data['parent_name']
-  
+
   category = category_map[cat_data['name']]
   parent = category_map[cat_data['parent_name']]
   category.update!(parent: parent) if parent
@@ -46,7 +46,7 @@ playlists_data.each do |playlist_data|
     featured: playlist_data['featured'],
     position: playlist_data['position']
   )
-  
+
   # Associate with categories
   playlist_data['category_names'].each do |cat_name|
     category = category_map[cat_name]

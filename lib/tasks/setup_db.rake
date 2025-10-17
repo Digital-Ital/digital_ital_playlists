@@ -48,7 +48,7 @@ namespace :db do
 
         t.timestamps
       end
-      ActiveRecord::Base.connection.add_index :playlist_categories, [:playlist_id, :category_id], unique: true
+      ActiveRecord::Base.connection.add_index :playlist_categories, [ :playlist_id, :category_id ], unique: true
     else
       puts "Playlist_categories table already exists"
     end

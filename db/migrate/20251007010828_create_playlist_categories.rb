@@ -7,6 +7,6 @@ class CreatePlaylistCategories < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :playlist_categories, [:playlist_id, :category_id], unique: true, if_not_exists: true
+    add_index :playlist_categories, [ :playlist_id, :category_id ], unique: true, if_not_exists: true
   end
 end

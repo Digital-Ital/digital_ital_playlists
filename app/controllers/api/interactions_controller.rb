@@ -1,19 +1,19 @@
 class Api::InteractionsController < ApplicationController
   protect_from_forgery with: :null_session
   skip_before_action :verify_authenticity_token
-  
+
   # POST /api/playlists/:playlist_id/share
   def track_share
     playlist = Playlist.find(params[:playlist_id])
-    
+
     share_event = playlist.share_events.create(
-      platform: params[:platform] || 'unknown',
+      platform: params[:platform] || "unknown",
       shared_content: params[:shared_content],
       user_agent: request.user_agent,
       referrer: request.referrer,
       ip_address: request.remote_ip
     )
-    
+
     render json: { success: true, share_id: share_event.id }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Playlist not found" }, status: :not_found
@@ -21,14 +21,14 @@ class Api::InteractionsController < ApplicationController
     Rails.logger.error "Error tracking share: #{e.message}"
     render json: { error: "Failed to track share" }, status: :internal_server_error
   end
-  
+
   # POST /api/playlists/:playlist_id/react
   def react
     playlist = Playlist.find(params[:playlist_id])
-    
+
     # Check localStorage on frontend to prevent spam, but increment server-side
     playlist.increment!(:reaction_count)
-    
+
     render json: { success: true, reaction_count: playlist.reaction_count }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Playlist not found" }, status: :not_found
@@ -36,22 +36,22 @@ class Api::InteractionsController < ApplicationController
     Rails.logger.error "Error adding reaction: #{e.message}"
     render json: { error: "Failed to add reaction" }, status: :internal_server_error
   end
-  
+
   # POST /api/playlists/:playlist_id/spotify_open
   def track_spotify_open
     playlist = Playlist.find(params[:playlist_id])
-    
+
     # Get session ID from frontend analytics
     session_id = params[:session_id] || request.session_options[:id]
-    
+
     spotify_open = playlist.spotify_opens.create(
-      location: params[:location] || 'unknown', # featured, regular, category, search, whats_new
+      location: params[:location] || "unknown", # featured, regular, category, search, whats_new
       session_id: session_id,
       user_agent: request.user_agent,
       referrer: request.referrer,
       ip_address: request.remote_ip
     )
-    
+
     render json: { success: true, open_id: spotify_open.id }
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Playlist not found" }, status: :not_found
@@ -60,4 +60,3 @@ class Api::InteractionsController < ApplicationController
     render json: { error: "Failed to track open" }, status: :internal_server_error
   end
 end
-

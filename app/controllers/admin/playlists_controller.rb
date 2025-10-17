@@ -1,5 +1,5 @@
-require 'net/http'
-require 'json'
+require "net/http"
+require "json"
 
 class Admin::PlaylistsController < Admin::BaseController
   before_action :set_playlist, only: [ :edit, :update, :destroy, :sync_with_spotify ]
@@ -67,7 +67,7 @@ class Admin::PlaylistsController < Admin::BaseController
   # POST /admin/playlists/:id/sync_with_spotify
   def sync_with_spotify
     result = PlaylistUpdateService.new(@playlist).call
-    
+
     if result[:success]
       changes_count = result[:changes].size
       if changes_count > 0
@@ -83,19 +83,19 @@ class Admin::PlaylistsController < Admin::BaseController
   # GET /admin/playlists/batch_update_progress
   def batch_update_progress
     batch = BatchUpdate.active.first || BatchUpdate.recent.first
-    
+
     if batch
       render json: {
         status: batch.status,
         current: batch.current_index || 0,
         total: batch.total_count,
         current_playlist: batch.current_playlist_title,
-        completed: batch.status == 'completed',
+        completed: batch.status == "completed",
         changes_count: batch.changes_count || 0
       }
     else
       render json: {
-        status: 'idle',
+        status: "idle",
         current: 0,
         total: 0,
         current_playlist: nil,
@@ -108,29 +108,29 @@ class Admin::PlaylistsController < Admin::BaseController
   # POST /admin/playlists/start_batch_update
   def start_batch_update
     # Check if scheduler is paused (unless this is a forced update)
-    if params[:force] != 'true' && SchedulerSetting.paused?
-      render json: { success: false, status: 'paused', message: 'Scheduler is paused. Use force=true to override.' }, status: :ok and return
+    if params[:force] != "true" && SchedulerSetting.paused?
+      render json: { success: false, status: "paused", message: "Scheduler is paused. Use force=true to override." }, status: :ok and return
     end
 
     # If a batch is active and stale, fail it; otherwise block unless force=true
     if (active = BatchUpdate.active.first)
       stale_threshold_minutes = 20
-      if params[:force] == 'true' || active.updated_at < stale_threshold_minutes.minutes.ago
-        active.update!(status: 'failed')
+      if params[:force] == "true" || active.updated_at < stale_threshold_minutes.minutes.ago
+        active.update!(status: "failed")
       else
-        render json: { success: false, status: 'running', message: 'Batch already running', batch_id: active.id }, status: :ok and return
+        render json: { success: false, status: "running", message: "Batch already running", batch_id: active.id }, status: :ok and return
       end
     end
 
     # Create a new batch update record
     batch = BatchUpdate.create!(
-      status: 'running',
+      status: "running",
       current_index: 0,
       total_count: Playlist.count,
       changes_count: 0,
       started_at: Time.current
     )
-    
+
     # Start the batch update in a thread (background)
     Thread.new do
       ActiveRecord::Base.connection_pool.with_connection do
@@ -138,11 +138,11 @@ class Admin::PlaylistsController < Admin::BaseController
           process_batch_update(batch.id)
         rescue => e
           Rails.logger.error "Batch update failed: #{e.message}\n#{e.backtrace.join("\n")}"
-          batch.update!(status: 'failed')
+          batch.update!(status: "failed")
         end
       end
     end
-    
+
     render json: { success: true, total: Playlist.count, batch_id: batch.id }
   end
 
@@ -153,16 +153,16 @@ class Admin::PlaylistsController < Admin::BaseController
     playlists = Playlist.all.to_a  # Load all to avoid connection issues
     total_changes = 0
     skipped_count = 0
-    
+
     # Get a single access token to reuse across all playlists
     access_token = fetch_spotify_token
-    
+
     playlists.each_with_index do |playlist, index|
       batch.update!(
         current_index: index + 1,
         current_playlist_title: playlist.title
       )
-      
+
       begin
         result = PlaylistUpdateService.new(playlist).call_with_token(access_token)
         if result[:success]
@@ -177,7 +177,7 @@ class Admin::PlaylistsController < Admin::BaseController
       rescue => e
         Rails.logger.error "Batch update failed for playlist #{playlist.id}: #{e.message}"
       end
-      
+
       # Minimal delay to respect rate limits (0.5 seconds for skipped, 1 second for full sync)
       if result[:success] && result[:skipped]
         sleep(0.5) if index < playlists.size - 1  # Faster for skipped playlists
@@ -185,31 +185,31 @@ class Admin::PlaylistsController < Admin::BaseController
         sleep(1) if index < playlists.size - 1   # Normal delay for full sync
       end
     end
-    
+
     batch.update!(
-      status: 'completed',
+      status: "completed",
       completed_at: Time.current,
       changes_count: total_changes
     )
-    
+
     Rails.logger.info "Batch update completed: #{total_changes} changes, #{skipped_count} playlists skipped"
   rescue => e
-    batch.update!(status: 'failed') if batch
+    batch.update!(status: "failed") if batch
     Rails.logger.error "Batch update process failed: #{e.message}"
   end
-  
+
   def fetch_spotify_token
     return nil unless ENV["SPOTIFY_CLIENT_ID"].present? && ENV["SPOTIFY_CLIENT_SECRET"].present?
-    
+
     uri = URI("https://accounts.spotify.com/api/token")
     req = Net::HTTP::Post.new(uri)
     req.set_form_data({ grant_type: "client_credentials" })
     req.basic_auth(ENV["SPOTIFY_CLIENT_ID"], ENV["SPOTIFY_CLIENT_SECRET"])
-    
+
     res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
       http.request(req)
     end
-    
+
     return nil unless res.is_a?(Net::HTTPSuccess)
     JSON.parse(res.body)["access_token"]
   end

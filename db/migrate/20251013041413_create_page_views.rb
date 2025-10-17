@@ -12,7 +12,7 @@ class CreatePageViews < ActiveRecord::Migration[8.0]
 
       t.timestamps
     end
-    
+
     add_index :page_views, :created_at
     add_index :page_views, :page_type
     add_index :page_views, :category_id

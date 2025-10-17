@@ -58,11 +58,11 @@ module Spotify
       return { skip: true, reason: "API error" } unless res.is_a?(Net::HTTPSuccess)
 
       spotify_data = JSON.parse(res.body)
-      
+
       # Check track count
       current_track_count = @playlist.track_count || 0
       spotify_track_count = spotify_data.dig("tracks", "total") || 0
-      
+
       # Check metadata changes
       current_title = @playlist.title
       spotify_title = spotify_data["name"]
@@ -129,7 +129,7 @@ module Spotify
     def extract_tracks(spotify_data, token)
       tracks = []
       items = spotify_data.dig("tracks", "items") || []
-      
+
       # Process first page
       items.each_with_index do |item, index|
         track_data = extract_track_data(item, index)
@@ -139,7 +139,7 @@ module Spotify
       # Fetch remaining pages
       next_url = spotify_data.dig("tracks", "next")
       position_offset = items.size
-      
+
       while next_url
         page_data = fetch_tracks_page(next_url, token)
         (page_data["items"] || []).each_with_index do |item, index|
@@ -182,9 +182,9 @@ module Spotify
     def fetch_tracks_page(next_url, token)
       # Remove fields parameter from pagination URLs as it causes empty responses
       url = URI(next_url)
-      url.query = url.query&.gsub(/[?&]fields=[^&]*/, '')&.gsub(/^&/, '')
+      url.query = url.query&.gsub(/[?&]fields=[^&]*/, "")&.gsub(/^&/, "")
       url.query = nil if url.query&.empty?
-      
+
       req = Net::HTTP::Get.new(url)
       req["Authorization"] = "Bearer #{token}"
 
@@ -203,4 +203,3 @@ module Spotify
     end
   end
 end
-

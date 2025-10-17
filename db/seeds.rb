@@ -106,7 +106,7 @@ end
       {
         title: "Dub Revolution: Political Dub Classics",
         description: "Dub music with a message - where deep bass meets deep thoughts. Political dub that speaks truth to power.",
-        categories: ["Dubwise Reggae", "Reggae Political Crates"],
+        categories: [ "Dubwise Reggae", "Reggae Political Crates" ],
         track_count: 18,
         duration: "1h 32m",
         featured: true,
@@ -115,7 +115,7 @@ end
       {
         title: "Rap & Herb: Lyrical Cannabis Vibes",
         description: "Where lyrical mastery meets herb culture. Complex flows celebrating the sacred plant.",
-        categories: ["Lyrical Hip-Hop Explorations", "Rap Cannabis Crates"],
+        categories: [ "Lyrical Hip-Hop Explorations", "Rap Cannabis Crates" ],
         track_count: 16,
         duration: "1h 25m",
         featured: false,
@@ -124,7 +124,7 @@ end
       {
         title: "Revolutionary Sound System: Political Rap-Reggae Fusion",
         description: "The perfect fusion of political rap and reggae. Fast flows over revolutionary riddims.",
-        categories: ["Rap-Reggae", "Reggae Political Crates", "Rap Political Crates"],
+        categories: [ "Rap-Reggae", "Reggae Political Crates", "Rap Political Crates" ],
         track_count: 22,
         duration: "1h 45m",
         featured: true,
@@ -133,7 +133,7 @@ end
       {
         title: "Vinyl Vault Classics: Rare Political & Cannabis Gems",
         description: "Deep cuts from the crates - rare political and cannabis tracks that never made it mainstream.",
-        categories: ["Reggae Period Crates", "Rap Period Crates", "Other Political Crates", "Other Cannabis Crates"],
+        categories: [ "Reggae Period Crates", "Rap Period Crates", "Other Political Crates", "Other Cannabis Crates" ],
         track_count: 24,
         duration: "1h 58m",
         featured: false,
@@ -142,7 +142,7 @@ end
       {
         title: "Green Revolution: Cannabis-Inspired Political Music",
         description: "Where the herb meets the message. Cannabis-inspired tracks with political consciousness.",
-        categories: ["Political Songs", "Cannabis Songs"],
+        categories: [ "Political Songs", "Cannabis Songs" ],
         track_count: 20,
         duration: "1h 38m",
         featured: false,

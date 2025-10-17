@@ -1,8 +1,8 @@
 namespace :playlists do
   desc "Update all playlists with optimized batch processing"
   task update_all: :environment do
-    require 'net/http'
-    require 'json'
+    require "net/http"
+    require "json"
     start_time = Time.current
     puts "=" * 80
     puts "🎵 AUTOMATED PLAYLIST UPDATE STARTED"
@@ -11,7 +11,7 @@ namespace :playlists do
     puts "📊 Total playlists: #{Playlist.count}"
     puts "🔧 Environment: #{Rails.env}"
     puts "=" * 80
-    
+
     # Log to Rails logger as well
     Rails.logger.info "=" * 80
     Rails.logger.info "🎵 AUTOMATED PLAYLIST UPDATE STARTED"
@@ -20,17 +20,17 @@ namespace :playlists do
     Rails.logger.info "📊 Total playlists: #{Playlist.count}"
     Rails.logger.info "🔧 Environment: #{Rails.env}"
     Rails.logger.info "=" * 80
-    
+
     # Create a batch update record
     batch = BatchUpdate.create!(
-      status: 'running',
+      status: "running",
       current_index: 0,
       total_count: Playlist.count,
       changes_count: 0,
       started_at: start_time,
-      source: 'heroku_scheduler'
+      source: "heroku_scheduler"
     )
-    
+
     playlists = Playlist.all.to_a
     total_changes = 0
     skipped_count = 0
@@ -38,30 +38,30 @@ namespace :playlists do
     updated_playlists = []
     skipped_playlists = []
     error_playlists = []
-    
+
     # Get a single access token to reuse across all playlists
     access_token = fetch_spotify_token
-    
+
     if access_token.nil?
       error_msg = "ERROR: No Spotify API credentials configured"
       puts error_msg
       Rails.logger.error error_msg
-      batch.update!(status: 'failed', ended_at: Time.current, failure_reason: 'No Spotify credentials')
+      batch.update!(status: "failed", ended_at: Time.current, failure_reason: "No Spotify credentials")
       exit 1
     end
-    
+
     puts "🔑 Spotify token obtained successfully"
     Rails.logger.info "🔑 Spotify token obtained successfully"
-    
+
     playlists.each_with_index do |playlist, index|
       current_time = Time.current
       progress = "#{index + 1}/#{playlists.size}"
-      
+
       batch.update!(
         current_index: index + 1,
         current_playlist_title: playlist.title
       )
-      
+
       begin
         result = PlaylistUpdateService.new(playlist).call_with_token(access_token)
         if result[:success]
@@ -78,7 +78,7 @@ namespace :playlists do
             log_msg = "✅ [#{progress}] Updated: #{playlist.title} (#{result[:changes].size} changes)"
             puts log_msg
             Rails.logger.info log_msg
-            
+
             # Log individual changes
             result[:changes].each do |change|
               change_msg = "   📝 #{change[:type]}: #{change[:field] || change[:track]&.name || 'N/A'}"
@@ -101,7 +101,7 @@ namespace :playlists do
         Rails.logger.error "Batch update failed for playlist #{playlist.id}: #{e.message}"
         Rails.logger.error e.backtrace.join("\n")
       end
-      
+
       # Minimal delay to respect rate limits
       if result && result[:success] && result[:skipped]
         sleep(0.5) if index < playlists.size - 1  # Faster for skipped playlists
@@ -109,16 +109,16 @@ namespace :playlists do
         sleep(1) if index < playlists.size - 1   # Normal delay for full sync
       end
     end
-    
+
     end_time = Time.current
     duration = (end_time - start_time).round(2)
-    
+
     batch.update!(
-      status: 'completed',
+      status: "completed",
       completed_at: end_time,
       changes_count: total_changes
     )
-    
+
     # Final summary
     puts "=" * 80
     puts "🎵 AUTOMATED PLAYLIST UPDATE COMPLETED"
@@ -132,7 +132,7 @@ namespace :playlists do
     puts "   ❌ Errors: #{error_count} playlists"
     puts "   🔄 Total changes: #{total_changes}"
     puts "=" * 80
-    
+
     if updated_playlists.any?
       puts "📝 Updated playlists:"
       updated_playlists.each do |playlist|
@@ -140,7 +140,7 @@ namespace :playlists do
       end
       puts "=" * 80
     end
-    
+
     if error_playlists.any?
       puts "❌ Failed playlists:"
       error_playlists.each do |playlist|
@@ -148,7 +148,7 @@ namespace :playlists do
       end
       puts "=" * 80
     end
-    
+
     # Log to Rails logger as well
     Rails.logger.info "=" * 80
     Rails.logger.info "🎵 AUTOMATED PLAYLIST UPDATE COMPLETED"
@@ -162,7 +162,7 @@ namespace :playlists do
     Rails.logger.info "   ❌ Errors: #{error_count} playlists"
     Rails.logger.info "   🔄 Total changes: #{total_changes}"
     Rails.logger.info "=" * 80
-    
+
     if updated_playlists.any?
       Rails.logger.info "📝 Updated playlists:"
       updated_playlists.each do |playlist|
@@ -170,7 +170,7 @@ namespace :playlists do
       end
       Rails.logger.info "=" * 80
     end
-    
+
     if error_playlists.any?
       Rails.logger.info "❌ Failed playlists:"
       error_playlists.each do |playlist|
@@ -179,21 +179,21 @@ namespace :playlists do
       Rails.logger.info "=" * 80
     end
   end
-  
+
   private
-  
+
   def fetch_spotify_token
     return nil unless ENV["SPOTIFY_CLIENT_ID"].present? && ENV["SPOTIFY_CLIENT_SECRET"].present?
-    
+
     uri = URI("https://accounts.spotify.com/api/token")
     req = Net::HTTP::Post.new(uri)
     req.set_form_data({ grant_type: "client_credentials" })
     req.basic_auth(ENV["SPOTIFY_CLIENT_ID"], ENV["SPOTIFY_CLIENT_SECRET"])
-    
+
     res = Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
       http.request(req)
     end
-    
+
     return nil unless res.is_a?(Net::HTTPSuccess)
     JSON.parse(res.body)["access_token"]
   end

@@ -12,10 +12,10 @@ class PlaylistUpdateService
     ActiveRecord::Base.transaction do
       # Update playlist metadata and log changes
       update_metadata(spotify_data[:metadata])
-      
+
       # Sync tracks and log additions/removals
       sync_tracks(spotify_data[:tracks])
-      
+
       # Update last_updated_at timestamp
       @playlist.update!(last_updated_at: Time.current)
     end
@@ -37,11 +37,11 @@ class PlaylistUpdateService
   # Optimized version that reuses an access token
   def call_with_token(access_token)
     return call unless access_token # Fallback to normal method if no token provided
-    
+
     # Quick check first - skip if no track changes
     spotify_service = Spotify::PlaylistSyncService.new(@playlist)
     result = spotify_service.quick_check_with_token(access_token)
-    
+
     # If no changes detected, skip processing
     if result[:skip]
       Rails.logger.info "Skipped playlist #{@playlist.id}: #{result[:reason]}"
@@ -60,10 +60,10 @@ class PlaylistUpdateService
     ActiveRecord::Base.transaction do
       # Update playlist metadata and log changes
       update_metadata(spotify_data[:metadata])
-      
+
       # Sync tracks and log additions/removals
       sync_tracks(spotify_data[:tracks])
-      
+
       # Update last_updated_at timestamp
       @playlist.update!(last_updated_at: Time.current)
     end
@@ -89,27 +89,27 @@ class PlaylistUpdateService
 
     # Check each metadata field for changes
     if @playlist.title != metadata[:title]
-      log_metadata_change('title', @playlist.title, metadata[:title])
+      log_metadata_change("title", @playlist.title, metadata[:title])
       changed_fields << :title
     end
 
     if @playlist.description != metadata[:description]
-      log_metadata_change('description', @playlist.description, metadata[:description])
+      log_metadata_change("description", @playlist.description, metadata[:description])
       changed_fields << :description
     end
 
     if @playlist.cover_image_url != metadata[:cover_image_url]
-      log_metadata_change('cover_image_url', @playlist.cover_image_url, metadata[:cover_image_url])
+      log_metadata_change("cover_image_url", @playlist.cover_image_url, metadata[:cover_image_url])
       changed_fields << :cover_image_url
     end
 
     if @playlist.track_count != metadata[:track_count]
-      log_metadata_change('track_count', @playlist.track_count, metadata[:track_count])
+      log_metadata_change("track_count", @playlist.track_count, metadata[:track_count])
       changed_fields << :track_count
     end
 
     if @playlist.followers_count != metadata[:followers_count]
-      log_metadata_change('followers_count', @playlist.followers_count, metadata[:followers_count])
+      log_metadata_change("followers_count", @playlist.followers_count, metadata[:followers_count])
       changed_fields << :followers_count
     end
 
@@ -153,7 +153,7 @@ class PlaylistUpdateService
         preview_url: track_data[:preview_url],
         external_url: track_data[:external_url]
       }
-      
+
       # Only update if any field actually changed
       if track.name != track_attributes[:name] ||
          track.artist != track_attributes[:artist] ||
@@ -198,33 +198,32 @@ class PlaylistUpdateService
   def log_metadata_change(field_name, old_value, new_value)
     UpdateLog.create!(
       playlist: @playlist,
-      log_type: 'playlist_metadata',
+      log_type: "playlist_metadata",
       field_name: field_name,
       old_value: old_value.to_s,
       new_value: new_value.to_s,
       change_summary: "#{field_name.humanize} changed from '#{old_value}' to '#{new_value}'"
     )
-    @changes << { type: 'metadata', field: field_name, old: old_value, new: new_value }
+    @changes << { type: "metadata", field: field_name, old: old_value, new: new_value }
   end
 
   def log_track_added(track)
     UpdateLog.create!(
       playlist: @playlist,
       track: track,
-      log_type: 'track_added',
+      log_type: "track_added",
       change_summary: "Added track: #{track.display_name}"
     )
-    @changes << { type: 'track_added', track: track }
+    @changes << { type: "track_added", track: track }
   end
 
   def log_track_removed(track)
     UpdateLog.create!(
       playlist: @playlist,
       track: track,
-      log_type: 'track_removed',
+      log_type: "track_removed",
       change_summary: "Removed track: #{track.display_name}"
     )
-    @changes << { type: 'track_removed', track: track }
+    @changes << { type: "track_removed", track: track }
   end
 end
-
