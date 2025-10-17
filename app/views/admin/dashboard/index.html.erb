@@ -4,15 +4,35 @@
     <p class="text-gray-300">Manage your playlists and categories</p>
     
     <!-- Automation Status -->
-    <div class="mt-4 p-4 bg-gradient-to-r from-green-900/30 to-blue-900/30 rounded-lg border border-green-500/30">
+    <div class="mt-4 p-4 <%= @scheduler_paused ? 'bg-gradient-to-r from-yellow-900/30 to-red-900/30 border-yellow-500/30' : 'bg-gradient-to-r from-green-900/30 to-blue-900/30 border-green-500/30' %> rounded-lg border">
       <div class="flex items-center justify-between mb-3">
         <div>
-          <h3 class="text-lg font-bold text-green-400 mb-1">🤖 Automated Updates</h3>
-          <p class="text-gray-300 text-sm">Playlists update automatically every hour</p>
+          <h3 class="text-lg font-bold <%= @scheduler_paused ? 'text-yellow-400' : 'text-green-400' %> mb-1">🤖 Automated Updates</h3>
+          <p class="text-gray-300 text-sm">
+            <% if @scheduler_paused %>
+              Scheduler is paused - no automatic updates
+            <% elsif @quick_updates_enabled %>
+              Quick updates enabled - syncing every 15 minutes
+            <% else %>
+              Normal mode - syncing every hour at :40
+            <% end %>
+          </p>
         </div>
         <div class="text-right">
-          <p class="text-green-400 text-sm font-semibold">ACTIVE</p>
-          <p class="text-gray-400 text-xs">Next run: Every hour at :40</p>
+          <% if @scheduler_paused %>
+            <p class="text-yellow-400 text-sm font-semibold">⏸️ PAUSED</p>
+            <p class="text-gray-400 text-xs">No updates scheduled</p>
+          <% elsif @quick_updates_enabled %>
+            <p class="text-blue-400 text-sm font-semibold">⚡ QUICK MODE</p>
+            <% if @next_update_time %>
+              <p class="text-gray-400 text-xs">Next: <%= @next_update_time.in_time_zone('America/Toronto').strftime("%I:%M %p") %></p>
+            <% end %>
+          <% else %>
+            <p class="text-green-400 text-sm font-semibold">▶️ ACTIVE</p>
+            <% if @next_update_time %>
+              <p class="text-gray-400 text-xs">Next: <%= @next_update_time.in_time_zone('America/Toronto').strftime("%I:%M %p") %></p>
+            <% end %>
+          <% end %>
         </div>
       </div>
       
