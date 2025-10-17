@@ -37,6 +37,11 @@ class PagesController < ApplicationController
     # Group tracks by song and create grouped data structure
     @grouped_tracks = group_tracks_by_song(playlist_tracks)
     
+    # Filter for HOT songs only if requested
+    if params[:hot_only] == 'true'
+      @grouped_tracks = @grouped_tracks.select { |group| group[:total_playlists] >= 3 }
+    end
+    
     # Apply pagination to the grouped results
     @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
   end
