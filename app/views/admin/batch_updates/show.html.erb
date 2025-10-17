@@ -25,11 +25,14 @@
         </div>
         <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
           <span class="text-2xl">
-            <% case @batch_update.status %>
-            <% when 'completed' %>✓
-            <% when 'running' %>⟳
-            <% when 'failed' %>✗
-            <% else %>⏸
+            <% if @batch_update.status == 'completed' %>
+              ✓
+            <% elsif @batch_update.status == 'running' %>
+              ⟳
+            <% elsif @batch_update.status == 'failed' %>
+              ✗
+            <% else %>
+              ⏸
             <% end %>
           </span>
         </div>
