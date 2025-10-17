@@ -6,8 +6,9 @@ class PagesController < ApplicationController
   end
 
   def whats_new
-    @playlist_tracks = PlaylistTrack.includes(:track, playlist: :categories)
-                                     .recent_additions
+    # Get all recent playlist tracks
+    playlist_tracks = PlaylistTrack.includes(:track, playlist: :categories)
+                                   .recent_additions
     
     # Filter by category if requested
     if params[:category_id].present?
@@ -18,10 +19,10 @@ class PagesController < ApplicationController
           # Get all descendant category IDs
           category_ids = [ category.id ] + category.descendant_ids
           # Filter playlists that belong to any of these categories
-          @playlist_tracks = @playlist_tracks.joins(:playlist)
-                                             .joins("INNER JOIN playlist_categories ON playlist_categories.playlist_id = playlists.id")
-                                             .where(playlist_categories: { category_id: category_ids })
-                                             .distinct
+          playlist_tracks = playlist_tracks.joins(:playlist)
+                                           .joins("INNER JOIN playlist_categories ON playlist_categories.playlist_id = playlists.id")
+                                           .where(playlist_categories: { category_id: category_ids })
+                                           .distinct
         else
           # Invalid category ID - redirect to whats_new without filter
           redirect_to whats_new_path and return
@@ -33,6 +34,36 @@ class PagesController < ApplicationController
       end
     end
     
-    @playlist_tracks = @playlist_tracks.page(params[:page]).per(50)
+    # Group tracks by song and create grouped data structure
+    @grouped_tracks = group_tracks_by_song(playlist_tracks)
+    
+    # Apply pagination to the grouped results
+    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(25)
+  end
+  
+  private
+  
+  def group_tracks_by_song(playlist_tracks)
+    # Group by track_id and collect all playlist tracks for each song
+    grouped = playlist_tracks.group_by(&:track_id)
+    
+    # Transform into array of grouped track data
+    grouped.map do |track_id, tracks|
+      # Sort tracks by added_at (most recent first)
+      sorted_tracks = tracks.sort_by { |t| -t.added_at.to_i }
+      
+      # Get the most recent playlist track (main card)
+      main_track = sorted_tracks.first
+      
+      # Get all other playlist tracks (also added to)
+      other_tracks = sorted_tracks[1..-1] || []
+      
+      {
+        track: main_track.track,
+        main_playlist_track: main_track,
+        other_playlist_tracks: other_tracks,
+        total_playlists: tracks.count
+      }
+    end.sort_by { |group| -group[:main_playlist_track].added_at.to_i }
   end
 end
