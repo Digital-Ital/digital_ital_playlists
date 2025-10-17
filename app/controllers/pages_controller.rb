@@ -37,6 +37,9 @@ class PagesController < ApplicationController
     # Group tracks by song and create grouped data structure
     @grouped_tracks = group_tracks_by_song(playlist_tracks)
     
+    # Calculate total HOT songs count across all pages (before filtering)
+    @total_hot_songs_count = @grouped_tracks.count { |group| group[:total_playlists] >= 3 }
+    
     # Filter for HOT songs only if requested
     if params[:hot_only] == 'true'
       @grouped_tracks = @grouped_tracks.select { |group| group[:total_playlists] >= 3 }
