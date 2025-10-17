@@ -3,6 +3,7 @@ class PagesController < ApplicationController
     @categories = Category.roots.includes(children: :children)
     @main_families = Category.main_families.includes(children: :children)
     @featured_playlists = Playlist.featured.includes(:categories).order(:position).limit(4)
+    @total_playlists_count = Playlist.count
   end
 
   def whats_new
