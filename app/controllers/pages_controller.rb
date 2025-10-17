@@ -66,11 +66,15 @@ class PagesController < ApplicationController
       # Get all other playlist tracks (also added to)
       other_tracks = sorted_tracks[1..-1] || []
       
+      # Collect all unique categories from all playlists this song appears in
+      all_categories = tracks.flat_map { |t| t.playlist.categories }.uniq
+      
       {
         track: main_track.track,
         main_playlist_track: main_track,
         other_playlist_tracks: other_tracks,
-        total_playlists: tracks.count
+        total_playlists: tracks.count,
+        all_categories: all_categories
       }
     end.sort_by { |group| -group[:main_playlist_track].added_at.to_i }
   end
