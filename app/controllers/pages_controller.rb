@@ -38,7 +38,7 @@ class PagesController < ApplicationController
     @grouped_tracks = group_tracks_by_song(playlist_tracks)
     
     # Apply pagination to the grouped results
-    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(25)
+    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
   end
   
   private
