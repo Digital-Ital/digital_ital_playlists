@@ -47,12 +47,6 @@
         <%= link_to 'All Categories', whats_new_path, 
                     class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:category_id].nil? ? 'bg-yellow-700 text-white' : 'bg-gray-800 text-white hover:bg-gray-700'}" %>
         
-        <!-- HOT Songs Filter -->
-        <%= link_to whats_new_path(hot_only: params[:hot_only] == 'true' ? nil : 'true', category_id: params[:category_id]), 
-                    class: "px-4 py-2 rounded-lg font-semibold transition-all #{params[:hot_only] == 'true' ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white border-2 border-red-400 shadow-lg' : 'bg-gray-800 text-white hover:bg-gray-700'}" do %>
-          🔥 HOT Songs
-        <% end %>
-        
         <% Category.main_families.each do |category| %>
           <% if params[:category_id] == category.id.to_s %>
             <%= link_to whats_new_path(category_id: category.id, hot_only: params[:hot_only]), 
@@ -104,11 +98,22 @@
             </div>
             <!-- HOT Songs Explanation -->
             <div class="mt-3 pt-3 border-t border-gray-600/50">
-              <div class="flex items-center justify-center gap-2 text-xs text-gray-400">
-                <span class="inline-flex items-center px-2 py-1 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold">
-                  🔥 HOT
-                </span>
-                <span>songs appear in 3 or more playlists</span>
+              <div class="flex flex-col items-center gap-3 text-xs text-gray-400">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center px-2 py-1 rounded-full bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs font-bold">
+                    🔥 HOT
+                  </span>
+                  <span>songs that appear in 3 or more playlists</span>
+                </div>
+                
+                <!-- HOT Toggle Switch -->
+                <div class="flex items-center gap-3">
+                  <span class="text-gray-300 font-medium">Display only HOT songs:</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" id="hot-toggle" <%= 'checked' if params[:hot_only] == 'true' %>>
+                    <div class="relative w-11 h-6 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -301,6 +306,27 @@
     </div>
   </section>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const hotToggle = document.getElementById('hot-toggle');
+  
+  if (hotToggle) {
+    hotToggle.addEventListener('change', function() {
+      const currentUrl = new URL(window.location);
+      
+      if (this.checked) {
+        currentUrl.searchParams.set('hot_only', 'true');
+      } else {
+        currentUrl.searchParams.delete('hot_only');
+      }
+      
+      // Reload the page with the new parameters
+      window.location.href = currentUrl.toString();
+    });
+  }
+});
+</script>
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
