@@ -1,3 +1,6 @@
+require 'net/http'
+require 'json'
+
 namespace :scheduler do
   desc "Run scheduled playlist updates (respects pause/quick settings)"
   task update_playlists: :environment do
