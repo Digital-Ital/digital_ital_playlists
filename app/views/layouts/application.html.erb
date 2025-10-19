@@ -190,7 +190,7 @@
         <!-- Footer Toggle Button -->
         <div class="flex justify-center mb-4">
           <button onclick="toggleFooter()" id="footer-toggle-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full transition-colors duration-200 text-sm font-medium">
-            Hide Footer
+            Hide Footer ↓
           </button>
         </div>
         
@@ -396,11 +396,11 @@
         if (footerContent.classList.contains('hidden')) {
           // Show footer content
           footerContent.classList.remove('hidden');
-          toggleBtn.textContent = 'Hide Footer';
+          toggleBtn.textContent = 'Hide Footer ↓';
         } else {
           // Hide footer content
           footerContent.classList.add('hidden');
-          toggleBtn.textContent = 'Show Footer';
+          toggleBtn.textContent = 'Show Footer ↑';
         }
       }
     </script>
