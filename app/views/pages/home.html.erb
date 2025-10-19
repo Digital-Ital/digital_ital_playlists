@@ -12,20 +12,6 @@
     <div class="relative z-10 container mx-auto px-6 py-20">
       <!-- Header -->
       <div id="header-section" class="text-center mb-16">
-        <!-- Mobile Toggle Button (hidden by default, show only when header is hidden) -->
-        <div id="show-header-btn" class="mb-4 hidden">
-          <button onclick="toggleHeader()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium">
-            Show Header ↑
-          </button>
-        </div>
-        
-        <!-- Hide Button (visible on mobile when header is shown) -->
-        <div id="hide-header-btn" class="mb-4 md:hidden">
-          <button onclick="toggleHeader()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium">
-            Hide Header ↓
-          </button>
-        </div>
-        
         <%= link_to root_path, class: "inline-block", data: { turbo: false } do %>
         <h1 class="text-6xl md:text-8xl font-bold mb-6">
             <span class="bg-gradient-to-r from-yellow-600 via-red-900 to-green-700 bg-clip-text text-transparent drop-shadow-lg">
@@ -1478,19 +1464,19 @@
   // Mobile header toggle functionality
   function toggleHeader() {
     const headerSection = document.getElementById('header-section');
-    const showBtn = document.getElementById('show-header-btn');
-    const hideBtn = document.getElementById('hide-header-btn');
+    const hideShowBtn = document.getElementById('hide-show-btn');
+    const stickyShowBtn = document.getElementById('sticky-show-btn');
     
     if (headerSection.classList.contains('hidden')) {
       // Show header
       headerSection.classList.remove('hidden');
-      showBtn.classList.add('hidden');
-      hideBtn.classList.remove('hidden');
+      hideShowBtn.textContent = 'Hide';
+      stickyShowBtn.classList.add('hidden');
     } else {
       // Hide header
       headerSection.classList.add('hidden');
-      showBtn.classList.remove('hidden');
-      hideBtn.classList.add('hidden');
+      hideShowBtn.textContent = 'Show';
+      stickyShowBtn.classList.remove('hidden');
     }
   }
 </script>

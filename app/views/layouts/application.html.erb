@@ -192,7 +192,12 @@
              <div class="flex flex-col lg:flex-row lg:justify-center lg:gap-8 mb-4">
                <!-- Contact Section -->
                <div class="mb-4 lg:mb-0">
-                 <h3 class="text-sm font-semibold text-white mb-2">Questions? Want to connect?</h3>
+                 <div class="flex items-center justify-center gap-3 mb-2">
+                   <h3 class="text-sm font-semibold text-white">Questions? Want to connect?</h3>
+                   <button onclick="toggleHeader()" id="hide-show-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded-full transition-colors duration-200 text-xs font-medium">
+                     Hide
+                   </button>
+                 </div>
                  <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-6">
                    <a href="https://www.instagram.com/digital.ital/" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg text-sm" style="background: linear-gradient(45deg, #833AB4 0%, #E1306C 50%, #FD1D1D 100%);">
                      <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -372,5 +377,12 @@
         }, 2000);
       }
     </script>
+    
+    <!-- Sticky Show Button (appears when header is hidden) -->
+    <div id="sticky-show-btn" class="fixed bottom-4 right-4 hidden">
+      <button onclick="toggleHeader()" class="bg-yellow-700 hover:bg-yellow-600 text-white px-4 py-2 rounded-full shadow-lg transition-colors duration-200 text-sm font-medium">
+        Show
+      </button>
+    </div>
   </body>
 </html>
