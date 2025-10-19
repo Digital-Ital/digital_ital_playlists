@@ -304,6 +304,12 @@
           this.ticking = false;
         },
         
+        // Reinitialize for Turbo navigation
+        reinit: function() {
+          console.log('Reinitializing footer manager...');
+          this.init();
+        },
+        
         requestTick: function() {
           if (!this.ticking) {
             requestAnimationFrame(this.updateFooter.bind(this));
@@ -324,9 +330,9 @@
         window.footerManager.init();
       });
       
-      // Reset on turbo navigation
+      // Reinitialize on turbo navigation
       document.addEventListener('turbo:load', function() {
-        window.footerManager.reset();
+        window.footerManager.reinit();
       });
       
       // Also reset on turbo:before-visit to ensure clean state
