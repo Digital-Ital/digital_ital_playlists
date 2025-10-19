@@ -187,6 +187,15 @@
     <!-- Sticky Footer -->
     <footer id="sticky-footer" class="fixed bottom-0 left-0 right-0 bg-black/90 backdrop-blur-sm border-t border-gray-700/50 py-4 transform translate-y-full transition-transform duration-300" style="z-index: 9999 !important;">
       <div class="container mx-auto px-6">
+        <!-- Footer Toggle Button -->
+        <div class="flex justify-center mb-4">
+          <button onclick="toggleFooter()" id="footer-toggle-btn" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-full transition-colors duration-200 text-sm font-medium">
+            Hide
+          </button>
+        </div>
+        
+        <!-- Footer Content (collapsible) -->
+        <div id="footer-content" class="text-center">
            <div class="text-center">
              <!-- Contact and Support Sections - Side by Side on Desktop, Stacked on Mobile -->
              <div class="flex flex-col lg:flex-row lg:justify-center lg:gap-8 mb-4">
@@ -240,6 +249,7 @@
             </a>
           </p>
         </div>
+        </div> <!-- End footer-content -->
       </div>
     </footer>
 
@@ -371,13 +381,23 @@
           tooltip.style.opacity = '0';
         }, 2000);
       }
+      
+      // Footer toggle functionality
+      function toggleFooter() {
+        const footerContent = document.getElementById('footer-content');
+        const toggleBtn = document.getElementById('footer-toggle-btn');
+        
+        if (footerContent.classList.contains('hidden')) {
+          // Show footer content
+          footerContent.classList.remove('hidden');
+          toggleBtn.textContent = 'Hide';
+        } else {
+          // Hide footer content
+          footerContent.classList.add('hidden');
+          toggleBtn.textContent = 'Show';
+        }
+      }
     </script>
     
-    <!-- Sticky Show Button (appears when header is hidden) -->
-    <div id="sticky-show-btn" class="fixed bottom-4 right-4 hidden">
-      <button onclick="toggleHeader()" class="bg-yellow-700 hover:bg-yellow-600 text-white px-4 py-2 rounded-full shadow-lg transition-colors duration-200 text-sm font-medium">
-        Show
-      </button>
-    </div>
   </body>
 </html>
