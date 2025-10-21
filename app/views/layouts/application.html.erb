@@ -497,13 +497,21 @@
       
       // Show copied tooltip
       function showCopiedTooltip(button) {
+        console.log('Showing copied tooltip');
         const tooltip = document.createElement('div');
         tooltip.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-pulse';
         tooltip.textContent = '✅ Copied!';
+        tooltip.style.position = 'fixed';
+        tooltip.style.top = '20px';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translateX(-50%)';
+        tooltip.style.zIndex = '9999';
         document.body.appendChild(tooltip);
         
         setTimeout(() => {
-          tooltip.remove();
+          if (tooltip.parentNode) {
+            tooltip.remove();
+          }
         }, 2000);
       }
       
@@ -525,11 +533,16 @@
       
       // Setup social media share buttons
       function setupSocialMediaButtons() {
+        console.log('Setting up social media buttons...');
+        
         // Instagram share buttons
-        document.querySelectorAll('.instagram-share-btn').forEach(button => {
+        const instagramButtons = document.querySelectorAll('.instagram-share-btn');
+        console.log('Found Instagram buttons:', instagramButtons.length);
+        instagramButtons.forEach(button => {
           button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('Instagram button clicked');
             const title = this.dataset.playlistTitle;
             const url = this.dataset.playlistUrl;
             shareToInstagram(title, url);
@@ -537,10 +550,13 @@
         });
         
         // X (Twitter) share buttons
-        document.querySelectorAll('.x-share-btn').forEach(button => {
+        const xButtons = document.querySelectorAll('.x-share-btn');
+        console.log('Found X buttons:', xButtons.length);
+        xButtons.forEach(button => {
           button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('X button clicked');
             const title = this.dataset.playlistTitle;
             const url = this.dataset.playlistUrl;
             shareToX(title, url);
@@ -548,10 +564,13 @@
         });
         
         // Mixcloud share buttons
-        document.querySelectorAll('.mixcloud-share-btn').forEach(button => {
+        const mixcloudButtons = document.querySelectorAll('.mixcloud-share-btn');
+        console.log('Found Mixcloud buttons:', mixcloudButtons.length);
+        mixcloudButtons.forEach(button => {
           button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
+            console.log('Mixcloud button clicked');
             const title = this.dataset.playlistTitle;
             const url = this.dataset.playlistUrl;
             shareToMixcloud(title, url);
