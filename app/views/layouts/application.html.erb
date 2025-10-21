@@ -282,6 +282,11 @@
             if (footerContent) {
               footerContent.classList.add('hidden');
             }
+            // Set correct button text for hidden content
+            const toggleBtn = document.getElementById('footer-toggle-btn');
+            if (toggleBtn) {
+              toggleBtn.textContent = 'Show Footer ↑';
+            }
             console.log('On Latest Reggae section - footer visible with hidden content');
           } else {
             // Normal behavior for other sections
