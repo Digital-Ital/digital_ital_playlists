@@ -498,16 +498,50 @@
       // Show copied tooltip
       function showCopiedTooltip(button) {
         console.log('Showing copied tooltip');
+        
+        // Remove any existing tooltip first
+        const existingTooltip = document.getElementById('copied-tooltip');
+        if (existingTooltip) {
+          existingTooltip.remove();
+        }
+        
         const tooltip = document.createElement('div');
-        tooltip.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-pulse';
-        tooltip.textContent = '✅ Copied!';
-        tooltip.style.position = 'fixed';
-        tooltip.style.top = '20px';
-        tooltip.style.left = '50%';
-        tooltip.style.transform = 'translateX(-50%)';
-        tooltip.style.zIndex = '9999';
+        tooltip.id = 'copied-tooltip';
+        tooltip.innerHTML = '✅ Copied!';
+        tooltip.style.cssText = `
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          background-color: #16a34a;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          font-weight: bold;
+          font-size: 14px;
+          z-index: 99999;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+          animation: fadeInOut 2s ease-in-out;
+        `;
+        
+        // Add CSS animation
+        if (!document.getElementById('copied-tooltip-style')) {
+          const style = document.createElement('style');
+          style.id = 'copied-tooltip-style';
+          style.textContent = `
+            @keyframes fadeInOut {
+              0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+              20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+              80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+              100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
         document.body.appendChild(tooltip);
         
+        // Auto remove after animation
         setTimeout(() => {
           if (tooltip.parentNode) {
             tooltip.remove();
