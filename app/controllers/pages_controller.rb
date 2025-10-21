@@ -2,7 +2,7 @@ class PagesController < ApplicationController
   def home
     @categories = Category.roots.includes(children: { children: :playlists })
     @main_families = Category.main_families.includes(children: { children: :playlists })
-    @featured_playlists = Playlist.featured.includes(:categories).order(:position).limit(4)
+    @featured_playlists = Playlist.featured.includes(:categories).order(:position).limit(8)
     @total_playlists_count = Playlist.count
     @total_followers_count = Playlist.sum(:followers_count)
   end
