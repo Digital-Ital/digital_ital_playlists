@@ -4,12 +4,12 @@
     <div class="absolute inset-0 bg-gradient-to-br from-yellow-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
     
     <!-- Cover Image -->
-    <div class="relative overflow-hidden" style="height: 180px; width: 180px; margin: 0 auto;">
+    <div class="relative overflow-hidden" style="height: 200px; width: 200px; margin: 0 auto;">
       <% if playlist.cover_image_url %>
         <img src="<%= playlist.cover_image_url %>" alt="<%= playlist.title %>" class="w-full h-full object-cover">
       <% else %>
         <div class="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-          <div class="text-3xl">🎵</div>
+          <div class="text-4xl">🎵</div>
         </div>
       <% end %>
       <!-- Featured badge -->
