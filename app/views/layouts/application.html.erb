@@ -270,9 +270,20 @@
           
           console.log('Footer found, initializing...');
           
-          // Ensure footer starts hidden
-          this.footer.classList.add('translate-y-full');
-          this.isFooterVisible = false;
+          // Check if we're on the Latest Reggae section
+          const isOnLatestReggaeSection = this.isOnLatestReggaeSection();
+          
+          if (isOnLatestReggaeSection) {
+            // Hide footer by default on Latest Reggae section
+            this.footer.classList.add('translate-y-full');
+            this.isFooterVisible = false;
+            console.log('On Latest Reggae section - footer hidden by default');
+          } else {
+            // Normal behavior for other sections
+            this.footer.classList.add('translate-y-full');
+            this.isFooterVisible = false;
+          }
+          
           this.lastScrollY = window.scrollY;
           
           // Bind scroll handler
@@ -281,8 +292,25 @@
           console.log('Footer initialized successfully');
         },
         
+        isOnLatestReggaeSection: function() {
+          // Check if URL contains the latest-reggae-section hash
+          return window.location.hash === '#latest-reggae-section' || 
+                 window.location.href.includes('#latest-reggae-section');
+        },
+        
         updateFooter: function() {
           if (!this.footer) return;
+          
+          // If we're on Latest Reggae section, keep footer hidden by default
+          if (this.isOnLatestReggaeSection()) {
+            if (this.isFooterVisible) {
+              this.footer.classList.add('translate-y-full');
+              this.isFooterVisible = false;
+            }
+            this.lastScrollY = window.scrollY;
+            this.ticking = false;
+            return;
+          }
           
           const scrollY = window.scrollY;
           const scrollThreshold = 100; // Show footer after scrolling 100px
