@@ -171,9 +171,9 @@
       </div>
       
       <div class="container mx-auto px-6 relative z-10">
-        <div class="text-center mb-8">
-          <div class="inline-block mb-3">
-            <h3 class="text-4xl md:text-5xl font-bold mb-2">
+        <div class="text-center mb-4">
+          <div class="inline-block mb-1.5">
+            <h3 class="text-4xl md:text-5xl font-bold mb-1">
               <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
               <span class="text-white drop-shadow-lg">Latest Reggae</span>
               <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
@@ -183,7 +183,7 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           <!-- First row: 4 playlists -->
-          <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-2">
+          <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-1">
             <% @featured_playlists.first(4).each do |playlist| %>
               <%= render 'playlist_card', playlist: playlist %>
             <% end %>
