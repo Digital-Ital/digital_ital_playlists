@@ -448,6 +448,81 @@
         }
       }
       
+      // Social Media Share Functions
+      function shareToInstagram(title, url) {
+        const text = `Check out this playlist: ${title}`;
+        // Copy to clipboard since Instagram doesn't have direct share URLs
+        navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+          showCopiedTooltip(event.target);
+          trackShare(0, 'instagram', `${text} - ${url}`);
+        }).catch(() => {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = `${text} ${url}`;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          showCopiedTooltip(event.target);
+          trackShare(0, 'instagram', `${text} - ${url}`);
+        });
+      }
+      
+      function shareToX(title, url) {
+        const text = `Check out this playlist: ${title}`;
+        const tweetText = encodeURIComponent(`${text} ${url}`);
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
+        window.open(twitterUrl, '_blank');
+        trackShare(0, 'twitter', `${text} - ${url}`);
+      }
+      
+      function shareToMixcloud(title, url) {
+        const text = `Check out this playlist: ${title}`;
+        // Copy to clipboard since Mixcloud doesn't have direct share URLs
+        navigator.clipboard.writeText(`${text} ${url}`).then(() => {
+          showCopiedTooltip(event.target);
+          trackShare(0, 'mixcloud', `${text} - ${url}`);
+        }).catch(() => {
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = `${text} ${url}`;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          showCopiedTooltip(event.target);
+          trackShare(0, 'mixcloud', `${text} - ${url}`);
+        });
+      }
+      
+      // Show copied tooltip
+      function showCopiedTooltip(button) {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-xl z-50 animate-pulse';
+        tooltip.textContent = '✅ Copied!';
+        document.body.appendChild(tooltip);
+        
+        setTimeout(() => {
+          tooltip.remove();
+        }, 2000);
+      }
+      
+      // Track share event
+      async function trackShare(playlistId, platform, content) {
+        try {
+          await fetch(`/api/playlists/${playlistId}/share`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              platform: platform,
+              shared_content: content
+            })
+          });
+        } catch (error) {
+          console.error('Error tracking share:', error);
+        }
+      }
+      
       // Setup social media share buttons
       function setupSocialMediaButtons() {
         // Instagram share buttons
