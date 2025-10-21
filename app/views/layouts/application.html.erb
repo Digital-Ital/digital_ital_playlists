@@ -447,6 +447,46 @@
           toggleBtn.textContent = 'Show Footer ↑';
         }
       }
+      
+      // Setup social media share buttons
+      function setupSocialMediaButtons() {
+        // Instagram share buttons
+        document.querySelectorAll('.instagram-share-btn').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const title = this.dataset.playlistTitle;
+            const url = this.dataset.playlistUrl;
+            shareToInstagram(title, url);
+          });
+        });
+        
+        // X (Twitter) share buttons
+        document.querySelectorAll('.x-share-btn').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const title = this.dataset.playlistTitle;
+            const url = this.dataset.playlistUrl;
+            shareToX(title, url);
+          });
+        });
+        
+        // Mixcloud share buttons
+        document.querySelectorAll('.mixcloud-share-btn').forEach(button => {
+          button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const title = this.dataset.playlistTitle;
+            const url = this.dataset.playlistUrl;
+            shareToMixcloud(title, url);
+          });
+        });
+      }
+      
+      // Setup social media buttons on page load and Turbo navigation
+      document.addEventListener('DOMContentLoaded', setupSocialMediaButtons);
+      document.addEventListener('turbo:load', setupSocialMediaButtons);
     </script>
     
   </body>
