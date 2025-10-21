@@ -183,7 +183,7 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           <!-- First row: 4 playlists -->
-          <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-1">
+          <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-0.5">
             <% @featured_playlists.first(4).each do |playlist| %>
               <%= render 'playlist_card', playlist: playlist %>
             <% end %>
