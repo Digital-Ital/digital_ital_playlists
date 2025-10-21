@@ -274,10 +274,15 @@
           const isOnLatestReggaeSection = this.isOnLatestReggaeSection();
           
           if (isOnLatestReggaeSection) {
-            // Hide footer by default on Latest Reggae section
-            this.footer.classList.add('translate-y-full');
-            this.isFooterVisible = false;
-            console.log('On Latest Reggae section - footer hidden by default');
+            // Show footer with hidden content on Latest Reggae section
+            this.footer.classList.remove('translate-y-full');
+            this.isFooterVisible = true;
+            // Hide footer content by default
+            const footerContent = document.getElementById('footer-content');
+            if (footerContent) {
+              footerContent.classList.add('hidden');
+            }
+            console.log('On Latest Reggae section - footer visible with hidden content');
           } else {
             // Normal behavior for other sections
             this.footer.classList.add('translate-y-full');
@@ -301,11 +306,17 @@
         updateFooter: function() {
           if (!this.footer) return;
           
-          // If we're on Latest Reggae section, keep footer hidden by default
+          // If we're on Latest Reggae section, keep footer content hidden but show toggle button
           if (this.isOnLatestReggaeSection()) {
-            if (this.isFooterVisible) {
-              this.footer.classList.add('translate-y-full');
-              this.isFooterVisible = false;
+            // Hide footer content but keep the toggle button visible
+            const footerContent = document.getElementById('footer-content');
+            if (footerContent && !footerContent.classList.contains('hidden')) {
+              footerContent.classList.add('hidden');
+            }
+            // Keep footer visible but with content hidden
+            if (!this.isFooterVisible) {
+              this.footer.classList.remove('translate-y-full');
+              this.isFooterVisible = true;
             }
             this.lastScrollY = window.scrollY;
             this.ticking = false;
