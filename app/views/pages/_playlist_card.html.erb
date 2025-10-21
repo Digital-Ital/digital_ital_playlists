@@ -40,7 +40,7 @@
           data-location="featured"
           data-spotify-url="<%= playlist.spotify_url %>"
           title="Open on Spotify"
-          onclick="event.stopPropagation(); trackSpotifyOpen(<%= playlist.id %>, 'featured', '<%= playlist.spotify_url %>')">
+          style="pointer-events: auto !important; position: relative; z-index: 10;">
           ▶️
         </button>
         
