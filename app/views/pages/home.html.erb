@@ -119,38 +119,23 @@
               <span class="text-lg">🔍</span>
               <span>Search by Artist or Vibe</span>
             </span>
-            <span class="flex items-center gap-2">
-              <span class="text-lg">🎲</span>
-              <span>Random Dig</span>
-            </span>
           </div>
         </div>
         
         <!-- What's New Link -->
-        <div class="flex justify-center mt-6">
-          <%= link_to whats_new_path, class: "group flex flex-col items-center gap-2 px-8 py-4 bg-gradient-to-r from-yellow-700 via-orange-700 to-red-900 rounded-full hover:from-yellow-600 hover:via-orange-600 hover:to-red-800 transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-orange-700/50" do %>
-            <div class="flex items-center gap-3">
-            <span class="text-2xl">🎵</span>
-            <span class="text-white font-bold text-lg">Curation Feed</span>
-            <span class="text-2xl">📈</span>
+        <div class="flex justify-center mt-8">
+          <%= link_to whats_new_path, class: "group flex flex-col items-center gap-3 px-12 py-6 bg-gradient-to-r from-yellow-700 via-orange-700 to-red-900 rounded-2xl hover:from-yellow-600 hover:via-orange-600 hover:to-red-800 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-orange-700/50 border-2 border-yellow-500/30" do %>
+            <div class="flex items-center gap-4">
+            <span class="text-3xl">🎵</span>
+            <span class="text-white font-bold text-xl">Curation Feed</span>
+            <span class="text-3xl">📈</span>
             </div>
-            <span class="text-yellow-200 text-sm font-medium">→ See All Curations Grouped by Song</span>
-            <span class="text-yellow-300 text-xs font-medium">Chronological order, daily updated</span>
+            <span class="text-yellow-200 text-base font-medium">→ See All Curations Grouped by Song</span>
+            <span class="text-yellow-300 text-sm font-medium">Chronological order, daily updated</span>
           <% end %>
         </div>
       </div>
       
-      <!-- Featured Mix Section -->
-      <div class="text-center mt-16 mb-8">
-        <h3 class="text-2xl font-bold text-white mb-6">
-          <span class="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-            🎧 Featured Mix
-          </span>
-        </h3>
-        <div class="max-w-2xl mx-auto">
-          <iframe width="100%" height="120" src="https://player-widget.mixcloud.com/widget/iframe/?hide_cover=1&feed=%2FDigital_Ital%2Fdubwise-raw-dancehall-dub-rap-reggae-fusion-20250904-131724%2F" frameborder="0" allow="encrypted-media; fullscreen; autoplay; idle-detection; speaker-selection; web-share;" class="rounded-lg shadow-lg"></iframe>
-        </div>
-      </div>
       
     </div>
   </section>
@@ -196,109 +181,65 @@
     </section>
   <% end %>
 
-  <!-- Dig Through The Crates - Unified Section -->
+  <!-- Search and Browse Section -->
   <section class="py-12 relative">
     <div class="container mx-auto px-6 max-w-7xl">
-      <div class="relative">
-        <!-- Vinyl Crate Background -->
-        <div class="bg-gradient-to-br from-amber-900/40 to-yellow-900/30 border-4 border-amber-800/50 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-          <!-- Wood grain texture effect -->
-          <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 69, 19, 0.3) 2px, rgba(139, 69, 19, 0.3) 4px);"></div>
-          
-          <div class="relative z-10">
-            <!-- Main Header -->
-            <div class="text-center mb-12">
-              <h3 class="text-4xl md:text-5xl font-bold text-white drop-shadow-xl mb-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">
-                💿 Dig Through The Crates 💿
-              </h3>
-              <p class="text-white text-lg font-semibold drop-shadow-lg" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.9);">Three ways to discover your next favorite track</p>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Search -->
+        <div class="text-center">
+          <div class="mb-6">
+            <div class="w-16 h-16 mx-auto bg-yellow-600/20 rounded-full flex items-center justify-center mb-3">
+              <span class="text-3xl">🔍</span>
             </div>
-
-            <!-- Three Ways to Dig -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-              
-              <!-- Search Method -->
-              <div class="text-center">
-                <div class="mb-4">
-                  <div class="w-16 h-16 mx-auto bg-yellow-600/20 rounded-full flex items-center justify-center mb-3">
-                    <span class="text-3xl">🔍</span>
-                  </div>
-                  <h4 class="text-xl font-bold text-white mb-2 drop-shadow-lg">Search</h4>
-                  <p class="text-white text-sm drop-shadow-lg">by playlist, artist, track, or album</p>
-                </div>
-                
-                <!-- Search Input -->
-                <div class="relative">
-                  <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
-                    🔍
-                  </div>
-                  <input 
-                    type="text" 
-                    id="crate-search-input"
-                    placeholder="Search: roots, protoje, steppers, dub..."
-                    class="w-full pl-10 pr-10 py-3 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-sm font-medium shadow-inner"
-                  />
-                  <button 
-                    id="clear-search-btn"
-                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-lg"
-                    title="Clear search"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <!-- Search hint -->
-                <div id="search-hint" class="mt-3">
-                  <span class="inline-block bg-black/50 px-2 py-1 rounded text-white text-xs font-semibold">
-                    🎵 Start digging to find your sound
-                  </span>
-                </div>
-                
-                <!-- Search results count -->
-                <div id="search-results-info" class="mt-3 text-center hidden">
-                  <div class="inline-block bg-black/50 px-3 py-1 rounded-lg border border-yellow-600/50">
-                    <span class="text-yellow-400 font-bold text-xs" id="search-results-count">0</span>
-                    <span class="text-gray-300 text-xs"> playlists found</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Categories Method -->
-              <div class="text-center">
-                <div class="mb-4">
-                  <div class="w-16 h-16 mx-auto bg-green-600/20 rounded-full flex items-center justify-center mb-3">
-                    <span class="text-3xl">🎵</span>
-                  </div>
-                  <h4 class="text-xl font-bold text-white mb-2 drop-shadow-lg">Explore</h4>
-                  <p class="text-white text-sm drop-shadow-lg">playlists organized by genre and theme</p>
-                </div>
-                
-                <div class="text-center">
-                  <span class="inline-block bg-black/50 px-3 py-1 rounded text-white text-xs font-semibold">
-                    Browse categories below ↓
-                  </span>
-                </div>
-              </div>
-
-              <!-- Random Method -->
-              <div class="text-center">
-                <div class="mb-4">
-                  <div class="w-16 h-16 mx-auto bg-purple-600/20 rounded-full flex items-center justify-center mb-3">
-                    <span class="text-3xl">🎲</span>
-                  </div>
-                  <h4 class="text-xl font-bold text-white mb-2 drop-shadow-lg">Random Dig</h4>
-                  <p class="text-white text-sm drop-shadow-lg">discover a random gem</p>
-                </div>
-                
-                <button 
-                  id="random-dig-btn"
-                  onclick="randomDig()"
-                  class="px-6 py-3 bg-gradient-to-r from-purple-700 to-purple-900 hover:from-purple-600 hover:to-purple-800 text-white font-bold rounded-xl shadow-xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105 border-2 border-purple-500/50">
-                  🎲 Random Dig 🎲
-                </button>
-              </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Search</h3>
+          </div>
+          
+          <!-- Search Input -->
+          <div class="relative">
+            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
+              🔍
+            </div>
+            <input 
+              type="text" 
+              id="crate-search-input"
+              placeholder="Search: roots, protoje, steppers, dub..."
+              class="w-full pl-10 pr-10 py-3 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-sm font-medium shadow-inner"
+            />
+            <button 
+              id="clear-search-btn"
+              class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-lg"
+              title="Clear search"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <!-- Search results count -->
+          <div id="search-results-info" class="mt-3 text-center hidden">
+            <div class="inline-block bg-black/50 px-3 py-1 rounded-lg border border-yellow-600/50">
+              <span class="text-yellow-400 font-bold text-xs" id="search-results-count">0</span>
+              <span class="text-gray-300 text-xs"> playlists found</span>
             </div>
           </div>
+        </div>
+
+        <!-- Browse Categories -->
+        <div class="text-center">
+          <div class="mb-6">
+            <div class="w-16 h-16 mx-auto bg-green-600/20 rounded-full flex items-center justify-center mb-3">
+              <span class="text-3xl">🎵</span>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Browse Categories</h3>
+          </div>
+          
+          <div class="text-center">
+            <span class="inline-block bg-black/50 px-3 py-1 rounded text-white text-xs font-semibold">
+              Browse categories below ↓
+            </span>
+          </div>
+        </div>
+      </div>
             <!-- Categories Section -->
             <div class="mt-12">
               <div class="text-center mb-8">
