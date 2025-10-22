@@ -376,8 +376,7 @@
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
-      this.counterTop = document.getElementById('playlist-counter-top');
-      this.counterBottom = document.getElementById('playlist-counter-bottom');
+      // Counter elements removed
       this.observer = null;
       
       this.init();
@@ -849,20 +848,9 @@
       const currentCount = this.container.children.length;
       const totalCount = this.totalPlaylistsOnSite || currentCount;
       
-      // Update counter text
-      document.getElementById('current-count-top').textContent = currentCount;
-      document.getElementById('total-count-top').textContent = totalCount;
-      document.getElementById('current-count-bottom').textContent = currentCount;
-      document.getElementById('total-count-bottom').textContent = totalCount;
+      // Counter elements removed - no longer updating
       
-      // Show/hide counters
-      if (currentCount > 0) {
-        this.counterTop.classList.remove('hidden');
-        this.counterBottom.classList.remove('hidden');
-      } else {
-        this.counterTop.classList.add('hidden');
-        this.counterBottom.classList.add('hidden');
-      }
+      // Counter elements removed - no longer showing/hiding
     }
   }
 
