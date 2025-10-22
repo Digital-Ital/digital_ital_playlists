@@ -339,7 +339,7 @@
 
 
   <!-- Infinite Scroll Playlists -->
-  <section id="playlists-section" class="py-4 bg-gradient-to-b from-transparent to-gray-900/30">
+  <section id="playlists-section" class="py-0 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
       
       <!-- Simple Playlist Counter -->
@@ -725,8 +725,7 @@
           this.hasMore = false;
         }
         
-        // Update counters
-        this.updateCounters();
+        // Update counters DISABLED - prevents wrong numbers
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
@@ -857,19 +856,9 @@
     }
     
     updateCounters() {
-      const currentCount = this.container.children.length;
-      const totalCount = this.totalPlaylistsOnSite || currentCount;
-      
-      // Update counter text
-      this.currentCountEl.textContent = currentCount;
-      this.totalCountEl.textContent = totalCount;
-      
-      // Show/hide counter
-      if (currentCount > 0) {
-        this.counter.classList.remove('hidden');
-      } else {
-        this.counter.classList.add('hidden');
-      }
+      // DISABLED - Counter keeps showing wrong numbers
+      // Don't update counter automatically to prevent wrong numbers
+      return;
     }
   }
 
