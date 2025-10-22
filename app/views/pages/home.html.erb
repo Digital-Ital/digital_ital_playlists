@@ -342,13 +342,6 @@
   <section id="playlists-section" class="py-0 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
       
-      <!-- Compact Counter - FIXED NUMBER -->
-      <div id="simple-counter" class="text-center mb-2">
-        <div class="inline-block bg-gradient-to-r from-yellow-900/80 to-yellow-800/80 rounded-2xl px-6 py-3 border-2 border-yellow-500/60 shadow-lg ring-2 ring-yellow-500/30 text-base">
-          <span id="simple-count" class="text-yellow-200 font-bold text-lg">58</span>
-          <span class="text-yellow-100 font-semibold ml-2">playlists</span>
-        </div>
-      </div>
       
       <div id="playlists-container" class="grid grid-cols-1 gap-6">
         <!-- Playlists will be loaded here via JavaScript -->
@@ -384,9 +377,6 @@
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
-      // Simple counter element
-      this.simpleCounter = document.getElementById('simple-counter');
-      this.simpleCountEl = document.getElementById('simple-count');
       this.observer = null;
       
       this.init();
@@ -398,8 +388,6 @@
         this.container.innerHTML = '';
       }
       
-      // Hide counter initially
-      if (this.simpleCounter) this.simpleCounter.classList.add('hidden');
       if (this.endOfContent) this.endOfContent.classList.add('hidden');
       
       this.loadPlaylists();
@@ -467,8 +455,6 @@
       this.currentOffset = 0;
       this.hasMore = query ? false : true; // Disable infinite scroll during search
       this.endOfContent.classList.add('hidden');
-      this.counterTop.classList.add('hidden');
-      this.counterBottom.classList.add('hidden');
       
       // Clear container
       if (this.container) {
@@ -672,9 +658,6 @@
       
       // Keep total site count - don't reset when switching categories
       
-      // Hide counters while loading new category
-      this.counterTop.classList.add('hidden');
-      this.counterBottom.classList.add('hidden');
       
       // Scroll to show "Show All Playlists" button and ensure category tree is visible
       setTimeout(() => {
@@ -722,7 +705,6 @@
           this.hasMore = false;
         }
         
-        // Counter is fixed at 58 - no updates
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
@@ -852,11 +834,6 @@
       });
     }
     
-    updateCounters() {
-      // DISABLED - Counter keeps showing wrong numbers
-      // Don't update counter automatically to prevent wrong numbers
-      return;
-    }
   }
 
   // Collapse all other families and show only the selected one
