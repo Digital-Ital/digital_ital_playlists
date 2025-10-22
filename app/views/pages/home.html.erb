@@ -183,36 +183,6 @@
   <section class="py-0 relative">
     <div class="container mx-auto px-6 max-w-7xl">
       
-      <!-- Search Bar -->
-      <div class="max-w-2xl mx-auto mb-2">
-        <div class="relative">
-          <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
-            🔍
-          </div>
-          <input 
-            type="text" 
-            id="crate-search-input"
-            placeholder="Search: roots, protoje, steppers, dub..."
-            class="w-full pl-12 pr-12 py-4 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-base font-medium shadow-inner"
-          />
-          <button 
-            id="clear-search-btn"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-xl"
-            title="Clear search"
-          >
-            ✕
-          </button>
-        </div>
-        
-        <!-- Search results count -->
-        <div id="search-results-info" class="mt-4 text-center hidden">
-          <div class="inline-block bg-black/50 px-4 py-2 rounded-lg border border-yellow-600/50">
-            <span class="text-yellow-400 font-bold text-sm" id="search-results-count">0</span>
-            <span class="text-gray-300 text-sm"> playlists found</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Categories Section -->
       <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/60 rounded-2xl p-4 border border-yellow-500/20 shadow-xl">
       
@@ -334,6 +304,36 @@
           </div>
         </div>
       </div>
+      
+      <!-- Search Bar - MOVED UNDER CATEGORIES -->
+      <div class="max-w-2xl mx-auto mt-2">
+        <div class="relative">
+          <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
+            🔍
+          </div>
+          <input 
+            type="text" 
+            id="crate-search-input"
+            placeholder="Search: roots, protoje, steppers, dub..."
+            class="w-full pl-12 pr-12 py-4 bg-black/60 border-2 border-yellow-600/60 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-base font-medium shadow-inner"
+          />
+          <button 
+            id="clear-search-btn"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-yellow-400 transition-colors hidden text-xl"
+            title="Clear search"
+          >
+            ✕
+          </button>
+        </div>
+        
+        <!-- Search results count -->
+        <div id="search-results-info" class="mt-4 text-center hidden">
+          <div class="inline-block bg-black/50 px-4 py-2 rounded-lg border border-yellow-600/50">
+            <span class="text-yellow-400 font-bold text-sm" id="search-results-count">0</span>
+            <span class="text-gray-300 text-sm"> playlists found</span>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -342,10 +342,10 @@
   <section id="playlists-section" class="py-0 -mt-2 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
       
-      <!-- Compact Counter -->
+      <!-- Compact Counter - FIXED NUMBER -->
       <div id="simple-counter" class="text-center mb-2">
         <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-4 py-2 border border-yellow-500/40 shadow ring-1 ring-yellow-500/20 text-sm">
-          <span id="simple-count" class="text-yellow-400 font-bold">0</span>
+          <span id="simple-count" class="text-yellow-400 font-bold">58</span>
           <span class="text-gray-300 font-semibold ml-1">playlists</span>
         </div>
       </div>
@@ -722,12 +722,7 @@
           this.hasMore = false;
         }
         
-        // Update simple counter using the number of rendered cards
-        if (this.simpleCountEl && this.simpleCounter) {
-          const current = this.container ? this.container.children.length : 0;
-          this.simpleCountEl.textContent = current;
-          this.simpleCounter.classList.remove('hidden');
-        }
+        // Counter is fixed at 58 - no updates
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
