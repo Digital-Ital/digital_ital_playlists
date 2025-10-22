@@ -228,7 +228,7 @@
       
       <!-- Dynamic Collapsible Tree Structure -->
       <% if @main_families.any? %>
-        <div class="space-y-6">
+        <div class="space-y-2">
           <% @main_families.each do |family| %>
             <div class="tree-node" id="family-<%= family.id %>-node" data-family-id="<%= family.id %>">
               <% family_has_children = family.children.any? %>
@@ -248,7 +248,7 @@
                   </span>
                 </div>
               </div>
-              <div class="tree-content hidden ml-8 mt-4 space-y-3 border-l-4 border-yellow-500/60 pl-6 bg-black/10 rounded-r-xl py-3" id="family-<%= family.id %>-content">
+              <div class="tree-content hidden ml-8 mt-2 space-y-1 border-l-4 border-yellow-500/60 pl-6 bg-black/10 rounded-r-xl py-2" id="family-<%= family.id %>-content">
                 <!-- Family Root Categories -->
                 <% family.children.order(:position, :name).each do |root_category| %>
                   <div class="tree-node">
