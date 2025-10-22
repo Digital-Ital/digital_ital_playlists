@@ -180,7 +180,7 @@
   <% end %>
 
   <!-- Search and Browse Section -->
-  <section class="py-4 relative">
+  <section class="py-0 relative">
     <div class="container mx-auto px-6 max-w-7xl">
       
       <!-- Search Bar -->
@@ -217,7 +217,7 @@
       <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/60 rounded-2xl p-4 border border-yellow-500/20 shadow-xl">
       
       <!-- Show All Button -->
-      <div id="show-all-container" class="text-center mb-6" style="display: none;">
+      <div id="show-all-container" class="text-center mb-2" style="display: none;">
         <button 
           class="category-btn px-6 py-3 bg-gradient-to-r from-yellow-700 to-yellow-800 text-white rounded-lg font-bold text-lg hover:from-yellow-600 hover:to-yellow-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-yellow-700/25"
           data-category-id=""
@@ -339,8 +339,16 @@
 
 
   <!-- Infinite Scroll Playlists -->
-  <section id="playlists-section" class="py-0 bg-gradient-to-b from-transparent to-gray-900/30">
+  <section id="playlists-section" class="py-0 -mt-2 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
+      
+      <!-- Compact Counter -->
+      <div id="simple-counter" class="text-center mb-2">
+        <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-4 py-2 border border-yellow-500/40 shadow ring-1 ring-yellow-500/20 text-sm">
+          <span id="simple-count" class="text-yellow-400 font-bold">0</span>
+          <span class="text-gray-300 font-semibold ml-1">playlists</span>
+        </div>
+      </div>
       
       <div id="playlists-container" class="grid grid-cols-1 gap-6">
         <!-- Playlists will be loaded here via JavaScript -->
@@ -376,7 +384,9 @@
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
-      // Counter elements removed completely
+      // Simple counter element
+      this.simpleCounter = document.getElementById('simple-counter');
+      this.simpleCountEl = document.getElementById('simple-count');
       this.observer = null;
       
       this.init();
@@ -388,9 +398,8 @@
         this.container.innerHTML = '';
       }
       
-      // Hide counters initially
-      if (this.counterTop) this.counterTop.classList.add('hidden');
-      if (this.counterBottom) this.counterBottom.classList.add('hidden');
+      // Hide counter initially
+      if (this.simpleCounter) this.simpleCounter.classList.add('hidden');
       if (this.endOfContent) this.endOfContent.classList.add('hidden');
       
       this.loadPlaylists();
@@ -713,7 +722,12 @@
           this.hasMore = false;
         }
         
-        // Update counters DISABLED - prevents wrong numbers
+        // Update simple counter using the number of rendered cards
+        if (this.simpleCountEl && this.simpleCounter) {
+          const current = this.container ? this.container.children.length : 0;
+          this.simpleCountEl.textContent = current;
+          this.simpleCounter.classList.remove('hidden');
+        }
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
