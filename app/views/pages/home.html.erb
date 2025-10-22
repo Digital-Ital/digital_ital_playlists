@@ -180,11 +180,11 @@
   <% end %>
 
   <!-- Search and Browse Section -->
-  <section class="py-16 relative">
+  <section class="py-8 relative">
     <div class="container mx-auto px-6 max-w-7xl">
       
       <!-- Search Bar -->
-      <div class="max-w-2xl mx-auto mb-12">
+      <div class="max-w-2xl mx-auto mb-6">
         <div class="relative">
           <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
             🔍
@@ -214,7 +214,7 @@
       </div>
 
       <!-- Categories Section -->
-      <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/60 rounded-2xl p-8 border border-yellow-500/20 shadow-xl">
+      <div class="bg-gradient-to-br from-gray-800/40 to-gray-900/60 rounded-2xl p-6 border border-yellow-500/20 shadow-xl">
       
       <!-- Show All Button -->
       <div id="show-all-container" class="text-center mb-6" style="display: none;">
@@ -277,9 +277,6 @@
                                   data-category-slug="<%= child.slug %>">
                             ↳ <%= child.emoji || '🎵' %> <%= child.name %>
                           </button>
-                          <span class="px-2.5 py-1 bg-black/40 rounded-full text-xs font-bold text-gray-400 border border-gray-700/50">
-                            <%= child.playlists.count %> / <%= child.playlists.sum(:track_count) %>
-                          </span>
                         </div>
                       <% end %>
                     </div>
