@@ -342,6 +342,16 @@
   <section id="playlists-section" class="py-4 bg-gradient-to-b from-transparent to-gray-900/30">
     <div class="container mx-auto px-6">
       
+      <!-- Simple Playlist Counter -->
+      <div id="playlist-counter" class="text-center mb-0">
+        <div class="inline-block bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl px-6 py-3 border-2 border-yellow-500/40 shadow-xl ring-1 ring-yellow-500/20">
+          <span class="text-yellow-400 font-bold text-lg drop-shadow-lg">
+            <span id="current-count">0</span> <span class="text-gray-400">/</span> <span id="total-count">0</span> 
+            <span class="text-gray-300 font-semibold ml-1">playlists</span>
+          </span>
+        </div>
+      </div>
+      
       <div id="playlists-container" class="grid grid-cols-1 gap-6">
         <!-- Playlists will be loaded here via JavaScript -->
       </div>
@@ -376,7 +386,9 @@
       this.container = document.getElementById('playlists-container');
       this.loadingSpinner = document.getElementById('loading-spinner');
       this.endOfContent = document.getElementById('end-of-content');
-      // Counter elements removed
+      this.counter = document.getElementById('playlist-counter');
+      this.currentCountEl = document.getElementById('current-count');
+      this.totalCountEl = document.getElementById('total-count');
       this.observer = null;
       
       this.init();
@@ -848,9 +860,16 @@
       const currentCount = this.container.children.length;
       const totalCount = this.totalPlaylistsOnSite || currentCount;
       
-      // Counter elements removed - no longer updating
+      // Update counter text
+      this.currentCountEl.textContent = currentCount;
+      this.totalCountEl.textContent = totalCount;
       
-      // Counter elements removed - no longer showing/hiding
+      // Show/hide counter
+      if (currentCount > 0) {
+        this.counter.classList.remove('hidden');
+      } else {
+        this.counter.classList.add('hidden');
+      }
     }
   }
 
