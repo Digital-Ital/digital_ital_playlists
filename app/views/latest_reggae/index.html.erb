@@ -257,9 +257,8 @@
   // Initialize on DOMContentLoaded
   document.addEventListener('DOMContentLoaded', function() {
     styleFeaturedCategoryTags();
-  
-  // Track Spotify opens
-  document.addEventListener('DOMContentLoaded', function() {
+    
+    // Track Spotify opens
     const spotifyLinks = document.querySelectorAll('a[data-spotify-url]');
     spotifyLinks.forEach(function(link) {
       link.addEventListener('click', function() {
@@ -282,10 +281,8 @@
         }
       });
     });
-  });
   
-  // Instagram share functionality
-  document.addEventListener('DOMContentLoaded', function() {
+    // Instagram share functionality
     const instagramBtns = document.querySelectorAll('.instagram-share-btn');
     instagramBtns.forEach(function(btn) {
       btn.addEventListener('click', function() {
