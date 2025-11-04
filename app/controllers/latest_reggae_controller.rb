@@ -28,7 +28,7 @@ class LatestReggaeController < ApplicationController
       3 => "Upbeat Roots Revival",
       4 => "Smooth Roots Revival",
       5 => "Pop / Soulful Reggae",
-      6 => "Loud Dubwise",
+      6 => "Lounge Dubwise",
       7 => "Rock / Punk Reggae"
     }
     
