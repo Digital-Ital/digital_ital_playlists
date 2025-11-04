@@ -19,12 +19,20 @@ class LatestReggaeController < ApplicationController
       return "Reggae Francais"
     end
     
-    vol_num = vol_match ? vol_match[1] : "?"
+    vol_num = vol_match ? vol_match[1].to_i : nil
     
-    # Prefer child categories (categories with a parent) over parent categories
-    # This gets us specific categories like "Dancehall", "Raw Dubwise" instead of "Reggae Branch"
-    child_category = playlist.categories.find { |cat| cat.parent_id.present? }
-    category_name = child_category&.name || playlist.categories.first&.name || "Reggae"
+    # Map volume numbers to specific category names as provided
+    volume_to_category = {
+      1 => "Dancehall",
+      2 => "Raw Dubwise",
+      3 => "Upbeat Roots Revival",
+      4 => "Smooth Roots Revival",
+      5 => "Pop / Soulful Reggae",
+      6 => "Loud Dubwise",
+      7 => "Rock / Punk Reggae"
+    }
+    
+    category_name = vol_num ? volume_to_category[vol_num] : "Reggae"
     
     "Vol#{vol_num} - #{category_name}"
   end
