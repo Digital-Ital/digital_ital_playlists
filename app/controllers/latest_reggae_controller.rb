@@ -1,6 +1,6 @@
 class LatestReggaeController < ApplicationController
   def index
-    @featured_playlists = Playlist.featured.includes(:categories, :tracks).order(:position).limit(10)
+    @featured_playlists = Playlist.featured.includes(:categories, :tracks).order(created_at: :desc).limit(10)
   end
 end
 
