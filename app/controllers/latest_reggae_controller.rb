@@ -13,12 +13,20 @@ class LatestReggaeController < ApplicationController
   # Helper method to extract volume number and category for display
   def playlist_short_format(playlist)
     vol_match = playlist.title.match(/vol\s*(\d+)/i)
+    
+    # Special case: "Reggae Francais" has no volume number
+    if vol_match.nil? && playlist.title.match?(/reggae\s*francais/i)
+      return "Reggae Francais"
+    end
+    
     vol_num = vol_match ? vol_match[1] : "?"
     
-    # Get primary category name
-    category_name = playlist.categories.first&.name || "Reggae"
+    # Prefer child categories (categories with a parent) over parent categories
+    # This gets us specific categories like "Dancehall", "Raw Dubwise" instead of "Reggae Branch"
+    child_category = playlist.categories.find { |cat| cat.parent_id.present? }
+    category_name = child_category&.name || playlist.categories.first&.name || "Reggae"
     
-    "Vol#{vol_num} is #{category_name}"
+    "Vol#{vol_num} - #{category_name}"
   end
   
   helper_method :playlist_short_format
