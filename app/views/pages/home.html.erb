@@ -79,7 +79,7 @@
             
             
             <p class="text-center text-white text-base font-medium mt-6">
-              🌍 <span class="text-yellow-400 font-bold">Now updated daily:</span> Explore the new 8-Part "<a href='#latest-reggae-section' class='text-yellow-400 hover:text-yellow-300 underline transition-colors'>Latest Reggae</a>" Series — from Dancehall to Dubwise, Roots Revival to Punk-Reggae. Fresh tracks added daily, covering every current of modern reggae culture.
+              🌍 <span class="text-yellow-400 font-bold">Now updated daily:</span> Explore the new 8-Part "<%= link_to 'Latest Reggae', latest_reggae_path, class: 'text-yellow-400 hover:text-yellow-300 underline transition-colors' %>" Series — from Dancehall to Dubwise, Roots Revival to Punk-Reggae. Fresh tracks added daily, covering every current of modern reggae culture.
             </p>
             
             <div class="mt-6 p-4 bg-green-900/20 rounded-xl border border-green-500/30">
@@ -122,47 +122,6 @@
       
     </div>
   </section>
-
-  <!-- Featured Playlists Section -->
-  <% if @featured_playlists.any? %>
-    <section id="latest-reggae-section" class="pt-4 pb-16 bg-gradient-to-b from-gray-900/80 to-transparent relative">
-      <!-- Decorative elements -->
-      <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-10 left-10 w-32 h-32 bg-yellow-600/10 rounded-full blur-3xl"></div>
-        <div class="absolute bottom-10 right-10 w-32 h-32 bg-red-900/10 rounded-full blur-3xl"></div>
-      </div>
-      
-      <div class="container mx-auto px-6 relative z-10">
-        <div class="text-center mb-4">
-          <div class="inline-block mb-1.5">
-            <h3 class="text-4xl md:text-5xl font-bold mb-1">
-              <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
-              <span class="text-white drop-shadow-lg">Latest Reggae</span>
-              <span class="text-yellow-400 drop-shadow-lg text-5xl">⭐</span>
-            </h3>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          <!-- First row: 4 playlists -->
-          <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-0.5">
-            <% @featured_playlists.first(4).each do |playlist| %>
-              <%= render 'playlist_card', playlist: playlist %>
-            <% end %>
-          </div>
-          
-          <!-- Second row: 4 playlists -->
-          <% if @featured_playlists.count > 4 %>
-            <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <% @featured_playlists.drop(4).each do |playlist| %>
-                <%= render 'playlist_card', playlist: playlist %>
-              <% end %>
-            </div>
-          <% end %>
-        </div>
-      </div>
-    </section>
-  <% end %>
 
   <!-- Search and Browse Section -->
   <section class="py-0 relative">
