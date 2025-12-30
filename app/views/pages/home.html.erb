@@ -627,15 +627,39 @@
         
         if (data.playlists && data.playlists.length > 0) {
           // Track loaded playlist IDs to prevent duplicates
-          const existingIds = new Set(Array.from(this.container.querySelectorAll('[data-playlist-id]')).map(el => el.dataset.playlistId));
+          // Handle both string and number IDs, and filter out null/undefined
+          const existingElements = Array.from(this.container.querySelectorAll('[data-playlist-id]'));
+          const existingIds = new Set(
+            existingElements
+              .map(el => {
+                const id = el.dataset.playlistId;
+                return id ? id.toString() : null;
+              })
+              .filter(id => id !== null)
+          );
           
+          let renderedCount = 0;
           data.playlists.forEach(playlist => {
+            // Defensive check for playlist ID
+            if (!playlist || !playlist.id) {
+              console.warn('Skipping playlist with missing ID:', playlist);
+              return;
+            }
+            
+            // Normalize ID to string for comparison
+            const playlistId = playlist.id.toString();
+            
             // Only render if we haven't already rendered this playlist
-            if (!existingIds.has(playlist.id.toString())) {
+            if (!existingIds.has(playlistId)) {
               this.renderPlaylist(playlist);
-              existingIds.add(playlist.id.toString());
+              existingIds.add(playlistId);
+              renderedCount++;
             }
           });
+          
+          if (renderedCount === 0 && data.playlists.length > 0) {
+            console.warn('No new playlists rendered. All may be duplicates or have missing IDs.');
+          }
           
           this.currentOffset += data.playlists.length;
           this.hasMore = data.has_more; // will be false when all=true
