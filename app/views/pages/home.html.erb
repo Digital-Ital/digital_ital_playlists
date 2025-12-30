@@ -626,8 +626,15 @@
         const data = await response.json();
         
         if (data.playlists && data.playlists.length > 0) {
+          // Track loaded playlist IDs to prevent duplicates
+          const existingIds = new Set(Array.from(this.container.querySelectorAll('[data-playlist-id]')).map(el => el.dataset.playlistId));
+          
           data.playlists.forEach(playlist => {
-            this.renderPlaylist(playlist);
+            // Only render if we haven't already rendered this playlist
+            if (!existingIds.has(playlist.id.toString())) {
+              this.renderPlaylist(playlist);
+              existingIds.add(playlist.id.toString());
+            }
           });
           
           this.currentOffset += data.playlists.length;
@@ -644,6 +651,10 @@
         
         if (!this.hasMore) {
           this.endOfContent.classList.remove('hidden');
+          // Disconnect observer when we've loaded everything
+          if (this.observer) {
+            this.observer.disconnect();
+          }
         }
         
       } catch (error) {
@@ -657,6 +668,7 @@
     renderPlaylist(playlist) {
       const playlistElement = document.createElement('div');
       playlistElement.className = 'group cursor-pointer transform transition-all duration-300 hover:-translate-y-1';
+      playlistElement.setAttribute('data-playlist-id', playlist.id);
       playlistElement.onclick = () => window.open(playlist.spotify_url, '_blank');
       
       playlistElement.innerHTML = `

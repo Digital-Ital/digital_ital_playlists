@@ -3,7 +3,7 @@ class Api::PlaylistsController < ApplicationController
   def index
     # Return ALL playlists when all=true (no pagination)
     if params[:all].to_s == "true"
-      scope = Playlist.left_joins(:categories).includes(:categories).distinct.ordered
+      scope = Playlist.includes(:categories).distinct.ordered
       if params[:category_ids].present?
         ids = params[:category_ids].to_s.split(",").map(&:to_i).uniq.compact
         # Only filter if we have valid category IDs
@@ -11,7 +11,8 @@ class Api::PlaylistsController < ApplicationController
           scope = Playlist.by_category_ids(ids).includes(:categories).ordered
         end
       end
-      playlists = scope.to_a
+      # Use uniq_by to ensure no duplicates even if a playlist has multiple categories
+      playlists = scope.to_a.uniq_by(&:id)
       render json: { playlists: playlists.map { |p| playlist_json(p) }, has_more: false }
       return
     end
