@@ -83,8 +83,8 @@ class PagesController < ApplicationController
     @artist_options = playlist_tracks.joins(:track)
                                      .where.not(tracks: { artist: [ nil, "" ] })
                                      .distinct
-                                     .order(Arel.sql("LOWER(tracks.artist) ASC"))
                                      .pluck("tracks.artist")
+                                     .sort_by { |artist| artist.to_s.downcase }
 
     if @artist.present?
       playlist_tracks = playlist_tracks.joins(:track).where("LOWER(tracks.artist) = ?", @artist.downcase)
