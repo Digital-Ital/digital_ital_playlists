@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   resources :playlists, only: [ :show ]
   resources :categories, only: [ :show ]
   get "whats-new", to: "pages#whats_new", as: :whats_new
+  get "all-songs", to: "pages#all_songs", as: :all_songs
 
       namespace :admin do
         root to: "dashboard#index"

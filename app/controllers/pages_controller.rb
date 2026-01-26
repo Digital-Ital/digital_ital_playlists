@@ -50,6 +50,39 @@ class PagesController < ApplicationController
     @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
   end
 
+  def all_songs
+    @playlists = Playlist.ordered
+    @selected_playlist_ids = normalize_playlist_ids(params[:playlist_ids])
+    @filter_mode = params[:filter_mode] == "and" ? "and" : "or"
+    @sort = normalize_sort_param(params[:sort])
+    @query = params[:query].to_s.strip
+
+    playlist_tracks = PlaylistTrack.includes(:track, playlist: :categories)
+
+    if @selected_playlist_ids.any?
+      if @filter_mode == "and"
+        track_ids = PlaylistTrack.where(playlist_id: @selected_playlist_ids)
+                                 .group(:track_id)
+                                 .having("COUNT(DISTINCT playlist_id) = ?", @selected_playlist_ids.size)
+                                 .pluck(:track_id)
+        playlist_tracks = playlist_tracks.where(track_id: track_ids)
+      else
+        playlist_tracks = playlist_tracks.where(playlist_id: @selected_playlist_ids)
+      end
+    end
+
+    if @query.present?
+      query_value = "%#{@query.downcase}%"
+      playlist_tracks = playlist_tracks.joins(:track).where(
+        "LOWER(tracks.name) LIKE :query OR LOWER(tracks.artist) LIKE :query OR LOWER(tracks.album) LIKE :query",
+        query: query_value
+      )
+    end
+
+    @grouped_tracks = group_tracks_for_all_songs(playlist_tracks, sort_by: @sort)
+    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
+  end
+
   private
 
   def group_tracks_by_song(playlist_tracks)
@@ -88,5 +121,51 @@ class PagesController < ApplicationController
         all_categories: all_categories
       }
     end.sort_by { |group| -group[:main_playlist_track].added_at.to_i }
+  end
+
+  def group_tracks_for_all_songs(playlist_tracks, sort_by:)
+    grouped = playlist_tracks.group_by(&:track_id)
+
+    groups = grouped.map do |track_id, tracks|
+      sorted_tracks = tracks.sort_by { |t| -t.added_at.to_i }
+      main_track = sorted_tracks.first
+      playlists = tracks.map(&:playlist).uniq { |playlist| playlist.id }
+      categories = playlists.flat_map(&:categories).uniq { |category| category.id }
+
+      {
+        track: main_track.track,
+        playlist_tracks: sorted_tracks,
+        playlists: playlists,
+        total_playlists: playlists.count,
+        last_added_at: main_track.added_at,
+        categories: categories
+      }
+    end
+
+    case sort_by
+    when "artist"
+      groups.sort_by { |group| [ group[:track].artist.to_s.downcase, group[:track].name.to_s.downcase ] }
+    when "title"
+      groups.sort_by { |group| [ group[:track].name.to_s.downcase, group[:track].artist.to_s.downcase ] }
+    when "playlist_count"
+      groups.sort_by { |group| [ -group[:total_playlists], group[:track].name.to_s.downcase ] }
+    else
+      groups.sort_by { |group| -group[:last_added_at].to_i }
+    end
+  end
+
+  def normalize_playlist_ids(raw_ids)
+    ids = if raw_ids.is_a?(Array)
+      raw_ids
+    else
+      raw_ids.to_s.split(",")
+    end
+
+    ids.map { |id| id.to_s.strip }.reject(&:blank?).map(&:to_i).uniq
+  end
+
+  def normalize_sort_param(sort_param)
+    sort = sort_param.to_s
+    %w[recent artist title playlist_count].include?(sort) ? sort : "recent"
   end
 end
