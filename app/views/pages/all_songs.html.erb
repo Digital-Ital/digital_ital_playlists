@@ -67,7 +67,7 @@
             </div>
           </div>
 
-          <div class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <label class="block text-gray-200 text-sm font-semibold mb-2">Artist filter</label>
               <input
@@ -89,18 +89,18 @@
               <div class="flex items-center gap-4 bg-black/40 rounded-xl p-3 border border-gray-700/60">
                 <label class="flex items-center gap-2 text-sm text-gray-200">
                   <input type="radio" name="filter_mode" value="or" <%= "checked" if @filter_mode == "or" %>>
-                  Tracks from ANY selected crates (OR)
+                  Tracks from ANY selected playlists (OR)
                 </label>
                 <label class="flex items-center gap-2 text-sm text-gray-200">
                   <input type="radio" name="filter_mode" value="and" <%= "checked" if @filter_mode == "and" %>>
-                  Tracks from ALL selected crates (AND)
+                  Tracks from ALL selected playlists (AND)
                 </label>
               </div>
             </div>
             <div class="lg:col-span-2">
               <label class="block text-gray-200 text-sm font-semibold mb-2">Playlists</label>
               <% all_selected = @selected_playlist_ids.empty? %>
-              <div class="max-h-44 overflow-y-auto bg-black/40 rounded-xl p-3 border border-gray-700/60" data-all-selected="<%= all_selected %>">
+              <div class="max-h-72 md:max-h-80 overflow-y-auto bg-black/40 rounded-xl p-3 border border-gray-700/60" data-all-selected="<%= all_selected %>">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <% @playlists.each do |playlist| %>
                     <label class="flex items-center gap-2 text-sm text-gray-200">
@@ -123,8 +123,8 @@
 
           <div class="mt-5 flex flex-wrap items-center justify-end gap-3">
             <%= link_to "Clear filters", all_songs_path, class: "px-4 py-2 rounded-lg bg-gray-800 text-white text-sm font-semibold hover:bg-gray-700" %>
-            <button type="submit" class="px-5 py-2 rounded-lg bg-yellow-600 text-black text-sm font-bold hover:bg-yellow-500">
-              Apply filters
+            <button type="submit" class="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-semibold hover:bg-gray-600">
+              Apply now
             </button>
           </div>
         <% end %>

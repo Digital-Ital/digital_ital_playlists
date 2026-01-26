@@ -260,6 +260,7 @@
         isFooterVisible: false,
         lastScrollY: 0,
         ticking: false,
+        disableScrollToggle: false,
         
         init: function() {
           this.footer = document.getElementById('sticky-footer');
@@ -267,23 +268,39 @@
             console.log('Footer not found!');
             return;
           }
+
+          const path = window.location.pathname;
+          this.disableScrollToggle = path === '/all-songs';
           
           console.log('Footer found, initializing...');
           
-          // Normal behavior - hide footer by default
-          this.footer.classList.add('translate-y-full');
-          this.isFooterVisible = false;
+          if (this.disableScrollToggle) {
+            // Keep footer tucked away but toggle-ready on /all-songs
+            this.footer.classList.remove('translate-y-full');
+            this.isFooterVisible = true;
+            const footerContent = document.getElementById('footer-content');
+            const toggleBtn = document.getElementById('footer-toggle-btn');
+            if (footerContent) footerContent.classList.add('hidden');
+            if (toggleBtn) toggleBtn.textContent = 'Show Footer ↑';
+          } else {
+            // Normal behavior - hide footer by default
+            this.footer.classList.add('translate-y-full');
+            this.isFooterVisible = false;
+          }
           
           this.lastScrollY = window.scrollY;
           
-          // Bind scroll handler
-          window.addEventListener('scroll', this.requestTick.bind(this), { passive: true });
+          // Bind scroll handler unless disabled
+          if (!this.disableScrollToggle) {
+            window.addEventListener('scroll', this.requestTick.bind(this), { passive: true });
+          }
           
           console.log('Footer initialized successfully');
         },
         
         updateFooter: function() {
           if (!this.footer) return;
+          if (this.disableScrollToggle) return;
           
           const scrollY = window.scrollY;
           const scrollThreshold = 100; // Show footer after scrolling 100px
