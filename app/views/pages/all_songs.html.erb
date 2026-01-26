@@ -44,7 +44,7 @@
   <section class="py-4">
     <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
       <div class="bg-gradient-to-r from-gray-900/80 to-gray-800/80 rounded-xl p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-600/50 backdrop-blur-sm">
-        <%= form_with url: all_songs_path, method: :get, local: true, data: { turbo_frame: "songs_results" } do %>
+        <%= form_with url: all_songs_path, method: :get, local: true do %>
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div class="lg:col-span-2">
               <label class="block text-gray-200 text-sm font-semibold mb-2">Search songs or artists</label>
