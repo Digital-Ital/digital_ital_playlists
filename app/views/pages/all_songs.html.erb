@@ -116,7 +116,7 @@
                 </div>
               </div>
               <p class="text-xs text-gray-400 mt-2">
-                All playlists are selected by default. Click one to isolate (auto applies), or select multiple to combine.
+                All playlists are selected by default. Click one to isolate (auto applies), or select multiple and it will apply after a short pause.
               </p>
             </div>
           </div>
@@ -275,24 +275,31 @@
     const checkboxes = Array.from(playlistContainer.querySelectorAll('input[type="checkbox"]'));
     const allSelected = playlistContainer.dataset.allSelected === 'true';
     const form = playlistContainer.closest('form');
+    let submitTimer = null;
 
-    if (!allSelected) return;
+    const submitForm = () => {
+      if (!form) return;
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    };
 
     checkboxes.forEach((checkbox) => {
       checkbox.addEventListener('change', (event) => {
-        if (playlistContainer.dataset.allSelected !== 'true') return;
-
-        checkboxes.forEach((box) => {
-          box.checked = false;
-        });
-        event.target.checked = true;
-        playlistContainer.dataset.allSelected = 'false';
-
-        if (form && typeof form.requestSubmit === 'function') {
-          form.requestSubmit();
-        } else if (form) {
-          form.submit();
+        if (playlistContainer.dataset.allSelected === 'true') {
+          checkboxes.forEach((box) => {
+            box.checked = false;
+          });
+          event.target.checked = true;
+          playlistContainer.dataset.allSelected = 'false';
+          submitForm();
+          return;
         }
+
+        clearTimeout(submitTimer);
+        submitTimer = setTimeout(submitForm, 500);
       });
     });
   }
