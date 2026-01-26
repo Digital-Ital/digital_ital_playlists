@@ -163,7 +163,7 @@
                         <a href="<%= group[:track].external_url %>" target="_blank" class="font-semibold text-gray-900 hover:text-yellow-700 line-clamp-1">
                           <%= group[:track].name %>
                         </a>
-                        <div class="absolute right-4 top-full mt-2 hidden group-hover:block z-20">
+                        <div class="song-tooltip absolute right-4 top-full mt-2 hidden group-hover:block z-20 pointer-events-auto">
                           <div class="w-80 max-h-72 overflow-y-auto rounded-lg border border-gray-300 bg-white p-3 shadow-xl">
                             <div class="flex gap-3">
                               <% if group[:track].image_url.present? %>
@@ -276,6 +276,20 @@
 </div>
 
 <script>
+  function setupAllSongsTooltips() {
+    document.querySelectorAll('.song-tooltip').forEach((tooltip) => {
+      const row = tooltip.closest('tr');
+      tooltip.addEventListener('mouseenter', () => {
+        document.body.classList.add('tooltip-locked');
+        if (row) row.classList.add('tooltip-active');
+      });
+      tooltip.addEventListener('mouseleave', () => {
+        document.body.classList.remove('tooltip-locked');
+        if (row) row.classList.remove('tooltip-active');
+      });
+    });
+  }
+
   function setupAllSongsPlaylistSelection() {
     const playlistContainer = document.querySelector('[data-all-selected]');
     if (!playlistContainer) return;
@@ -312,6 +326,18 @@
     });
   }
 
+  document.addEventListener('DOMContentLoaded', setupAllSongsTooltips);
+  document.addEventListener('turbo:load', setupAllSongsTooltips);
   document.addEventListener('DOMContentLoaded', setupAllSongsPlaylistSelection);
   document.addEventListener('turbo:load', setupAllSongsPlaylistSelection);
 </script>
+
+<style>
+  body.tooltip-locked tr.group:hover .song-tooltip {
+    display: none;
+  }
+
+  tr.tooltip-active .song-tooltip {
+    display: block;
+  }
+</style>
