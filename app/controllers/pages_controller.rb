@@ -80,14 +80,18 @@ class PagesController < ApplicationController
       )
     end
 
-    @artist_options = playlist_tracks.joins(:track)
-                                     .where.not(tracks: { artist: [ nil, "" ] })
-                                     .distinct
-                                     .pluck("tracks.artist")
-                                     .sort_by { |artist| artist.to_s.downcase }
+    raw_artists = playlist_tracks.joins(:track)
+                                 .where.not(tracks: { artist: [ nil, "" ] })
+                                 .distinct
+                                 .pluck("tracks.artist")
+
+    @artist_options = raw_artists.flat_map { |artist| split_artist_names(artist) }
+                                 .uniq
+                                 .sort_by { |artist| artist.downcase }
 
     if @artist.present?
-      playlist_tracks = playlist_tracks.joins(:track).where("LOWER(tracks.artist) = ?", @artist.downcase)
+      artist_query = "%#{@artist.downcase}%"
+      playlist_tracks = playlist_tracks.joins(:track).where("LOWER(tracks.artist) LIKE ?", artist_query)
     end
 
     @grouped_tracks = group_tracks_for_all_songs(playlist_tracks, sort_by: @sort)
@@ -180,5 +184,17 @@ class PagesController < ApplicationController
   def normalize_sort_param(sort_param)
     sort = sort_param.to_s
     %w[recent artist title playlist_count].include?(sort) ? sort : "recent"
+  end
+
+  def split_artist_names(artist_string)
+    return [] if artist_string.blank?
+
+    normalized = artist_string.to_s.dup
+    normalized.gsub!(/\s*\(.*?\)\s*/, " ")
+    normalized.gsub!(/\s+(feat\.?|featuring|ft\.?|with|vs\.?|x)\s+/i, ", ")
+    normalized.gsub!(/\s*&\s*/i, ", ")
+    normalized.gsub!(/\s+and\s+/i, ", ")
+
+    normalized.split(",").map { |name| name.strip }.reject(&:blank?)
   end
 end
