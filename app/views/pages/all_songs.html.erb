@@ -193,7 +193,9 @@
                                 <div class="space-y-1">
                                   <% group[:playlists].each do |playlist| %>
                                     <div>
-                                      <%= link_to playlist.title, all_songs_path(playlist_ids: [playlist.id]), class: "text-gray-700 hover:text-yellow-700" %>
+                                      <%= link_to playlist.title, all_songs_path(playlist_ids: [playlist.id]),
+                                                  class: "text-gray-700 hover:text-yellow-700",
+                                                  data: { turbo_frame: "_top" } %>
                                     </div>
                                   <% end %>
                                 </div>
@@ -222,7 +224,8 @@
                       <% if artist_parts.any? %>
                         <% artist_parts.each_with_index do |artist, index| %>
                           <%= link_to artist, all_songs_path(artist: artist),
-                                      class: "hover:text-yellow-700 transition-colors" %><%= "," if index < artist_parts.length - 1 %>
+                                      class: "hover:text-yellow-700 transition-colors",
+                                      data: { turbo_frame: "_top" } %><%= "," if index < artist_parts.length - 1 %>
                         <% end %>
                       <% else %>
                         <span><%= group[:track].artist %></span>
