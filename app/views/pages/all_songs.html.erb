@@ -218,8 +218,15 @@
                       </div>
                     </td>
                     <td class="py-2 pr-4 text-gray-800">
-                      <%= link_to group[:track].artist, all_songs_path(artist: group[:track].artist),
-                                  class: "hover:text-yellow-700 transition-colors" %>
+                      <% artist_parts = split_artist_names(group[:track].artist) %>
+                      <% if artist_parts.any? %>
+                        <% artist_parts.each_with_index do |artist, index| %>
+                          <%= link_to artist, all_songs_path(artist: artist),
+                                      class: "hover:text-yellow-700 transition-colors" %><%= "," if index < artist_parts.length - 1 %>
+                        <% end %>
+                      <% else %>
+                        <span><%= group[:track].artist %></span>
+                      <% end %>
                     </td>
                     <td class="py-2 pr-4 text-gray-600">
                       <span><%= group[:track].album.presence || "—" %></span>

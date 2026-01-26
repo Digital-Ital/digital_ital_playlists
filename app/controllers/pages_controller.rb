@@ -1,4 +1,6 @@
 class PagesController < ApplicationController
+  helper_method :split_artist_names
+
   def home
     @categories = Category.roots.includes(children: { children: :playlists })
     @main_families = Category.main_families.includes(children: { children: :playlists })
