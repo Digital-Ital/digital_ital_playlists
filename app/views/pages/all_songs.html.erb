@@ -280,6 +280,11 @@
 
 <script>
   function setupAllSongsTooltips() {
+    document.body.classList.remove('tooltip-locked');
+    document.querySelectorAll('tr.tooltip-active').forEach((row) => {
+      row.classList.remove('tooltip-active');
+    });
+
     document.querySelectorAll('.song-tooltip').forEach((tooltip) => {
       const row = tooltip.closest('tr');
       tooltip.addEventListener('mouseenter', () => {
@@ -331,6 +336,12 @@
 
   document.addEventListener('DOMContentLoaded', setupAllSongsTooltips);
   document.addEventListener('turbo:load', setupAllSongsTooltips);
+  document.addEventListener('turbo:before-cache', () => {
+    document.body.classList.remove('tooltip-locked');
+    document.querySelectorAll('tr.tooltip-active').forEach((row) => {
+      row.classList.remove('tooltip-active');
+    });
+  });
   document.addEventListener('DOMContentLoaded', setupAllSongsPlaylistSelection);
   document.addEventListener('turbo:load', setupAllSongsPlaylistSelection);
 </script>
