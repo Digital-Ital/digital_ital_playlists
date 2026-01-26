@@ -73,11 +73,11 @@
               <div class="flex items-center gap-4 bg-black/40 rounded-xl p-3 border border-gray-700/60">
                 <label class="flex items-center gap-2 text-sm text-gray-200">
                   <input type="radio" name="filter_mode" value="or" <%= "checked" if @filter_mode == "or" %>>
-                  Any selected (OR)
+                  Tracks from ANY selected crates (OR)
                 </label>
                 <label class="flex items-center gap-2 text-sm text-gray-200">
                   <input type="radio" name="filter_mode" value="and" <%= "checked" if @filter_mode == "and" %>>
-                  All selected (AND)
+                  Tracks from ALL selected crates (AND)
                 </label>
               </div>
             </div>
@@ -124,50 +124,112 @@
               Page <%= @grouped_tracks.current_page %> of <%= @grouped_tracks.total_pages %>
             </div>
           </div>
-          <div class="space-y-4 mb-8">
-            <% @grouped_tracks.each do |group| %>
-              <div class="rounded-xl p-4 border border-gray-700/60 bg-gray-900/60 hover:border-yellow-500/60 transition-all">
-                <div class="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <% if group[:track].image_url.present? %>
-                    <a href="<%= group[:track].external_url %>" target="_blank" class="flex-shrink-0">
-                      <img src="<%= group[:track].image_url %>" alt="<%= group[:track].name %>" class="w-20 h-20 rounded-lg shadow-lg">
-                    </a>
-                  <% end %>
+          <div class="mb-2 text-xs text-gray-500">
+            Hover any row for cover art, full playlists, and categories.
+          </div>
+          <div class="mb-8 overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="text-xs uppercase text-gray-400 border-b border-gray-700/60">
+                <tr>
+                  <th class="py-2 pr-4 font-semibold">Title</th>
+                  <th class="py-2 pr-4 font-semibold">Artist</th>
+                  <th class="py-2 pr-4 font-semibold">Album</th>
+                  <th class="py-2 pr-4 font-semibold text-center">Playlists</th>
+                  <th class="py-2 pr-4 font-semibold">Crates</th>
+                  <th class="py-2 font-semibold text-right">Link</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm text-gray-200">
+                <% @grouped_tracks.each do |group| %>
+                  <tr class="group relative border-b border-gray-800/80 hover:bg-gray-900/60 transition-colors">
+                    <td class="py-2 pr-4 max-w-xs">
+                      <div class="inline-block">
+                        <a href="<%= group[:track].external_url %>" target="_blank" class="font-semibold text-gray-100 hover:text-yellow-400 line-clamp-1">
+                          <%= group[:track].name %>
+                        </a>
+                        <div class="absolute right-4 top-full mt-2 hidden group-hover:block z-20">
+                          <div class="w-80 max-h-72 overflow-y-auto rounded-lg border border-gray-700/80 bg-gray-900/95 p-3 shadow-xl">
+                            <div class="flex gap-3">
+                              <% if group[:track].image_url.present? %>
+                                <img src="<%= group[:track].image_url %>" alt="<%= group[:track].name %>" class="w-20 h-20 rounded-md flex-shrink-0">
+                              <% end %>
+                              <div class="min-w-0">
+                                <div class="text-sm font-semibold text-gray-100"><%= group[:track].name %></div>
+                                <div class="text-xs text-gray-300"><%= group[:track].artist %></div>
+                                <div class="text-xs text-gray-500"><%= group[:track].album.presence || "—" %></div>
+                                <div class="mt-2 text-xs text-purple-200">
+                                  In <%= group[:total_playlists] %> playlists
+                                </div>
+                                <div class="mt-2 text-xs text-gray-400">
+                                  Last added: <%= time_ago_in_words(group[:last_added_at]) %> ago
+                                </div>
+                                <% if group[:first_added_at].present? %>
+                                  <div class="text-xs text-gray-500">
+                                    First seen: <%= time_ago_in_words(group[:first_added_at]) %> ago
+                                  </div>
+                                <% end %>
+                              </div>
+                            </div>
 
-                  <div class="flex-1 min-w-0">
-                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                      <a href="<%= group[:track].external_url %>" target="_blank" class="text-lg font-bold text-gray-100 hover:text-yellow-400 transition-colors line-clamp-1">
-                        <%= group[:track].name %>
-                      </a>
+                            <% if group[:playlists].any? %>
+                              <div class="mt-3 text-xs text-gray-300">
+                                <div class="text-gray-400 font-semibold mb-1">Playlists</div>
+                                <div class="space-y-1">
+                                  <% group[:playlists].each do |playlist| %>
+                                    <div>
+                                      <%= link_to playlist.title, playlist.spotify_url, target: "_blank", class: "text-gray-200 hover:text-yellow-400" %>
+                                    </div>
+                                  <% end %>
+                                </div>
+                              </div>
+                            <% end %>
+
+                            <% if group[:categories].any? %>
+                              <div class="mt-3 text-xs text-gray-300">
+                                <div class="text-gray-400 font-semibold mb-1">Categories</div>
+                                <div class="flex flex-wrap gap-1">
+                                  <% group[:categories].each do |category| %>
+                                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+                                          style="background-color: <%= category.color || '#374151' %>; color: <%= category.color.present? ? '#111111' : '#E5E7EB' %>;">
+                                      <%= category.emoji %> <%= category.name %>
+                                    </span>
+                                  <% end %>
+                                </div>
+                              </div>
+                            <% end %>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="py-2 pr-4 max-w-xs text-gray-300">
+                      <span class="line-clamp-1"><%= group[:track].artist %></span>
+                    </td>
+                    <td class="py-2 pr-4 max-w-xs text-gray-500">
+                      <span class="line-clamp-1"><%= group[:track].album.presence || "—" %></span>
+                    </td>
+                    <td class="py-2 pr-4 text-center">
                       <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-600/20 text-purple-200">
-                        <%= group[:total_playlists] %> playlists
+                        <%= group[:total_playlists] %>
                       </span>
-                    </div>
-                    <p class="text-gray-300 text-sm font-semibold line-clamp-1"><%= group[:track].artist %></p>
-                    <% if group[:track].album.present? %>
-                      <p class="text-gray-500 text-xs line-clamp-1"><%= group[:track].album %></p>
-                    <% end %>
-
-                    <div class="mt-3 text-xs text-gray-400">
-                      <span class="text-green-400 font-semibold">Playlists:</span>
-                      <% group[:playlists].first(3).each do |playlist| %>
-                        <%= link_to playlist.title, playlist.spotify_url, target: "_blank", class: "ml-2 text-gray-200 hover:text-yellow-400" %>
+                    </td>
+                    <td class="py-2 pr-4 text-xs text-gray-400 max-w-lg">
+                      <% group[:playlists].first(4).each do |playlist| %>
+                        <%= link_to playlist.title, playlist.spotify_url, target: "_blank", class: "mr-2 text-gray-200 hover:text-yellow-400" %>
                       <% end %>
-                      <% if group[:playlists].count > 3 %>
-                        <span class="ml-2 text-gray-500">+<%= group[:playlists].count - 3 %> more</span>
+                      <% if group[:playlists].count > 4 %>
+                        <span class="text-gray-500">+<%= group[:playlists].count - 4 %> more</span>
                       <% end %>
-                    </div>
-                  </div>
-
-                  <div class="flex-shrink-0">
-                    <a href="<%= group[:track].external_url %>" target="_blank"
-                      class="inline-flex items-center px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-500 transition-colors">
-                      ▶️ Spotify
-                    </a>
-                  </div>
-                </div>
-              </div>
-            <% end %>
+                    </td>
+                    <td class="py-2 text-right">
+                      <a href="<%= group[:track].external_url %>" target="_blank"
+                        class="inline-flex items-center px-2 py-1 rounded-md bg-green-600 text-white text-xs font-bold hover:bg-green-500 transition-colors">
+                        ▶️ Spotify
+                      </a>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
 
           <div class="flex flex-col items-center gap-4">

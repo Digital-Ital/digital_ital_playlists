@@ -129,6 +129,7 @@ class PagesController < ApplicationController
     groups = grouped.map do |track_id, tracks|
       sorted_tracks = tracks.sort_by { |t| -t.added_at.to_i }
       main_track = sorted_tracks.first
+      first_track = tracks.min_by { |t| t.added_at.to_i }
       playlists = tracks.map(&:playlist).uniq { |playlist| playlist.id }
       categories = playlists.flat_map(&:categories).uniq { |category| category.id }
 
@@ -138,6 +139,7 @@ class PagesController < ApplicationController
         playlists: playlists,
         total_playlists: playlists.count,
         last_added_at: main_track.added_at,
+        first_added_at: first_track&.added_at,
         categories: categories
       }
     end
