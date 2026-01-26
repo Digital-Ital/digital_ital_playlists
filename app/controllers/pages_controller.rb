@@ -56,6 +56,7 @@ class PagesController < ApplicationController
     @filter_mode = params[:filter_mode] == "and" ? "and" : "or"
     @sort = normalize_sort_param(params[:sort])
     @query = params[:query].to_s.strip
+    @artist = params[:artist].to_s.strip
 
     playlist_tracks = PlaylistTrack.includes(:track, playlist: :categories)
 
@@ -77,6 +78,16 @@ class PagesController < ApplicationController
         "LOWER(tracks.name) LIKE :query OR LOWER(tracks.artist) LIKE :query OR LOWER(tracks.album) LIKE :query",
         query: query_value
       )
+    end
+
+    @artist_options = playlist_tracks.joins(:track)
+                                     .where.not(tracks: { artist: [ nil, "" ] })
+                                     .distinct
+                                     .order(Arel.sql("LOWER(tracks.artist) ASC"))
+                                     .pluck("tracks.artist")
+
+    if @artist.present?
+      playlist_tracks = playlist_tracks.joins(:track).where("LOWER(tracks.artist) = ?", @artist.downcase)
     end
 
     @grouped_tracks = group_tracks_for_all_songs(playlist_tracks, sort_by: @sort)

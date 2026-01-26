@@ -69,6 +69,22 @@
 
           <div class="mt-5 grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div>
+              <label class="block text-gray-200 text-sm font-semibold mb-2">Artist filter</label>
+              <input
+                type="text"
+                name="artist"
+                value="<%= @artist %>"
+                list="artist-options"
+                placeholder="Type to search artists..."
+                class="w-full px-4 py-3 bg-black/60 border-2 border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 transition-all duration-200 text-sm"
+              />
+              <datalist id="artist-options">
+                <% @artist_options.each do |artist| %>
+                  <option value="<%= artist %>"></option>
+                <% end %>
+              </datalist>
+            </div>
+            <div>
               <label class="block text-gray-200 text-sm font-semibold mb-2">Playlist filter mode</label>
               <div class="flex items-center gap-4 bg-black/40 rounded-xl p-3 border border-gray-700/60">
                 <label class="flex items-center gap-2 text-sm text-gray-200">
@@ -83,7 +99,8 @@
             </div>
             <div class="lg:col-span-2">
               <label class="block text-gray-200 text-sm font-semibold mb-2">Playlists</label>
-              <div class="max-h-44 overflow-y-auto bg-black/40 rounded-xl p-3 border border-gray-700/60">
+              <% all_selected = @selected_playlist_ids.empty? %>
+              <div class="max-h-44 overflow-y-auto bg-black/40 rounded-xl p-3 border border-gray-700/60" data-all-selected="<%= all_selected %>">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <% @playlists.each do |playlist| %>
                     <label class="flex items-center gap-2 text-sm text-gray-200">
@@ -91,7 +108,7 @@
                         type="checkbox"
                         name="playlist_ids[]"
                         value="<%= playlist.id %>"
-                        <%= "checked" if @selected_playlist_ids.include?(playlist.id) %>
+                        <%= "checked" if all_selected || @selected_playlist_ids.include?(playlist.id) %>
                       >
                       <span class="line-clamp-1"><%= playlist.title %></span>
                     </label>
@@ -99,7 +116,7 @@
                 </div>
               </div>
               <p class="text-xs text-gray-400 mt-2">
-                Tip: open a playlist card and jump here already filtered.
+                All playlists are selected by default. Click one to isolate, or select multiple to combine.
               </p>
             </div>
           </div>
@@ -135,7 +152,6 @@
                   <th class="py-2 pr-4 font-semibold">Artist</th>
                   <th class="py-2 pr-4 font-semibold">Album</th>
                   <th class="py-2 pr-4 font-semibold text-center">Playlists</th>
-                  <th class="py-2 pr-4 font-semibold text-center">Crates</th>
                   <th class="py-2 font-semibold text-right">Link</th>
                 </tr>
               </thead>
@@ -212,11 +228,6 @@
                         <%= group[:total_playlists] %>
                       </span>
                     </td>
-                    <td class="py-2 pr-4 text-center">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
-                        <%= group[:playlists].count %>
-                      </span>
-                    </td>
                     <td class="py-2 text-right">
                       <a href="<%= group[:track].external_url %>" target="_blank"
                         class="inline-flex items-center px-2 py-1 rounded-md bg-green-600 text-white text-xs font-bold hover:bg-green-500 transition-colors">
@@ -255,3 +266,30 @@
     </div>
   </section>
 </div>
+
+<script>
+  function setupAllSongsPlaylistSelection() {
+    const playlistContainer = document.querySelector('[data-all-selected]');
+    if (!playlistContainer) return;
+
+    const checkboxes = Array.from(playlistContainer.querySelectorAll('input[type="checkbox"]'));
+    const allSelected = playlistContainer.dataset.allSelected === 'true';
+
+    if (!allSelected) return;
+
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', (event) => {
+        if (playlistContainer.dataset.allSelected !== 'true') return;
+
+        checkboxes.forEach((box) => {
+          box.checked = false;
+        });
+        event.target.checked = true;
+        playlistContainer.dataset.allSelected = 'false';
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', setupAllSongsPlaylistSelection);
+  document.addEventListener('turbo:load', setupAllSongsPlaylistSelection);
+</script>
