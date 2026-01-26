@@ -193,7 +193,7 @@
                                 <div class="space-y-1">
                                   <% group[:playlists].each do |playlist| %>
                                     <div>
-                                      <%= link_to playlist.title, playlist.spotify_url, target: "_blank", class: "text-gray-700 hover:text-yellow-700" %>
+                                      <%= link_to playlist.title, all_songs_path(playlist_ids: [playlist.id]), class: "text-gray-700 hover:text-yellow-700" %>
                                     </div>
                                   <% end %>
                                 </div>
