@@ -365,7 +365,7 @@
                     return a.name.localeCompare(b.name);
                   })
                   .map(category => 
-                    `<a href=\"/categories/${category.slug}\" class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 ${category.is_root ? 'bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-gray-100 border border-gray-600 hover:from-gray-700/90 hover:to-gray-600/90 font-semibold shadow-lg' : ''}\"
+                    `<a href=\"/categories/${category.slug}\" class=\"category-tag-btn px-3 py-1.5 rounded-full text-xs hover:scale-105 transition-all duration-200 border border-gray-600 font-semibold shadow-lg\"
                      data-category-id=\"${category.id}\" 
                      data-category-name=\"${category.name}\"
                      data-category-color=\"${category.color}\"
@@ -382,15 +382,13 @@
       
       this.container.appendChild(playlistElement);
 
-      // Style non-root category tags after insertion for reliable rendering
+      // Style category tags after insertion for reliable rendering
       const tagButtons = playlistElement.querySelectorAll('.category-tag-btn');
       tagButtons.forEach(btn => {
-        const isRoot = btn.dataset.isRoot === 'true';
-        if (isRoot) return;
         const hex = (btn.dataset.categoryColor || '').trim();
         const bg = isValidHex(hex) ? hex : '#FDE68A';
         const text = getReadableTextColor(bg);
-        btn.style.backgroundColor = bg;
+        btn.style.background = bg;
         btn.style.color = text;
         btn.style.border = `1px solid ${bg}`;
       });
