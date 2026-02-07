@@ -219,6 +219,22 @@ class Admin::PlaylistsController < Admin::BaseController
   end
 
   def playlist_params
-    params.require(:playlist).permit(:title, :description, :cover_image_url, :spotify_url, :track_count, :duration, :featured, :position, category_ids: [])
+    params.require(:playlist).permit(
+      :title,
+      :description,
+      :cover_image_url,
+      :spotify_url,
+      :youtube_url,
+      :tidal_url,
+      :qobuz_url,
+      :deezer_url,
+      :soundcloud_url,
+      :mixcloud_url,
+      :track_count,
+      :duration,
+      :featured,
+      :position,
+      category_ids: []
+    )
   end
 end

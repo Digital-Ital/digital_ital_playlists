@@ -22,6 +22,36 @@
     </div>
     <p class="text-gray-400 text-xs mt-1">We’ll fetch title, image, track count, and duration. You can still edit everything.</p>
   </div>
+  <div>
+    <p class="text-gray-300 mb-2 font-semibold">Platform Links (optional)</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <%= f.label :youtube_url, 'YouTube Playlist URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :youtube_url, placeholder: 'https://www.youtube.com/playlist?...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+      <div>
+        <%= f.label :tidal_url, 'Tidal Playlist URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :tidal_url, placeholder: 'https://tidal.com/playlist/...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+      <div>
+        <%= f.label :qobuz_url, 'Qobuz Playlist URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :qobuz_url, placeholder: 'https://www.qobuz.com/...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+      <div>
+        <%= f.label :deezer_url, 'Deezer Playlist URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :deezer_url, placeholder: 'https://www.deezer.com/playlist/...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+      <div>
+        <%= f.label :soundcloud_url, 'SoundCloud Playlist URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :soundcloud_url, placeholder: 'https://soundcloud.com/...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+      <div>
+        <%= f.label :mixcloud_url, 'Mixcloud Mix URL', class: 'block text-gray-300 mb-1' %>
+        <%= f.text_field :mixcloud_url, placeholder: 'https://www.mixcloud.com/...', class: 'w-full p-2 bg-gray-800 text-white rounded' %>
+      </div>
+    </div>
+    <p class="text-gray-400 text-xs mt-1">Only links you provide will display on the site.</p>
+  </div>
   <div class="grid grid-cols-2 gap-4">
     <div>
       <%= f.label :track_count, class: 'block text-gray-300 mb-1' %>

@@ -8,7 +8,7 @@ class Playlist < ApplicationRecord
   has_many :spotify_opens, dependent: :destroy
 
   validates :title, presence: true
-  validates :spotify_url, presence: true, uniqueness: true, format: { with: URI.regexp(%w[http https]) }
+  validates :spotify_url, uniqueness: true, allow_blank: true, format: { with: URI.regexp(%w[http https]), allow_blank: true }
   validates :track_count, presence: true, numericality: { greater_than: 0 }
 
   scope :featured, -> { where(featured: true) }

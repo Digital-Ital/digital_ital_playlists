@@ -310,8 +310,28 @@
     
     renderPlaylist(playlist) {
       const playlistElement = document.createElement('div');
-      playlistElement.className = 'group cursor-pointer transform transition-all duration-300 hover:scale-105';
-      playlistElement.onclick = () => window.open(playlist.spotify_url, '_blank');
+      playlistElement.className = 'group transform transition-all duration-300 hover:scale-105';
+
+      const platformButtons = [
+        playlist.spotify_url
+          ? `<button class="px-3 py-1 rounded-md bg-green-500 text-black font-semibold hover:bg-green-400" onclick="event.stopPropagation(); openPlatformLink('${playlist.spotify_url.replace(/'/g, "\\'")}')">Spotify</button>`
+          : '',
+        playlist.youtube_url
+          ? `<button class="px-3 py-1 rounded-md bg-red-600 text-white font-semibold hover:bg-red-500" onclick="event.stopPropagation(); openPlatformLink('${playlist.youtube_url.replace(/'/g, "\\'")}')">YouTube</button>`
+          : '',
+        playlist.tidal_url
+          ? `<button class="px-3 py-1 rounded-md bg-slate-200 text-black font-semibold hover:bg-white" onclick="event.stopPropagation(); openPlatformLink('${playlist.tidal_url.replace(/'/g, "\\'")}')">Tidal</button>`
+          : '',
+        playlist.qobuz_url
+          ? `<button class="px-3 py-1 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-500" onclick="event.stopPropagation(); openPlatformLink('${playlist.qobuz_url.replace(/'/g, "\\'")}')">Qobuz</button>`
+          : '',
+        playlist.deezer_url
+          ? `<button class="px-3 py-1 rounded-md bg-purple-600 text-white font-semibold hover:bg-purple-500" onclick="event.stopPropagation(); openPlatformLink('${playlist.deezer_url.replace(/'/g, "\\'")}')">Deezer</button>`
+          : '',
+        playlist.soundcloud_url
+          ? `<button class="px-3 py-1 rounded-md bg-orange-600 text-white font-semibold hover:bg-orange-500" onclick="event.stopPropagation(); openPlatformLink('${playlist.soundcloud_url.replace(/'/g, "\\'")}')">SoundCloud</button>`
+          : ''
+      ].filter(Boolean).join('');
       
       playlistElement.innerHTML = `
         <div class="relative overflow-hidden rounded-2xl bg-gray-900 p-4 hover:shadow-xl transition">
@@ -327,8 +347,16 @@
               <div class="flex flex-wrap items-center gap-3 text-sm text-gray-400 mb-3">
                 <span>${playlist.track_count} tracks</span>
                 ${playlist.duration ? `<span>• ${playlist.duration}</span>` : ''}
-                <button class="px-3 py-1 rounded-md bg-green-500 text-black font-semibold hover:bg-green-400" onclick="event.stopPropagation(); window.open('${playlist.spotify_url}','_blank')">Open on Spotify</button>
+                <a href="/all-songs?playlist_ids=${playlist.id}" class="px-3 py-1 rounded-md bg-yellow-600 text-black font-semibold hover:bg-yellow-500" onclick="event.stopPropagation();">Find Songs</a>
+                ${platformButtons}
               </div>
+              ${playlist.mixcloud_url ? `
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <button class="px-3 py-1.5 rounded-md bg-sky-700 text-white font-semibold hover:bg-sky-600" onclick="event.stopPropagation(); openPlatformLink('${playlist.mixcloud_url.replace(/'/g, "\\'")}')">
+                  Full Mix on Mixcloud
+                </button>
+              </div>
+              ` : ''}
               <div class="flex flex-wrap gap-2 items-start">
                 ${playlist.categories
                   .sort((a, b) => {
@@ -445,6 +473,11 @@
     document.querySelectorAll('.tree-arrow').forEach(arrow => {
       arrow.style.transform = 'rotate(0deg)';
     });
+  }
+
+  function openPlatformLink(url) {
+    if (!url) return;
+    window.open(url, '_blank');
   }
   
   // Initialize when DOM is loaded
