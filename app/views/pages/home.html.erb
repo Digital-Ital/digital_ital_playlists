@@ -696,9 +696,8 @@
     
     renderPlaylist(playlist) {
       const playlistElement = document.createElement('div');
-      playlistElement.className = 'group cursor-pointer transform transition-all duration-300 hover:-translate-y-1';
+      playlistElement.className = 'group transform transition-all duration-300 hover:-translate-y-1';
       playlistElement.setAttribute('data-playlist-id', playlist.id);
-      playlistElement.onclick = () => window.open(playlist.spotify_url, '_blank');
       
       playlistElement.innerHTML = `
         <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-gray-800 p-6 border border-gray-700/50 hover:border-yellow-500/50 shadow-lg hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300">
@@ -731,12 +730,12 @@
                   🎵 ${playlist.track_count} tracks
                 </span>
                 ${playlist.duration ? `<span class=\"text-gray-400\">• ${playlist.duration}</span>` : ''}
-                <button class="px-4 py-1.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200" onclick="event.stopPropagation(); trackSpotifyOpen(${playlist.id}, 'regular', '${playlist.spotify_url}')">
-                  ▶️ Open on Spotify
-                </button>
                 <a href="/all-songs?playlist_ids=${playlist.id}" class="px-4 py-1.5 rounded-full bg-yellow-600 text-black font-semibold hover:bg-yellow-500 shadow-md hover:shadow-lg hover:shadow-yellow-500/30 transition-all duration-200" onclick="event.stopPropagation();">
                   🎶 View songs
                 </a>
+                <button class="px-4 py-1.5 rounded-full bg-green-600 text-white font-semibold hover:bg-green-500 shadow-md hover:shadow-lg hover:shadow-green-500/30 transition-all duration-200" onclick="event.stopPropagation(); trackSpotifyOpen(${playlist.id}, 'regular', '${playlist.spotify_url}')">
+                  ▶️ Open on Spotify
+                </button>
               </div>
               
               <!-- Social Media Share Buttons -->
