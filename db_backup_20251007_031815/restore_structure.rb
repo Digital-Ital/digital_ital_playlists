@@ -52,12 +52,21 @@ ActiveRecord::Base.transaction do
   end
 
   playlists_data = JSON.parse(File.read("db_backup_20251007_031815/playlists.json"))
+  used_spotify_urls = {}
 
   playlists_data.each do |playlist_data|
+    spotify_url = playlist_data["spotify_url"].presence
+
+    if spotify_url && used_spotify_urls[spotify_url]
+      puts "⚠️ Duplicate Spotify URL for #{playlist_data["title"]}; importing without a Spotify link."
+      spotify_url = nil
+    end
+    used_spotify_urls[spotify_url] = true if spotify_url
+
     playlist = Playlist.create!(
       title: playlist_data["title"],
       description: playlist_data["description"],
-      spotify_url: playlist_data["spotify_url"],
+      spotify_url: spotify_url,
       cover_image_url: playlist_data["cover_image_url"],
       track_count: playlist_data["track_count"],
       duration: playlist_data["duration"],
