@@ -59,9 +59,11 @@ module Spotify
 
       spotify_data = JSON.parse(res.body)
 
-      # Check track count
+      # A recovered playlist has Spotify metadata but no local track records.
+      # Do not skip it: the first full sync must build those records.
       current_track_count = @playlist.track_count || 0
       spotify_track_count = spotify_data.dig("tracks", "total") || 0
+      tracks_missing = @playlist.playlist_tracks.none?
 
       # Check metadata changes
       current_title = @playlist.title
@@ -71,8 +73,9 @@ module Spotify
       current_cover = @playlist.cover_image_url
       spotify_cover = (spotify_data["images"] || []).first&.dig("url")
 
-      # Skip only if EVERYTHING is identical
-      if current_track_count == spotify_track_count &&
+      # Skip only when metadata is unchanged and tracks have already been imported.
+      if !tracks_missing &&
+         current_track_count == spotify_track_count &&
          current_title == spotify_title &&
          current_description == spotify_description &&
          current_cover == spotify_cover

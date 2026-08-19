@@ -15,12 +15,12 @@
     <p class="text-gray-400 text-xs mt-1">Auto-filled thumbnail; replace with a custom image if you prefer.</p>
   </div>
   <div>
-    <%= f.label :spotify_url, 'Spotify Playlist URL', class: 'block text-gray-300 mb-1' %>
+    <%= f.label :spotify_url, 'Spotify Playlist URL or ID', class: 'block text-gray-300 mb-1' %>
     <div class="flex gap-2">
-      <%= f.url_field :spotify_url, id: 'playlist_spotify_url', placeholder: 'https://open.spotify.com/playlist/...', class: 'flex-1 p-2 bg-gray-800 text-white rounded' %>
+      <%= f.text_field :spotify_url, id: 'playlist_spotify_url', placeholder: 'https://open.spotify.com/playlist/... or a 22-character Spotify ID', class: 'flex-1 p-2 bg-gray-800 text-white rounded' %>
       <button type="button" onclick="return autofillFromSpotify()" class="px-3 py-2 bg-green-500 text-black rounded">Import from Spotify</button>
     </div>
-    <p class="text-gray-400 text-xs mt-1">We’ll fetch title, image, track count, and duration. You can still edit everything.</p>
+    <p class="text-gray-400 text-xs mt-1">Paste a full Spotify URL or its 22-character playlist ID. Import converts an ID to the canonical URL.</p>
   </div>
   <div>
     <p class="text-gray-300 mb-2 font-semibold">Platform Links (optional)</p>
