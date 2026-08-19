@@ -37,9 +37,17 @@ module Spotify
 
     private
 
-    def extract_playlist_id(url)
-      match = url.to_s.match(/playlist\/(\w+)/)
+    def extract_playlist_id(reference)
+      value = reference.to_s.strip
+      return value if value.match?(/\A[A-Za-z0-9]{22}\z/)
+
+      match = value.match(%r{(?:open\.spotify\.com/|spotify:)?playlist[/:]([A-Za-z0-9]{22})}i)
       match && match[1]
+    end
+
+    def canonical_spotify_url(reference)
+      playlist_id = extract_playlist_id(reference)
+      playlist_id ? "https://open.spotify.com/playlist/#{playlist_id}" : reference.to_s.strip
     end
 
     def fetch_access_token
