@@ -6,8 +6,9 @@ module Spotify
   class PlaylistImporter
     TOKEN_URL = URI("https://accounts.spotify.com/api/token")
 
-    def initialize(spotify_url)
-      @spotify_url = spotify_url
+    def initialize(spotify_reference)
+      @spotify_reference = spotify_reference
+      @spotify_url = canonical_spotify_url(spotify_reference)
       @client_id = ENV["SPOTIFY_CLIENT_ID"]
       @client_secret = ENV["SPOTIFY_CLIENT_SECRET"]
     end
@@ -15,7 +16,7 @@ module Spotify
     def call
       raise ArgumentError, "SPOTIFY_CLIENT_ID/SECRET not configured" if @client_id.to_s.empty? || @client_secret.to_s.empty?
 
-      playlist_id = extract_playlist_id(@spotify_url)
+      playlist_id = extract_playlist_id(@spotify_reference)
       raise ArgumentError, "Invalid Spotify playlist URL" unless playlist_id
 
       token = fetch_access_token

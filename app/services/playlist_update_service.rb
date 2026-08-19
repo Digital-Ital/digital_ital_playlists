@@ -17,7 +17,10 @@ class PlaylistUpdateService
       sync_tracks(spotify_data[:tracks])
 
       # Update last_updated_at timestamp
-      @playlist.update!(last_updated_at: Time.current)
+      @playlist.update!(
+        last_updated_at: Time.current,
+        duration: format_duration(spotify_data[:tracks])
+      )
     end
 
     {
@@ -65,7 +68,10 @@ class PlaylistUpdateService
       sync_tracks(spotify_data[:tracks])
 
       # Update last_updated_at timestamp
-      @playlist.update!(last_updated_at: Time.current)
+      @playlist.update!(
+        last_updated_at: Time.current,
+        duration: format_duration(spotify_data[:tracks])
+      )
     end
 
     {
@@ -193,6 +199,13 @@ class PlaylistUpdateService
       @playlist.playlist_tracks.where(track_id: track_id).destroy_all
       log_track_removed(track)
     end
+  end
+
+  def format_duration(spotify_tracks)
+    total_minutes = spotify_tracks.sum { |track| track[:duration_ms].to_i } / 60_000
+    hours = total_minutes / 60
+    minutes = total_minutes % 60
+    hours.positive? ? "#{hours}h #{minutes}m" : "#{minutes}m"
   end
 
   def log_metadata_change(field_name, old_value, new_value)
