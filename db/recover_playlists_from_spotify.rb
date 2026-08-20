@@ -2,15 +2,20 @@
 
 # Recovery draft for Digital Ital Crates.
 #
-# This restores the 103 Spotify playlists listed by the zelou2 account without
-# deleting any database records. Spotify is the source for metadata; category
-# memberships below are only ones confirmed by the public crawl. The six
-# historical Rap playlists and Cannabis Vol.9 are absent from the current
-# Spotify inventory, so their seven historical memberships are not guessed.
+# This restores 110 confirmed Spotify playlists without deleting any database
+# records. Spotify is the source for metadata; category memberships below are
+# limited to ones confirmed by the public crawl or exact live-playlist recovery.
+# The initial 103 IDs came from the zelou2 profile. A Spotify account search then
+# recovered the six historical Rap Period playlists and Cannabis Vol.9 that were
+# absent from that profile listing. The missing Political Rap playlist was
+# already among the 103 IDs; it needed its confirmed Political Crates link.
 #
 # Run from the Rails app:
 #   ONLY=7hlunDhw82b535yN0G3qBv bin/rails runner db/recover_playlists_from_spotify.rb
 #   APPLY=true bin/rails runner db/recover_playlists_from_spotify.rb
+#
+# Restore only the eight later-confirmed playlists/category links:
+#   ONLY=3uFZgQMHNKOPrJ5CaqfUxj,5Wk94ntSegv7p9kfV6izOC,0tTWnuY0e3kCxdHkb7a3Np,49cVTDQoyb7wmAowLZEEBL,13DnHAQsl2Vc9TTdV3GmqR,6iWIiK7uKh3vJ78GdMgXK1,5DOE2RYR6OdjjRRZjUMfmi,7c2X4bajCe2r81ITmfgOsu APPLY=true bin/rails runner db/recover_playlists_from_spotify.rb
 #
 # By default this is a read-only dry run. It still calls Spotify so that it can
 # validate the live metadata. APPLY=true is required for any database change.
@@ -60,10 +65,12 @@ PLAYLIST_IDS = %w[
   6pfLl65uPrGCz1etAGNzFK 7BtcIaj1AeL8QjHNzV4AC7 3j7JCUSTwhglfjU0i3mTEU
   46YcGaKfClY3llAbYCWmvJ 1gGnOiBpxdgetiiV1x82VI 04kPKjefQG2ZqO5ar2f6JD
   5A0DxHZVowRh3h4eVWWncL 7Giwctx8AlL0Uee037BI41 7GVn20eILPAFrVbqMZi8hL
-  74o71a1RFeNJqU9Hq4L2uy
+  74o71a1RFeNJqU9Hq4L2uy 3uFZgQMHNKOPrJ5CaqfUxj 5Wk94ntSegv7p9kfV6izOC
+  0tTWnuY0e3kCxdHkb7a3Np 49cVTDQoyb7wmAowLZEEBL 13DnHAQsl2Vc9TTdV3GmqR
+  6iWIiK7uKh3vJ78GdMgXK1 7c2X4bajCe2r81ITmfgOsu
 ].freeze
 
-raise "Expected 103 unique Spotify playlist IDs" unless PLAYLIST_IDS.uniq.length == 103
+raise "Expected 110 unique Spotify playlist IDs" unless PLAYLIST_IDS.uniq.length == 110
 
 CATEGORY_MEMBERSHIPS = Hash.new { |hash, key| hash[key] = [] }
 add_category = lambda do |category_name, playlist_ids|
@@ -102,13 +109,15 @@ add_category.call "Dub & Instrumental Reggae Branch", %w[
 add_category.call "Political Crates", %w[
   0zmEpyxm9wsBNnFePfKcis 1nq0EBgWDRek9dq36odivW 3aAgERIXC01lfOt4mPa9hc
   2i3ZifWKNbdfkh6MQXHOA4 7HjnuPJGk0CsGyp1GFxMxW 6pfLl65uPrGCz1etAGNzFK
-  3M2Z7DprROYIPJRqdui7GD
+  3M2Z7DprROYIPJRqdui7GD 5DOE2RYR6OdjjRRZjUMfmi
 ]
 
-# Six other historical Rap Period cards are no longer in the Spotify inventory.
+# Six historical Rap Period cards were recovered by exact live Spotify search.
 add_category.call "Rap Period Crates", %w[
   7hlunDhw82b535yN0G3qBv 1yN5oW0TVl56TS1w3WFOkz 0jv47FLQuUw0XWgv39GlQq
-  4vEfGk3mSmFPSnzEX3PI1q
+  4vEfGk3mSmFPSnzEX3PI1q 3uFZgQMHNKOPrJ5CaqfUxj 5Wk94ntSegv7p9kfV6izOC
+  0tTWnuY0e3kCxdHkb7a3Np 49cVTDQoyb7wmAowLZEEBL 13DnHAQsl2Vc9TTdV3GmqR
+  6iWIiK7uKh3vJ78GdMgXK1
 ]
 
 add_category.call "Lyrical Rap Branch", %w[
@@ -119,11 +128,11 @@ add_category.call "Lyrical Rap Branch", %w[
   3M2Z7DprROYIPJRqdui7GD
 ]
 
-# Cannabis Vol.9 was in the crawl but is not in the current Spotify inventory.
+# Cannabis Vol.9 was recovered by exact live Spotify search.
 add_category.call "Cannabis Crates", %w[
   25CAvbkCKLJmTshliV5XN6 2Q06sElqOYP61OXHhVgTmp 1SYu2anKUu77Lk7sTAf5Ez
-  0loFpQIgoBoyWdlNAKbBbJ 2yizDFqp3w4ZdXHwgrM4MY 2Gx9b6lsvcoazikljIT8az
-  1lIya9jvQknFnHTpLwMDPr 2HH9NphuSnbwpKZJWCN06v
+  0loFpQIgoBoyWdlNAKbBbJ 2yizDFqp3w4ZdXHwgrM4MY 1lIya9jvQknFnHTpLwMDPr
+  2HH9NphuSnbwpKZJWCN06v 7c2X4bajCe2r81ITmfgOsu
 ]
 
 add_category.call "Hip-Hop Beats / Instrumentals", %w[6r5kAVbYF9zHPxASnJ0foM]
