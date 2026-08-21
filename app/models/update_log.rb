@@ -18,7 +18,11 @@ class UpdateLog < ApplicationRecord
     when "track_removed"
       "Removed: #{track&.display_name || change_summary}"
     when "playlist_metadata"
-      "#{field_name&.humanize}: #{old_value} → #{new_value}"
+      if field_name == "followers_count"
+        "Spotify saves: #{old_value} → #{new_value}"
+      else
+        "#{field_name&.humanize}: #{old_value} → #{new_value}"
+      end
     else
       change_summary
     end

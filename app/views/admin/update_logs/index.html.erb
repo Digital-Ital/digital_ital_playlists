@@ -1,6 +1,6 @@
 <div class="container mx-auto px-6 py-10 bg-black/50 rounded-xl backdrop-blur-sm">
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-white">Update History</h1>
+    <h1 class="text-2xl font-semibold text-white"><%= params[:field] == "followers_count" ? "Spotify Saves History" : "Update History" %></h1>
     <div class="space-x-2">
       <%= link_to 'Admin Dashboard', admin_root_path, class: 'px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors' %>
       <%= link_to 'Back to Playlists', admin_playlists_path, class: 'px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors' %>
@@ -10,7 +10,9 @@
   <!-- Filter Buttons -->
   <div class="flex gap-2 mb-6">
     <%= link_to 'All Changes', admin_update_logs_path, 
-                class: "px-4 py-2 rounded-lg #{params[:type].nil? ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
+                class: "px-4 py-2 rounded-lg #{params[:type].nil? && params[:field].nil? ? 'bg-yellow-500 text-black' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
+    <%= link_to '❤️ Spotify Saves', admin_update_logs_path(field: 'followers_count'),
+                class: "px-4 py-2 rounded-lg #{params[:field] == 'followers_count' ? 'bg-rose-500 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
     <%= link_to 'Tracks Added', admin_update_logs_path(type: 'track_added'), 
                 class: "px-4 py-2 rounded-lg #{params[:type] == 'track_added' ? 'bg-green-500 text-black' : 'bg-gray-700 text-white hover:bg-gray-600'} transition-colors" %>
     <%= link_to 'Tracks Removed', admin_update_logs_path(type: 'track_removed'), 
