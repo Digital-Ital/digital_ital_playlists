@@ -14,5 +14,10 @@ class Admin::UpdateLogsController < Admin::BaseController
     if params[:playlist_id].present?
       @update_logs = @update_logs.by_playlist(params[:playlist_id])
     end
+
+    # Dedicated view for Spotify follower/save changes.
+    if params[:field] == "followers_count"
+      @update_logs = @update_logs.where(field_name: "followers_count")
+    end
   end
 end
