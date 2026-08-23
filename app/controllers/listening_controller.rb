@@ -103,7 +103,7 @@ class ListeningController < ApplicationController
 
     enrichment.last_refreshed_at.blank? ||
       enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago ||
-      (discogs_missing && enrichment.last_attempted_at < DISCOGS_REFRESH_AFTER.ago)
+      (discogs_missing && (enrichment.last_attempted_at.blank? || enrichment.last_attempted_at < DISCOGS_REFRESH_AFTER.ago))
   end
 
   def selected_lookup
