@@ -6,34 +6,38 @@ Rails.application.routes.draw do
   get "whats-new", to: "pages#whats_new", as: :whats_new
   get "all-songs", to: "pages#all_songs", as: :all_songs
   get "listening", to: "listening#show", as: :listening
+  get "listening/dossier", to: "listening#dossier", as: :listening_dossier
   get "listening/footprint", to: "listening#footprint", as: :listening_footprint
 
-      namespace :admin do
-        root to: "dashboard#index"
-        get "listening", to: "listening#show", as: :listening
-        get "listening/connect", to: "listening#authorize", as: :listening_authorize
-        get "listening/spotify/callback", to: "listening#callback", as: :listening_spotify_callback
-        resources :categories
-        resources :playlists do
-          collection do
-            post :import_spotify
-            post :start_batch_update
-            get :batch_update_progress
-          end
-          member do
-            post :sync_with_spotify
-          end
-        end
-        resources :update_logs, only: [ :index ]
-        resources :share_events, only: [ :index ]
-        resources :spotify_opens, only: [ :index ]
-        resources :batch_updates, only: [ :index, :show ]
-        get "analytics", to: "analytics#index"
-        get "scheduler", to: "scheduler#index"
-        post "scheduler/pause", to: "scheduler#pause"
-        post "scheduler/unpause", to: "scheduler#unpause"
-        post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
+  namespace :admin do
+    root to: "dashboard#index"
+    get "listening", to: "listening#show", as: :listening
+    get "listening/connect", to: "listening#authorize", as: :listening_authorize
+    get "listening/spotify/callback", to: "listening#callback", as: :listening_spotify_callback
+    resources :track_enrichments, only: [ :show, :update ] do
+      post :refresh, on: :member
+    end
+    resources :categories
+    resources :playlists do
+      collection do
+        post :import_spotify
+        post :start_batch_update
+        get :batch_update_progress
       end
+      member do
+        post :sync_with_spotify
+      end
+    end
+    resources :update_logs, only: [ :index ]
+    resources :share_events, only: [ :index ]
+    resources :spotify_opens, only: [ :index ]
+    resources :batch_updates, only: [ :index, :show ]
+    get "analytics", to: "analytics#index"
+    get "scheduler", to: "scheduler#index"
+    post "scheduler/pause", to: "scheduler#pause"
+    post "scheduler/unpause", to: "scheduler#unpause"
+    post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
+  end
 
   # API endpoints for infinite scroll
   get "api/playlists", to: "api/playlists#index"
@@ -54,5 +58,5 @@ Rails.application.routes.draw do
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
+  # get "service-worker" => "rails/pwa#service_worker"
 end
