@@ -1,4 +1,6 @@
 class ListeningController < ApplicationController
+  before_action :authenticate_owner!, only: :refresh_dossier
+
   def show
     @query = params[:q].to_s.strip
     @search_results = Spotify::CrateLookup.search(@query) if @query.present?
@@ -50,7 +52,28 @@ class ListeningController < ApplicationController
     render partial: "dossier_content", locals: { track: track, enrichment: enrichment }
   end
 
+  def refresh_dossier
+    track = Track.find(params[:track_id])
+    enrichment = MusicMetadata::TrackDossierRefreshService.new(track).call
+
+    render partial: "curator_summary", locals: {
+      track: track,
+      enrichment: enrichment,
+      claims: enrichment.active_claims.to_a
+    }
+  end
+
   private
+
+  def authenticate_owner!
+    admin_user = ENV.fetch("ADMIN_USER", "admin")
+    admin_password = ENV.fetch("ADMIN_PASSWORD", "digitalital!")
+
+    authenticate_or_request_with_http_basic("Owner source refresh") do |username, password|
+      ActiveSupport::SecurityUtils.secure_compare(username, admin_user) &&
+        ActiveSupport::SecurityUtils.secure_compare(password, admin_password)
+    end
+  end
 
   def cached_current_track
     Rails.cache.fetch("listening-desk/current-track", expires_in: 20.seconds) do
