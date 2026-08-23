@@ -1,0 +1,114 @@
+<% content_for :title, "Spotify Listening Connection | Digital Ital Crates" %>
+<% credentials_ready = @setup[:client_id_present] && @setup[:client_secret_present] && @setup[:redirect_uri].present? %>
+<% ready_to_connect = credentials_ready && @callback_host_matches %>
+
+<div class="container mx-auto max-w-4xl px-4 py-10 sm:px-6">
+  <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">Protected owner setup</p>
+      <h1 class="mt-2 text-4xl font-bold text-white">Spotify Listening Connection</h1>
+      <p class="mt-2 max-w-2xl text-gray-300">This page tells you exactly what the Listening Desk needs before it can show live playback.</p>
+    </div>
+    <%= link_to "← Back to admin", admin_root_path, class: "inline-flex rounded-lg bg-gray-800 px-4 py-2 font-semibold text-white transition hover:bg-gray-700" %>
+  </div>
+
+  <% if @connection_error.present? %>
+    <div class="mb-6 rounded-xl border border-red-500/50 bg-red-950/50 p-5 text-red-100">
+      <p class="font-bold">Connection did not finish</p>
+      <p class="mt-1 text-sm"><%= @connection_error %></p>
+    </div>
+  <% end %>
+
+  <div class="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/70 via-gray-900 to-gray-950 p-6 shadow-xl">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <% if @spotify.connected? %>
+          <p class="text-sm font-bold uppercase tracking-wider text-green-400">● Connection configured</p>
+          <h2 class="mt-1 text-2xl font-bold text-white">The refresh token is stored on this server.</h2>
+          <p class="mt-2 text-gray-300">Open the Listening Desk to confirm live playback and recent listening.</p>
+        <% elsif ready_to_connect %>
+          <p class="text-sm font-bold uppercase tracking-wider text-yellow-300">● Ready to authorize</p>
+          <h2 class="mt-1 text-2xl font-bold text-white">One secure Spotify approval remains.</h2>
+          <p class="mt-2 text-gray-300">Spotify will return here with a one-time refresh token for you to save in Heroku.</p>
+        <% else %>
+          <p class="text-sm font-bold uppercase tracking-wider text-red-300">● Setup needs attention</p>
+          <h2 class="mt-1 text-2xl font-bold text-white">Complete the checks below before connecting.</h2>
+          <p class="mt-2 text-gray-300">Nothing is broken in your playlists or database; this is only the private Spotify authorization setup.</p>
+        <% end %>
+      </div>
+
+      <% if @spotify.connected? %>
+        <div class="flex flex-wrap gap-3">
+          <%= link_to "Open Listening Desk →", listening_path, class: "rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
+          <%= link_to "Reconnect", admin_listening_authorize_path, class: "rounded-lg bg-gray-700 px-5 py-3 font-semibold text-white transition hover:bg-gray-600" %>
+        </div>
+      <% elsif ready_to_connect %>
+        <%= link_to "Connect Spotify →", admin_listening_authorize_path, class: "inline-flex rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+    <section class="rounded-xl border <%= @setup[:client_id_present] && @setup[:client_secret_present] ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
+      <p class="text-sm font-bold text-white">1. Spotify app credentials</p>
+      <% if @setup[:client_id_present] && @setup[:client_secret_present] %>
+        <p class="mt-3 text-sm font-semibold text-green-300">✓ Client ID and secret are set</p>
+      <% else %>
+        <p class="mt-3 text-sm font-semibold text-red-300">✕ Missing configuration</p>
+        <p class="mt-1 text-xs text-gray-300">Add <code>SPOTIFY_CLIENT_ID</code> and <code>SPOTIFY_CLIENT_SECRET</code> in Heroku Config Vars.</p>
+      <% end %>
+    </section>
+
+    <section class="rounded-xl border <%= @setup[:redirect_uri].present? ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
+      <p class="text-sm font-bold text-white">2. Callback URL</p>
+      <% if @setup[:redirect_uri].present? %>
+        <p class="mt-3 text-sm font-semibold text-green-300">✓ Redirect URI is set</p>
+        <p class="mt-1 break-all rounded bg-black/35 p-2 font-mono text-xs text-gray-300"><%= @setup[:redirect_uri] %></p>
+      <% else %>
+        <p class="mt-3 text-sm font-semibold text-red-300">✕ Redirect URI is missing</p>
+        <p class="mt-1 text-xs text-gray-300">Set <code>SPOTIFY_LISTENING_REDIRECT_URI</code> in Heroku.</p>
+      <% end %>
+    </section>
+
+    <section class="rounded-xl border <%= @setup[:refresh_token_present] ? "border-green-500/35 bg-green-950/20" : "border-yellow-500/35 bg-yellow-950/20" %> p-5">
+      <p class="text-sm font-bold text-white">3. Refresh token</p>
+      <% if @setup[:refresh_token_present] %>
+        <p class="mt-3 text-sm font-semibold text-green-300">✓ Token is stored</p>
+        <p class="mt-1 text-xs text-gray-300">The value stays private in Heroku and is never displayed here.</p>
+      <% else %>
+        <p class="mt-3 text-sm font-semibold text-yellow-300">• Awaiting authorization</p>
+        <p class="mt-1 text-xs text-gray-300">Spotify will provide it after you approve the connection.</p>
+      <% end %>
+    </section>
+  </div>
+
+  <section class="mt-6 rounded-xl border <%= @callback_host_matches ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
+    <h2 class="text-lg font-bold text-white">Browser and callback host check</h2>
+    <div class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">You are connecting from</p>
+        <p class="mt-1 break-all font-mono text-gray-100"><%= @request_host %></p>
+      </div>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Spotify will return to</p>
+        <p class="mt-1 break-all font-mono text-gray-100"><%= @configured_callback_host || "No valid callback host configured" %></p>
+      </div>
+    </div>
+    <% if @callback_host_matches %>
+      <p class="mt-4 text-sm font-semibold text-green-300">✓ These hosts match. It is safe to use the Connect Spotify button above.</p>
+    <% else %>
+      <p class="mt-4 text-sm font-semibold text-red-300">✕ These hosts must match. Use one hostname consistently—either <code>italcrates.com</code> everywhere or the Heroku hostname everywhere.</p>
+    <% end %>
+  </section>
+
+  <section class="mt-6 rounded-xl border border-gray-700 bg-gray-900/80 p-6">
+    <h2 class="text-xl font-bold text-white">What happens when you connect</h2>
+    <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm text-gray-300">
+      <li>The button opens Spotify’s approval page.</li>
+      <li>Spotify returns to this site and shows a clear success screen with a one-time token.</li>
+      <li>You save that token in Heroku as <code class="rounded bg-black/40 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code>.</li>
+      <li>The public Listening Desk begins reading current playback and the latest ten listens.</li>
+    </ol>
+    <p class="mt-4 text-xs text-gray-400">This status screen does not call Spotify’s playback API. The public page uses shared 20- and 60-second caches, while crate search and curation statistics stay in your database.</p>
+  </section>
+</div>
