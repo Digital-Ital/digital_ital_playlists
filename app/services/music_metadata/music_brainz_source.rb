@@ -107,7 +107,7 @@ module MusicMetadata
         claim(
           "release_country",
           release[:country],
-          "Country of MusicBrainz earliest known release",
+          "Country of the MusicBrainz release matching the earliest-known date",
           recording_id,
           source_url,
           match_confidence,
@@ -116,7 +116,7 @@ module MusicMetadata
         claim(
           "release_title",
           release[:title],
-          "MusicBrainz earliest known release",
+          "MusicBrainz release matching the earliest-known date",
           recording_id,
           source_url,
           match_confidence,
@@ -146,11 +146,13 @@ module MusicMetadata
     def first_known_release(recording, candidate)
       releases = Array(recording["releases"]).select { |release| release["date"].present? }
       earliest = releases.min_by { |release| release["date"] }
+      date = candidate["first-release-date"].presence || earliest&.dig("date")
+      release = releases.find { |item| item["date"] == date }
 
       {
-        date: candidate["first-release-date"].presence || earliest&.dig("date"),
-        country: earliest&.dig("country"),
-        title: earliest&.dig("title")
+        date: date,
+        country: release&.dig("country"),
+        title: release&.dig("title")
       }
     end
 
