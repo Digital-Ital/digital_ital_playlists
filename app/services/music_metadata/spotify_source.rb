@@ -52,22 +52,38 @@ module MusicMetadata
       album = payload["album"] || {}
 
       [
-        claim("isrc", payload.dig("external_ids", "isrc"), "Spotify recording identifier", source_identifier, source_url),
+        claim(
+          "isrc",
+          payload.dig("external_ids", "isrc"),
+          "Spotify recording identifier",
+          source_identifier,
+          source_url,
+          scope: "recording"
+        ),
         claim(
           "release_date",
           album["release_date"],
           "Spotify album release (may be a reissue)",
           source_identifier,
           source_url,
+          scope: "spotify_album_release",
           release_date_precision: album["release_date_precision"]
         ),
-        claim("release_title", album["name"], "Spotify album", source_identifier, source_url),
+        claim(
+          "release_title",
+          album["name"],
+          "Spotify album",
+          source_identifier,
+          source_url,
+          scope: "spotify_album_release"
+        ),
         claim(
           "release_position",
           [ payload["disc_number"], payload["track_number"] ].compact.join("-").presence,
           "Disc-track position on this Spotify album",
           source_identifier,
-          source_url
+          source_url,
+          scope: "spotify_album_release"
         )
       ].compact
     end
