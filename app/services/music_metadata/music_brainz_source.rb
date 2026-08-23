@@ -13,14 +13,14 @@ module MusicMetadata
     CREDIT_FIELDS = {
       "producer" => "producer",
       "engineer" => "engineer",
-      "mixer" => "engineer",
+      "mixer" => "mixer",
       "performer" => "performer"
     }.freeze
     WRITING_FIELDS = {
       "writer" => "writer",
       "composer" => "composer",
       "lyricist" => "lyricist",
-      "arranger" => "composer"
+      "arranger" => "arranger"
     }.freeze
     FACT_TYPES = %w[cover samples material remix remixer].freeze
 
