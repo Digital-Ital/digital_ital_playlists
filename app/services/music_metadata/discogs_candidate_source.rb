@@ -186,12 +186,9 @@ module MusicMetadata
     end
 
     def no_candidate
-      SourceResult.new(
-        source: "discogs_candidate",
-        claims: [],
-        metadata: {},
-        error: "Discogs: no year-bearing master or release candidate was returned for this artist and track."
-      )
+      # An automatic Discogs search has no guaranteed match for every song.
+      # Treat a clean absence as no data, not an application failure.
+      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil)
     end
 
     def skipped
