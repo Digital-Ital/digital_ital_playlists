@@ -24,10 +24,12 @@ class Admin::TrackEnrichmentsController < Admin::BaseController
   def refresh
     @enrichment = MusicMetadata::TrackDossierRefreshService.new(@track).call
 
-    message = if @enrichment.ready?
-      "Source evidence refreshed. Read each source scope before treating two dates or credits as the same fact."
+    message = if @enrichment.status == "refreshing"
+      "A source refresh is already in progress for this track."
     elsif @enrichment.last_error.present?
       "Refresh completed with a problem: #{@enrichment.last_error}"
+    elsif @enrichment.ready?
+      "Source evidence refreshed. Read each source scope before treating two dates or credits as the same fact."
     else
       "No high-confidence source evidence was found yet."
     end
