@@ -75,7 +75,7 @@ class TrackEnrichment < ApplicationRecord
     arranger
     relationship_fact
   ].freeze
-  SUMMARY_SOURCE_ORDER = %w[spotify musicbrainz discogs].freeze
+  SUMMARY_SOURCE_ORDER = %w[spotify musicbrainz discogs discogs_candidate].freeze
   SUMMARY_CLASSIFICATIONS_PER_SOURCE_LIMIT = 8
   SUMMARY_SIGNALS_PER_SOURCE_LIMIT = 6
   SUMMARY_SIGNAL_LIMIT = 12
