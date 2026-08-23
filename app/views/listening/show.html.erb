@@ -1,0 +1,249 @@
+<% content_for :title, "Listening Desk | Digital Ital Crates" %>
+
+<div class="container mx-auto max-w-7xl px-4 py-8 sm:px-6">
+  <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-green-400">Digital Ital Listening Desk</p>
+      <h1 class="text-4xl font-bold text-white">What’s playing, and where does it live?</h1>
+      <p class="mt-2 max-w-3xl text-gray-300">Live listening, recent selections, and the complete crate footprint for every song.</p>
+    </div>
+    <%= link_to "← Back to crates", root_path, class: "inline-flex items-center rounded-lg bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700" %>
+  </div>
+
+  <% if @listening_error.present? %>
+    <div class="mb-6 rounded-xl border border-red-500/50 bg-red-950/40 p-4 text-red-200">
+      Live Spotify data is temporarily unavailable: <%= @listening_error %>
+    </div>
+  <% end %>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
+    <section class="lg:col-span-3">
+      <div class="overflow-hidden rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-950/70 via-gray-900 to-gray-950 shadow-xl">
+        <div class="border-b border-green-500/20 px-6 py-4">
+          <p class="text-sm font-semibold text-green-400">● LIVE NOW PLAYING</p>
+        </div>
+
+        <% if @current_track.present? %>
+          <%= link_to listening_path(
+                spotify_id: @current_track[:spotify_id],
+                name: @current_track[:name],
+                artist: @current_track[:artist],
+                album: @current_track[:album],
+                image_url: @current_track[:image_url],
+                external_url: @current_track[:external_url],
+                duration_ms: @current_track[:duration_ms]
+              ), class: "block p-6 transition hover:bg-white/5" do %>
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-center">
+              <% if @current_track[:image_url].present? %>
+                <img src="<%= @current_track[:image_url] %>" alt="" class="h-40 w-40 rounded-xl object-cover shadow-2xl">
+              <% else %>
+                <div class="flex h-40 w-40 items-center justify-center rounded-xl bg-gray-800 text-5xl">🎵</div>
+              <% end %>
+              <div class="min-w-0">
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-green-300">Listening right now</p>
+                <h2 class="text-3xl font-bold text-white"><%= @current_track[:name] %></h2>
+                <p class="mt-2 text-xl text-gray-200"><%= @current_track[:artist] %></p>
+                <% if @current_track[:album].present? %>
+                  <p class="mt-1 text-sm text-gray-400"><%= @current_track[:album] %></p>
+                <% end %>
+                <p class="mt-5 text-sm font-semibold text-green-300">Open crate intelligence →</p>
+              </div>
+            </div>
+          <% end %>
+        <% elsif @connected %>
+          <div class="p-10 text-center">
+            <div class="mb-3 text-5xl">🎧</div>
+            <h2 class="text-2xl font-bold text-white">Nothing is playing right now</h2>
+            <p class="mt-2 text-gray-400">Start a song in Spotify and this card will refresh automatically.</p>
+          </div>
+        <% else %>
+          <div class="p-10 text-center">
+            <div class="mb-3 text-5xl">📡</div>
+            <h2 class="text-2xl font-bold text-white">Live listening is being connected</h2>
+            <p class="mt-2 text-gray-400">The public crate search below is ready; live playback appears once the site owner links Spotify.</p>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-gray-700 bg-gray-900/80 p-5 lg:col-span-2">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-bold text-white">Recent listens</h2>
+        <span class="text-xs text-gray-400">Last 10</span>
+      </div>
+
+      <% if @recent_tracks.any? %>
+        <div class="space-y-2">
+          <% @recent_tracks.each do |track| %>
+            <%= link_to listening_path(
+                  spotify_id: track[:spotify_id],
+                  name: track[:name],
+                  artist: track[:artist],
+                  album: track[:album],
+                  image_url: track[:image_url],
+                  external_url: track[:external_url],
+                  duration_ms: track[:duration_ms]
+                ), class: "flex items-center gap-3 rounded-lg p-2 transition hover:bg-gray-800" do %>
+              <% if track[:image_url].present? %>
+                <img src="<%= track[:image_url] %>" alt="" class="h-11 w-11 rounded object-cover">
+              <% else %>
+                <div class="flex h-11 w-11 items-center justify-center rounded bg-gray-800">🎵</div>
+              <% end %>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-white"><%= track[:name] %></p>
+                <p class="truncate text-xs text-gray-400"><%= track[:artist] %></p>
+              </div>
+              <% if track[:played_at].present? %>
+                <span class="whitespace-nowrap text-xs text-gray-500"><%= time_ago_in_words(Time.zone.parse(track[:played_at])) %> ago</span>
+              <% end %>
+            <% end %>
+          <% end %>
+        </div>
+      <% elsif @connected %>
+        <p class="py-8 text-center text-sm text-gray-400">Spotify has no recent song history to show yet.</p>
+      <% else %>
+        <p class="py-8 text-center text-sm text-gray-400">Recent listening will appear here after Spotify is linked.</p>
+      <% end %>
+    </section>
+  </div>
+
+  <section class="mt-8 rounded-2xl border border-yellow-500/25 bg-black/40 p-6">
+    <div class="mb-5">
+      <h2 class="text-2xl font-bold text-white">Search your crates</h2>
+      <p class="mt-1 text-sm text-gray-400">Search artist, song title, or album. Results stay inside your curated catalog.</p>
+    </div>
+
+    <%= form_with url: listening_path, method: :get, local: true, class: "flex flex-col gap-3 sm:flex-row" do |form| %>
+      <%= form.search_field :q, value: @query, placeholder: "Artist + song title…", class: "min-w-0 flex-1 rounded-lg border border-gray-600 bg-gray-900 px-4 py-3 text-white placeholder:text-gray-500 focus:border-yellow-400 focus:outline-none" %>
+      <%= form.submit "Search crates", class: "rounded-lg bg-yellow-500 px-6 py-3 font-bold text-black transition hover:bg-yellow-400" %>
+    <% end %>
+
+    <% if @query.present? %>
+      <div class="mt-6">
+        <p class="mb-3 text-sm text-gray-400"><%= @search_results.size %> matching song<%= "s" unless @search_results.size == 1 %> for “<%= @query %>”</p>
+        <% if @search_results.any? %>
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <% @search_results.each do |track| %>
+              <%= link_to listening_path(track_id: track.id, q: @query), class: "flex items-center gap-3 rounded-xl border border-gray-700 bg-gray-900/70 p-3 transition hover:border-yellow-400/70 hover:bg-gray-800" do %>
+                <% if track.image_url.present? %>
+                  <img src="<%= track.image_url %>" alt="" class="h-14 w-14 rounded object-cover">
+                <% else %>
+                  <div class="flex h-14 w-14 items-center justify-center rounded bg-gray-800">🎵</div>
+                <% end %>
+                <div class="min-w-0">
+                  <p class="truncate font-semibold text-white"><%= track.name %></p>
+                  <p class="truncate text-sm text-gray-300"><%= track.artist %></p>
+                  <p class="truncate text-xs text-gray-500"><%= track.album %></p>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="rounded-lg bg-gray-900 p-5 text-gray-400">No matching songs are in the current crate database.</p>
+        <% end %>
+      </div>
+    <% end %>
+  </section>
+
+  <% if @selected_lookup.present? %>
+    <% source = @selected_lookup[:source] %>
+    <% exact = @selected_lookup[:match_type] == :exact %>
+    <% likely = @selected_lookup[:match_type] == :likely_duplicate %>
+    <section class="mt-8 rounded-2xl border <%= exact ? 'border-green-500/40' : likely ? 'border-yellow-500/40' : 'border-gray-700' %> bg-gray-950/90 p-6 shadow-2xl">
+      <div class="flex flex-col gap-6 md:flex-row">
+        <% if source[:image_url].present? %>
+          <img src="<%= source[:image_url] %>" alt="" class="h-40 w-40 rounded-xl object-cover shadow-xl">
+        <% else %>
+          <div class="flex h-40 w-40 items-center justify-center rounded-xl bg-gray-800 text-5xl">🎵</div>
+        <% end %>
+
+        <div class="min-w-0 flex-1">
+          <div class="mb-3 flex flex-wrap items-center gap-2">
+            <% if exact %>
+              <span class="rounded-full border border-green-400/50 bg-green-500/15 px-3 py-1 text-xs font-bold text-green-300">✓ Exact track in crates</span>
+            <% elsif likely %>
+              <span class="rounded-full border border-yellow-400/50 bg-yellow-500/15 px-3 py-1 text-xs font-bold text-yellow-300">≈ Likely same recording / version</span>
+            <% else %>
+              <span class="rounded-full border border-gray-500 bg-gray-800 px-3 py-1 text-xs font-bold text-gray-300">Not currently in crates</span>
+            <% end %>
+          </div>
+          <h2 class="text-3xl font-bold text-white"><%= source[:name] %></h2>
+          <p class="mt-1 text-xl text-gray-200"><%= source[:artist] %></p>
+          <% if source[:album].present? %><p class="mt-1 text-sm text-gray-400"><%= source[:album] %></p><% end %>
+          <% if source[:external_url].present? %>
+            <%= link_to "Open in Spotify ↗", source[:external_url], target: "_blank", rel: "noopener", class: "mt-4 inline-flex text-sm font-semibold text-green-400 hover:text-green-300" %>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="mt-7 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="rounded-xl border border-blue-500/20 bg-blue-950/20 p-4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-blue-300">Artist footprint</p>
+          <p class="mt-2 text-3xl font-bold text-white"><%= @selected_lookup[:artist_stats][:track_count] %></p>
+          <p class="text-sm text-gray-300">song<%= "s" unless @selected_lookup[:artist_stats][:track_count] == 1 %> by this artist in your crates</p>
+          <p class="mt-2 text-xs text-gray-400"><%= @selected_lookup[:artist_stats][:playlist_count] %> playlists · <%= @selected_lookup[:artist_stats][:category_count] %> crate categories</p>
+        </div>
+        <div class="rounded-xl border border-purple-500/20 bg-purple-950/20 p-4">
+          <p class="text-xs font-semibold uppercase tracking-wider text-purple-300">Album footprint</p>
+          <p class="mt-2 text-3xl font-bold text-white"><%= @selected_lookup[:album_stats][:track_count] %></p>
+          <p class="text-sm text-gray-300">song<%= "s" unless @selected_lookup[:album_stats][:track_count] == 1 %> from this album in your crates</p>
+          <p class="mt-2 text-xs text-gray-400"><%= @selected_lookup[:album_stats][:playlist_count] %> playlists · <%= @selected_lookup[:album_stats][:category_count] %> crate categories</p>
+        </div>
+      </div>
+
+      <div class="mt-7">
+        <h3 class="text-xl font-bold text-white">Crate placements</h3>
+        <% if @selected_lookup[:memberships].any? %>
+          <div class="mt-4 overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+              <thead class="border-b border-gray-700 text-xs uppercase tracking-wider text-gray-400">
+                <tr>
+                  <th class="px-3 py-3">Local version</th>
+                  <th class="px-3 py-3">Playlist</th>
+                  <th class="px-3 py-3">Position</th>
+                  <th class="px-3 py-3">Crates</th>
+                  <th class="px-3 py-3">Added</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-800">
+                <% @selected_lookup[:memberships].each do |membership| %>
+                  <tr class="text-gray-200">
+                    <td class="px-3 py-3">
+                      <p class="font-medium text-white"><%= membership[:track].name %></p>
+                      <p class="text-xs text-gray-500"><%= membership[:track].artist %></p>
+                    </td>
+                    <td class="px-3 py-3">
+                      <%= link_to membership[:playlist].title, playlist_path(membership[:playlist]), class: "font-semibold text-yellow-300 hover:text-yellow-200" %>
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap">#<%= membership[:position].to_i + 1 %> <span class="text-xs text-gray-500">of <%= membership[:playlist].track_count %></span></td>
+                    <td class="px-3 py-3">
+                      <div class="flex flex-wrap gap-1">
+                        <% membership[:categories].each do |category| %>
+                          <span class="rounded-full px-2 py-1 text-xs text-white" style="background-color: <%= category.color.presence || '#4B5563' %>"><%= category.name %></span>
+                        <% end %>
+                      </div>
+                    </td>
+                    <td class="px-3 py-3 whitespace-nowrap text-gray-400"><%= membership[:added_at]&.strftime("%b %-d, %Y") || "—" %></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="mt-3 rounded-lg bg-gray-900 p-4 text-gray-400">This song does not currently have a placement in your saved crates.</p>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>
+
+<% if @connected && @query.blank? %>
+  <script>
+    document.addEventListener("turbo:load", function() {
+      window.clearTimeout(window.listeningDeskRefreshTimer);
+      window.listeningDeskRefreshTimer = window.setTimeout(function() {
+        Turbo.visit(window.location.href);
+      }, 15000);
+    });
+  </script>
+<% end %>
