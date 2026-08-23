@@ -15,6 +15,8 @@ class ListeningController < ApplicationController
 
     @selected_lookup = selected_lookup
     @dossier_track = selected_dossier_track
+    @dossier_enrichment = @dossier_track&.track_enrichment
+    @dossier_claims = @dossier_enrichment&.active_claims&.to_a || []
   rescue Spotify::ListeningService::ConfigurationError, Spotify::ListeningService::ApiError => e
     Rails.logger.warn "Listening Desk unavailable: #{e.message}"
     @listening_error = e.message
