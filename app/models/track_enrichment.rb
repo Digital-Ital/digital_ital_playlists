@@ -22,6 +22,8 @@ class TrackEnrichment < ApplicationRecord
   ].freeze
 
   MULTI_VALUE_FIELDS = %w[
+    label
+    catalogue_number
     producer
     engineer
     mastering_engineer
