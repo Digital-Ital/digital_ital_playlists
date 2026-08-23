@@ -81,6 +81,8 @@
                   <span class="text-xs font-semibold text-cyan-200"><%= source_claims.first.source_label %></span>
                   <% if source == "discogs" && source_claims.first.source_url.present? %>
                     <%= link_to "Data provided by Discogs.", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-orange-300 hover:text-orange-200" %>
+                  <% elsif source_claims.first.source_url.present? %>
+                    <%= link_to "#{source_claims.first.source_label} ↗", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
                   <% end %>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-2">
@@ -109,6 +111,8 @@
                 <span class="text-xs font-semibold text-cyan-200"><%= source_claims.first.source_label %></span>
                 <% if source == "discogs" && source_claims.first.source_url.present? %>
                   <%= link_to "Data provided by Discogs.", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-orange-300 hover:text-orange-200" %>
+                <% elsif source_claims.first.source_url.present? %>
+                  <%= link_to "#{source_claims.first.source_label} ↗", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
                 <% end %>
               </div>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -131,4 +135,6 @@
   <% if enrichment&.last_error.present? %>
     <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Refresh incomplete: cached facts remain visible, but one or more sources could not update.</p>
   <% end %>
+
+  <p class="mt-4 text-xs text-gray-500">This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.</p>
 </section>
