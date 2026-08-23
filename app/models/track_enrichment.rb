@@ -201,7 +201,6 @@ class TrackEnrichment < ApplicationRecord
     claims.select { |claim| claim.field == "song_context" }
           .sort_by { |claim| source_sort_key(claim.source) }
           .first(1)
-          .then { |claim| claim ? [ claim ] : [] }
   end
 
   def summary_signals(claims)
