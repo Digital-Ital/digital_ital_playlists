@@ -97,7 +97,8 @@ module MusicMetadata
             entry["extraartists"],
             "Discogs track-level credit",
             source_identifier,
-            source_url
+            source_url,
+            scope: "discogs_selected_release_track"
           )
         end,
         *tag_claims(payload, source_identifier, source_url)
@@ -119,13 +120,13 @@ module MusicMetadata
       end
     end
 
-    def credit_claims(credits, context, source_identifier, source_url)
+    def credit_claims(credits, context, source_identifier, source_url, scope: "discogs_selected_release")
       Array(credits).flat_map do |credit|
         name = credit["name"].to_s.strip
         next [] if name.blank?
 
         credit_fields(credit["role"]).filter_map do |field|
-          claim(field, name, context, source_identifier, source_url)
+          claim(field, name, context, source_identifier, source_url, scope: scope)
         end
       end.uniq { |entry| [ entry[:field], entry.dig(:value, "text") ] }
     end
@@ -158,7 +159,7 @@ module MusicMetadata
         end
     end
 
-    def claim(field, text, context, source_identifier, source_url)
+    def claim(field, text, context, source_identifier, source_url, scope: "discogs_selected_release")
       return if text.blank?
 
       {
@@ -168,7 +169,8 @@ module MusicMetadata
         value: {
           "text" => text.to_s,
           "comparison" => text.to_s,
-          "context" => context
+          "context" => context,
+          "scope" => scope
         },
         match_confidence: "curator_selected_release",
         expires_at: 6.hours.from_now
