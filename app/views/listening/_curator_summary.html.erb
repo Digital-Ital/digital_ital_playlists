@@ -1,7 +1,8 @@
-<% summary = enrichment&.curator_summary(claims) || { release_years: [], classifications: [], signals: [] } %>
+<% summary = enrichment&.curator_summary(claims) || { release_years: [], classifications: [], song_contexts: [], signals: [] } %>
 <% release_years = summary.fetch(:release_years) %>
 <% earliest_reliable_year = summary.fetch(:earliest_reliable_year, nil) %>
 <% classifications = summary.fetch(:classifications) %>
+<% song_contexts = summary.fetch(:song_contexts, []) %>
 <% signals = summary.fetch(:signals) %>
 <% signal_labels = {
   "release_type" => "Release type",
@@ -68,6 +69,21 @@
         <p class="mt-3 text-sm text-gray-400">No source year was returned for this recording yet.</p>
       <% end %>
     </section>
+
+    <% if song_contexts.any? %>
+      <section class="mt-4 rounded-xl border border-sky-400/25 bg-sky-950/20 p-4">
+        <h4 class="font-semibold text-gray-100">Song context</h4>
+        <% song_contexts.each do |claim| %>
+          <p class="mt-2 text-sm leading-6 text-gray-200"><%= claim.display_value %></p>
+          <p class="mt-3 text-xs text-gray-400">
+            <%= link_to "Wikipedia source ↗", claim.source_url, target: "_blank", rel: "noopener", class: "font-semibold text-sky-300 hover:text-sky-200" %>
+            <span class="text-gray-500">·</span>
+            Title / artist song-page candidate · Text from Wikipedia is available under
+            <%= link_to "CC BY-SA", "https://creativecommons.org/licenses/by-sa/4.0/", target: "_blank", rel: "noopener", class: "text-sky-300 hover:text-sky-200" %>.
+          </p>
+        <% end %>
+      </section>
+    <% end %>
 
     <% if classifications.any? %>
       <section class="mt-4 rounded-xl border border-gray-700 bg-black/25 p-4">
