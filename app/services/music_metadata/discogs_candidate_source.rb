@@ -10,7 +10,7 @@ module MusicMetadata
   class DiscogsCandidateSource
     SEARCH_URL = URI("https://api.discogs.com/database/search")
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
-    CANDIDATE_STRATEGY = "earliest-master-or-release-v2"
+    CANDIDATE_STRATEGY = "earliest-master-or-release-v3"
 
     def initialize(track, deadline: nil)
       @track = track
@@ -91,8 +91,27 @@ module MusicMetadata
 
       [
         claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
-        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind)
+        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind),
+        *taxonomy_claims(candidate["genre"], "genre", context, identifier, source_url, kind),
+        *taxonomy_claims(candidate["style"], "tag", context, identifier, source_url, kind)
       ].compact
+    end
+
+    # The search response already carries Discogs' broad genre and style
+    # taxonomy. Keeping it with the automatic candidate gives the Listening
+    # Desk useful curation signals without an extra API request, while the
+    # context makes clear that it is not a curator-verified pressing.
+    def taxonomy_claims(values, field, context, identifier, source_url, kind)
+      Array(values).filter_map do |value|
+        claim(
+          field,
+          value,
+          "#{context} #{field == "genre" ? "genre" : "style"}",
+          identifier,
+          source_url,
+          kind
+        )
+      end.uniq { |entry| entry.dig(:value, "text").to_s.downcase }
     end
 
     def claim(field, text, context, identifier, source_url, kind)
