@@ -92,7 +92,7 @@ module Spotify
       return [] unless connected?
 
       uri = RECENTLY_PLAYED_URL.dup
-      uri.query = URI.encode_www_form(limit: [[limit.to_i, 1].max, 50].min)
+      uri.query = URI.encode_www_form(limit: [ [ limit.to_i, 1 ].max, 50 ].min)
 
       payload = parse_response(get(uri, access_token))
       payload.fetch("items", []).filter_map do |item|

@@ -14,6 +14,7 @@ class ListeningController < ApplicationController
     end
 
     @selected_lookup = selected_lookup
+    @dossier_track = selected_dossier_track
   rescue Spotify::ListeningService::ConfigurationError, Spotify::ListeningService::ApiError => e
     Rails.logger.warn "Listening Desk unavailable: #{e.message}"
     @listening_error = e.message
@@ -35,6 +36,16 @@ class ListeningController < ApplicationController
       scope: @scope,
       footprint_key: @footprint_key
     }
+  end
+
+  def dossier
+    track = Track.find_by(id: params[:track_id])
+    return head :not_found unless track
+
+    enrichment = track.track_enrichment
+    enrichment&.expire_temporary_claims!
+
+    render partial: "dossier_content", locals: { track: track, enrichment: enrichment }
   end
 
   private
@@ -59,6 +70,14 @@ class ListeningController < ApplicationController
 
     selected_track = requested_track || @current_track
     Spotify::CrateLookup.from_spotify(selected_track) if selected_track.present?
+  end
+
+  def selected_dossier_track
+    return Track.find_by(id: params[:track_id]) if params[:track_id].present?
+    return unless @selected_lookup&.fetch(:match_type, nil) == :exact
+
+    spotify_id = @selected_lookup.dig(:source, :spotify_id)
+    Track.find_by(spotify_id: spotify_id)
   end
 
   def requested_track

@@ -1,0 +1,125 @@
+<% field_labels = {
+  "isrc" => "ISRC",
+  "release_date" => "Release date",
+  "release_country" => "Release market / country",
+  "release_title" => "Release",
+  "release_position" => "Album position",
+  "label" => "Label",
+  "catalogue_number" => "Catalogue number",
+  "producer" => "Producer",
+  "engineer" => "Engineer",
+  "mastering_engineer" => "Mastering engineer",
+  "mixer" => "Mixer",
+  "performer" => "Performer",
+  "writer" => "Writer",
+  "composer" => "Composer",
+  "lyricist" => "Lyricist",
+  "arranger" => "Arranger",
+  "relationship_fact" => "Relationships / notes",
+  "genre" => "Genre",
+  "tag" => "Style / tag"
+} %>
+<% state_labels = { "confirmed" => "Confirmed by independent sources", "supported" => "Source-backed", "disputed" => "Needs review" } %>
+<% state_classes = {
+  "confirmed" => "border-emerald-400/30 bg-emerald-500/10 text-emerald-200",
+  "supported" => "border-blue-400/30 bg-blue-500/10 text-blue-200",
+  "disputed" => "border-yellow-400/30 bg-yellow-500/10 text-yellow-200"
+} %>
+<% claim_groups = enrichment&.claim_groups || [] %>
+<% duration_seconds = track.duration_ms.to_i / 1000 %>
+<% duration_label = duration_seconds.positive? ? "#{duration_seconds / 60}:#{format("%02d", duration_seconds % 60)}" : "Not stored" %>
+<% spotify_url = track.external_url.presence || "https://open.spotify.com/track/#{track.spotify_id}" %>
+<% genius_query = ERB::Util.url_encode([ track.artist, track.name ].join(" ")) %>
+<% discogs_query = ERB::Util.url_encode([ track.artist, track.name ].join(" ")) %>
+
+<%= turbo_frame_tag "song-dossier-#{track.id}" do %>
+  <div class="mt-5 border-t border-violet-500/20 pt-5">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <h3 class="text-xl font-bold text-white">Song dossier</h3>
+        <p class="mt-1 max-w-3xl text-sm text-gray-300">Saved research from the local database. Dates and credits keep their source context, so a Spotify album reissue, a MusicBrainz first-known release, and a Discogs pressing are never silently treated as the same thing.</p>
+      </div>
+      <% if enrichment&.last_refreshed_at.present? %>
+        <p class="shrink-0 text-xs text-gray-400" title="<%= enrichment.last_refreshed_at.strftime("%B %-d, %Y at %-l:%M %p") %>">Research refreshed <%= time_ago_in_words(enrichment.last_refreshed_at) %> ago</p>
+      <% else %>
+        <p class="shrink-0 text-xs text-gray-400">Not researched yet</p>
+      <% end %>
+    </div>
+
+    <section class="mt-5 rounded-xl border border-gray-700 bg-black/25 p-4">
+      <h4 class="font-semibold text-gray-100">Local catalogue record</h4>
+      <dl class="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Album</dt>
+          <dd class="mt-1 text-gray-200"><%= track.album.presence || "Not stored" %></dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Duration</dt>
+          <dd class="mt-1 text-gray-200"><%= duration_label %></dd>
+        </div>
+        <div>
+          <dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Spotify ID</dt>
+          <dd class="mt-1 break-all text-gray-200"><%= track.spotify_id %></dd>
+        </div>
+      </dl>
+    </section>
+
+    <% if claim_groups.any? %>
+      <% if enrichment.last_error.present? %>
+        <div class="mt-5 rounded-lg border border-yellow-500/30 bg-yellow-950/25 p-3 text-sm text-yellow-100">
+          Some sources could not refresh. Saved evidence remains visible; review source links before relying on it.
+        </div>
+      <% end %>
+
+      <div class="mt-5 space-y-4">
+        <% claim_groups.each do |field, claims| %>
+          <% state = enrichment.evidence_state_for(field, claims) %>
+          <section class="rounded-xl border border-gray-700 bg-gray-950/70 p-4">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h4 class="font-semibold text-white"><%= field_labels.fetch(field, field.humanize) %></h4>
+              <span class="w-fit rounded-full border px-2.5 py-1 text-xs font-semibold <%= state_classes.fetch(state) %>"><%= state_labels.fetch(state) %></span>
+            </div>
+            <% if state == "disputed" %>
+              <p class="mt-2 text-xs text-yellow-200">Sources report different values for the same scope. Treat this as a curator review point, not an automatic answer.</p>
+            <% end %>
+
+            <div class="mt-3 space-y-3">
+              <% claims.sort_by { |claim| [ claim.source, claim.display_value.downcase ] }.each do |claim| %>
+                <article class="rounded-lg border border-gray-800 bg-black/20 p-3">
+                  <p class="font-medium text-gray-100"><%= claim.display_value %></p>
+                  <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <% if claim.source == "discogs" %>
+                      <%= link_to "Data provided by Discogs.", claim.source_url, target: "_blank", rel: "noopener", class: "font-semibold text-orange-300 hover:text-orange-200" %>
+                    <% elsif claim.source_url.present? %>
+                      <%= link_to "#{claim.source_label} ↗", claim.source_url, target: "_blank", rel: "noopener", class: "font-semibold text-cyan-300 hover:text-cyan-200" %>
+                    <% else %>
+                      <span class="font-semibold text-cyan-300"><%= claim.source_label %></span>
+                    <% end %>
+                    <span class="text-gray-500">•</span>
+                    <span class="text-gray-400"><%= claim.context %></span>
+                    <span class="text-gray-500">•</span>
+                    <span class="text-gray-500"><%= claim.confidence_label %></span>
+                  </div>
+                </article>
+              <% end %>
+            </div>
+          </section>
+        <% end %>
+      </div>
+    <% else %>
+      <section class="mt-5 rounded-xl border border-dashed border-violet-400/30 bg-black/20 p-4">
+        <h4 class="font-semibold text-violet-100">No saved source research yet</h4>
+        <p class="mt-1 text-sm text-gray-300">The local crate record above is ready. The owner can deliberately refresh Spotify and MusicBrainz evidence, then add a verified Discogs release if a specific pressing is useful.</p>
+      </section>
+    <% end %>
+
+    <div class="mt-5 flex flex-wrap gap-3 text-sm">
+      <%= link_to "Open in Spotify ↗", spotify_url, target: "_blank", rel: "noopener", class: "font-semibold text-green-300 hover:text-green-200" %>
+      <%= link_to "Lyrics on Genius ↗", "https://genius.com/search?q=#{genius_query}", target: "_blank", rel: "noopener", class: "font-semibold text-yellow-300 hover:text-yellow-200" %>
+      <%= link_to "Search Discogs ↗", "https://www.discogs.com/search/?type=release&q=#{discogs_query}", target: "_blank", rel: "noopener", class: "font-semibold text-orange-300 hover:text-orange-200" %>
+      <%= link_to "Owner research controls →", admin_track_enrichment_path(track), class: "font-semibold text-violet-300 hover:text-violet-200" %>
+    </div>
+
+    <p class="mt-4 text-xs text-gray-500">Lyrics are linked out, not copied. Discogs is not affiliated with Digital Ital; any Discogs facts are shown only while their six-hour display window is valid.</p>
+  </div>
+<% end %>

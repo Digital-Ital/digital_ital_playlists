@@ -61,6 +61,10 @@
 
       <%= render "same_title_links", same_title_matches: @selected_lookup[:same_title_matches] %>
 
+      <% if @dossier_track.present? %>
+        <%= render "song_dossier", track: @dossier_track %>
+      <% end %>
+
       <% footprint_key = source[:spotify_id].presence || source[:name].to_s.parameterize.presence || "lookup" %>
       <% footprint_params = {
         spotify_id: source[:spotify_id],
@@ -158,6 +162,13 @@
       }
     }
 
+    function loadSongDossier(details) {
+      const frame = details.querySelector("turbo-frame[data-dossier-src]");
+      if (details.open && frame && !frame.getAttribute("src")) {
+        frame.setAttribute("src", frame.dataset.dossierSrc);
+      }
+    }
+
     function setupListeningFootprints() {
       document.querySelectorAll("[data-listening-footprint]").forEach(function(details) {
         if (details.dataset.footprintBound === "true") return;
@@ -170,8 +181,25 @@
       });
     }
 
+    function setupSongDossiers() {
+      document.querySelectorAll("[data-song-dossier]").forEach(function(details) {
+        if (details.dataset.dossierBound === "true") return;
+
+        details.dataset.dossierBound = "true";
+        details.addEventListener("toggle", function() {
+          loadSongDossier(details);
+        });
+        loadSongDossier(details);
+      });
+    }
+
+    function setupListeningDeskDetails() {
+      setupListeningFootprints();
+      setupSongDossiers();
+    }
+
     document.removeEventListener("turbo:load", window.listeningFootprintsOnLoad);
-    window.listeningFootprintsOnLoad = setupListeningFootprints;
+    window.listeningFootprintsOnLoad = setupListeningDeskDetails;
     document.addEventListener("turbo:load", window.listeningFootprintsOnLoad);
   })();
 </script>
