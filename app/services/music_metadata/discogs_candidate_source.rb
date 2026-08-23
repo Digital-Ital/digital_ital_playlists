@@ -27,7 +27,7 @@ module MusicMetadata
 
       SourceResult.new(
         source: "discogs_candidate",
-        claims: claims_from(candidate.fetch(:result), candidate.fetch(:kind)),
+        claims: claims_from(candidate.fetch(:result), candidate.fetch(:kind), linked_release_id: candidate[:linked_release_id]),
         metadata: { identifier: candidate.dig(:result, "id"), kind: candidate.fetch(:kind) },
         error: nil
       )
@@ -107,10 +107,10 @@ module MusicMetadata
       result["id"].present? && result["year"].to_s.match?(/^(?:1[0-9]{3}|20[0-9]{2})$/)
     end
 
-    def claims_from(candidate, kind)
+    def claims_from(candidate, kind, linked_release_id: nil)
       identifier = candidate.fetch("id").to_s
       source_url = "https://www.discogs.com/#{kind}/#{identifier}"
-      context = candidate_context(kind, candidate["main_release"])
+      context = candidate_context(kind, linked_release_id)
 
       [
         claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
