@@ -27,6 +27,7 @@ class TrackEnrichment < ApplicationRecord
     lyricist
     arranger
     relationship_fact
+    song_context
     genre
     tag
   ].freeze
@@ -75,7 +76,7 @@ class TrackEnrichment < ApplicationRecord
     arranger
     relationship_fact
   ].freeze
-  SUMMARY_SOURCE_ORDER = %w[spotify musicbrainz discogs discogs_candidate].freeze
+  SUMMARY_SOURCE_ORDER = %w[spotify musicbrainz discogs discogs_candidate wikipedia].freeze
   SUMMARY_CLASSIFICATIONS_PER_SOURCE_LIMIT = 8
   SUMMARY_SIGNALS_PER_SOURCE_LIMIT = 6
   SUMMARY_SIGNAL_LIMIT = 12
@@ -144,6 +145,7 @@ class TrackEnrichment < ApplicationRecord
         SUMMARY_CLASSIFICATION_FIELDS,
         limit: SUMMARY_CLASSIFICATIONS_PER_SOURCE_LIMIT
       ),
+      song_contexts: summary_song_contexts(local_claims),
       signals: summary_signals(local_claims)
     }
   end
@@ -193,6 +195,13 @@ class TrackEnrichment < ApplicationRecord
 
             [ source, selected_claims ] if selected_claims.any?
           end
+  end
+
+  def summary_song_contexts(claims)
+    claims.select { |claim| claim.field == "song_context" }
+          .sort_by { |claim| source_sort_key(claim.source) }
+          .first(1)
+          .then { |claim| claim ? [ claim ] : [] }
   end
 
   def summary_signals(claims)
