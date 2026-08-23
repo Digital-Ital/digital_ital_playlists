@@ -1,22 +1,26 @@
 module MusicMetadata
   class TrackDossierRefreshService
+    REFRESH_BUDGET_SECONDS = 22
+    REFRESH_STALE_AFTER = 2.minutes
+
+    class RefreshInProgress < StandardError; end
+
     def initialize(track)
       @track = track
     end
 
     def call
       @enrichment = TrackEnrichment.find_or_create_by!(track: @track)
+      claim_refresh_slot!
+
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + REFRESH_BUDGET_SECONDS
+      spotify_result = SpotifySource.new(@track, deadline: deadline).call
+      isrc = spotify_result.metadata.to_h[:isrc] || spotify_result.metadata.to_h["isrc"]
+      musicbrainz_result = MusicBrainzSource.new(@track, isrc: isrc, deadline: deadline).call
+      discogs_result = DiscogsSource.new(@track, @enrichment, deadline: deadline).call
+      results = [ spotify_result, musicbrainz_result, discogs_result ]
 
       @enrichment.with_lock do
-        @enrichment.expire_temporary_claims!
-        @enrichment.update!(status: "refreshing", last_attempted_at: Time.current, last_error: nil)
-
-        spotify_result = SpotifySource.new(@track).call
-        isrc = spotify_result.metadata.to_h[:isrc] || spotify_result.metadata.to_h["isrc"]
-        musicbrainz_result = MusicBrainzSource.new(@track, isrc: isrc).call
-        discogs_result = DiscogsSource.new(@track, @enrichment).call
-        results = [ spotify_result, musicbrainz_result, discogs_result ]
-
         results.each { |result| sync_source_result!(result) }
         errors = results.filter_map(&:error)
 
@@ -28,14 +32,31 @@ module MusicMetadata
       end
 
       @enrichment
+    rescue RefreshInProgress
+      @enrichment
     rescue StandardError => e
       Rails.logger.warn("Track dossier refresh failed for #{@track.id}: #{e.message}")
       @enrichment ||= TrackEnrichment.find_or_create_by!(track: @track)
-      @enrichment.update!(status: "error", last_attempted_at: Time.current, last_error: e.message)
+      @enrichment.with_lock do
+        @enrichment.update!(status: "error", last_attempted_at: Time.current, last_error: e.message)
+      end
       @enrichment
     end
 
     private
+
+    def claim_refresh_slot!
+      @enrichment.with_lock do
+        if @enrichment.status == "refreshing" &&
+            @enrichment.last_attempted_at.present? &&
+            @enrichment.last_attempted_at > REFRESH_STALE_AFTER.ago
+          raise RefreshInProgress
+        end
+
+        @enrichment.expire_temporary_claims!
+        @enrichment.update!(status: "refreshing", last_attempted_at: Time.current, last_error: nil)
+      end
+    end
 
     def sync_source_result!(result)
       return unless result.successful?
