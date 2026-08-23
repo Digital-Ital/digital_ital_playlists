@@ -40,6 +40,12 @@ class TrackMetadataClaim < ApplicationRecord
     }.fetch(source, source.to_s.humanize)
   end
 
+  def release_year
+    return unless field == "release_date"
+
+    display_value.to_s[/\A(?:1[0-9]{3}|20[0-9]{2})\b/]
+  end
+
   def temporary?
     expires_at.present?
   end
