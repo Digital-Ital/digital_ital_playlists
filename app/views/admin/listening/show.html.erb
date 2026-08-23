@@ -3,7 +3,8 @@
 <% callback_connection_safe = @callback_host_matches && @callback_uses_https && @request_uses_https %>
 <% ready_to_connect = credentials_ready && callback_connection_safe %>
 
-<div class="container mx-auto max-w-4xl px-4 py-10 sm:px-6">
+<div class="min-h-screen bg-gradient-to-b from-gray-950 via-slate-950 to-black">
+  <div class="container mx-auto max-w-4xl px-4 py-10 sm:px-6">
   <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <p class="text-sm font-semibold uppercase tracking-[0.2em] text-violet-400">Protected owner setup</p>
@@ -123,4 +124,5 @@
     </ol>
     <p class="mt-4 text-xs text-gray-400">This status screen does not call Spotify’s playback API. The public page uses shared 20- and 60-second caches, while crate search and curation statistics stay in your database.</p>
   </section>
+  </div>
 </div>
