@@ -17,7 +17,7 @@ module MusicMetadata
       spotify_result = SpotifySource.new(@track, deadline: deadline).call
       isrc = spotify_result.metadata.to_h[:isrc] || spotify_result.metadata.to_h["isrc"]
       musicbrainz_result = MusicBrainzSource.new(@track, isrc: isrc, deadline: deadline).call
-      discogs_result = DiscogsSource.new(@track, @enrichment, deadline: deadline).call
+      discogs_result = discogs_source_result(deadline)
       results = [ spotify_result, musicbrainz_result, discogs_result ]
 
       @enrichment.with_lock do
@@ -55,6 +55,14 @@ module MusicMetadata
 
         @enrichment.expire_temporary_claims!
         @enrichment.update!(status: "refreshing", last_attempted_at: Time.current, last_error: nil)
+      end
+    end
+
+    def discogs_source_result(deadline)
+      if @enrichment.discogs_release_id.present?
+        DiscogsSource.new(@track, @enrichment, deadline: deadline).call
+      else
+        DiscogsCandidateSource.new(@track, deadline: deadline).call
       end
     end
 

@@ -62,7 +62,12 @@
       <%= render "same_title_links", same_title_matches: @selected_lookup[:same_title_matches] %>
 
       <% if @dossier_track.present? %>
-        <%= render "curator_summary", track: @dossier_track, enrichment: @dossier_enrichment, claims: @dossier_claims %>
+        <% live_source = @current_track.present? && source[:spotify_id] == @current_track[:spotify_id] %>
+        <% if live_source %>
+          <%= render "curator_summary_loader", track: @dossier_track, live_spotify_release_date: source[:spotify_release_date] %>
+        <% else %>
+          <%= render "curator_summary", track: @dossier_track, enrichment: @dossier_enrichment, claims: @dossier_claims %>
+        <% end %>
         <%= render "song_dossier", track: @dossier_track %>
       <% end %>
 
@@ -194,9 +199,35 @@
       });
     }
 
+    function autoLoadDossier(frame) {
+      if (frame.dataset.autoDossierLoaded === "true") return;
+      frame.dataset.autoDossierLoaded = "true";
+
+      fetch(frame.dataset.autoDossierUrl, {
+        method: "POST",
+        headers: {
+          "Accept": "text/html",
+          "X-CSRF-Token": document.querySelector("meta[name='csrf-token']")?.content || ""
+        },
+        credentials: "same-origin"
+      }).then(function(response) {
+        if (!response.ok) throw new Error("Automatic dossier lookup failed");
+        return response.text();
+      }).then(function(html) {
+        frame.outerHTML = html;
+      }).catch(function() {
+        frame.innerHTML = "<section class='mt-7 rounded-xl border border-yellow-500/30 bg-yellow-950/25 p-5 text-sm text-yellow-100'>Source lookup could not start just now. The Listening Desk will retry automatically later.</section>";
+      });
+    }
+
+    function setupAutomaticDossiers() {
+      document.querySelectorAll("turbo-frame[data-auto-dossier]").forEach(autoLoadDossier);
+    }
+
     function setupListeningDeskDetails() {
       setupListeningFootprints();
       setupSongDossiers();
+      setupAutomaticDossiers();
     }
 
     document.removeEventListener("turbo:load", window.listeningFootprintsOnLoad);

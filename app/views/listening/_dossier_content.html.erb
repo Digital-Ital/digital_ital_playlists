@@ -127,7 +127,7 @@
       <%= link_to "Open in Spotify ↗", spotify_url, target: "_blank", rel: "noopener", class: "font-semibold text-green-300 hover:text-green-200" %>
       <%= link_to "Lyrics on Genius ↗", "https://genius.com/search?q=#{genius_query}", target: "_blank", rel: "noopener", class: "font-semibold text-yellow-300 hover:text-yellow-200" %>
       <%= link_to "Search Discogs ↗", "https://www.discogs.com/search/?type=release&q=#{discogs_query}", target: "_blank", rel: "noopener", class: "font-semibold text-orange-300 hover:text-orange-200" %>
-      <%= link_to "Owner research controls →", admin_track_enrichment_path(track), class: "font-semibold text-violet-300 hover:text-violet-200" %>
+      <%= link_to "Owner research controls →", admin_track_enrichment_path(track), data: { turbo_frame: "_top" }, class: "font-semibold text-violet-300 hover:text-violet-200" %>
     </div>
 
     <p class="mt-4 text-xs text-gray-500">Lyrics are linked out, not copied. This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC. Any Discogs facts are shown only while their six-hour display window is valid.</p>

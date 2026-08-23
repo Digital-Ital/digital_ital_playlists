@@ -7,6 +7,7 @@ Rails.application.routes.draw do
   get "all-songs", to: "pages#all_songs", as: :all_songs
   get "listening", to: "listening#show", as: :listening
   get "listening/dossier", to: "listening#dossier", as: :listening_dossier
+  post "listening/dossier/:track_id/auto", to: "listening#auto_dossier", as: :auto_listening_dossier
   get "listening/footprint", to: "listening#footprint", as: :listening_footprint
 
   namespace :admin do
