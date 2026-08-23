@@ -127,6 +127,10 @@ module MusicMetadata
       @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
+    def normalize(value)
+      value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    end
+
     def skipped
       SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, skipped: true, error: nil)
     end
