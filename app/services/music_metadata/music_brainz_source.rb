@@ -59,7 +59,9 @@ module MusicMetadata
 
     def find_candidate
       if @isrc.present?
-        payload = get("isrc/#{URI.encode_www_form_component(@isrc)}", inc: "recordings")
+        # An ISRC lookup already returns its recordings. MusicBrainz rejects
+        # inc=recordings here with HTTP 400, so do not add a subquery.
+        payload = get("isrc/#{URI.encode_www_form_component(@isrc)}")
         candidate = Array(payload["recordings"]).first
         return [ candidate, "isrc_exact" ] if candidate.present?
       end
