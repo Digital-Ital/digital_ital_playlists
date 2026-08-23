@@ -17,6 +17,10 @@ class ListeningController < ApplicationController
       @recent_tracks = []
     end
 
+    # Keep a separate local research cache for whatever is currently playing.
+    # A Track without PlaylistTracks is explicitly not a crate placement; it only
+    # gives source-backed research a stable local home between Listening Desk refreshes.
+    @live_research_track = research_track_for(@current_track) if @current_track.present?
     @selected_lookup = selected_lookup
     @dossier_track = selected_dossier_track
     @dossier_enrichment = @dossier_track&.track_enrichment
@@ -131,9 +135,33 @@ class ListeningController < ApplicationController
 
   def selected_dossier_track
     return Track.find_by(id: params[:track_id]) if params[:track_id].present?
+
+    # Live source research belongs to the stable cache record even when the
+    # recording has no placements in any crate yet.
+    return @live_research_track if @current_track.present? &&
+      @selected_lookup&.dig(:source, :spotify_id) == @current_track[:spotify_id]
+
     return unless @selected_lookup&.fetch(:match_type, nil) == :exact
 
     spotify_id = @selected_lookup.dig(:source, :spotify_id)
+    Track.find_by(spotify_id: spotify_id)
+  end
+
+  def research_track_for(source)
+    spotify_id = source[:spotify_id].to_s.presence
+    return if spotify_id.blank?
+
+    Track.find_or_create_by!(spotify_id: spotify_id) do |track|
+      track.assign_attributes(
+        name: source[:name],
+        artist: source[:artist],
+        album: source[:album],
+        image_url: source[:image_url],
+        duration_ms: source[:duration_ms],
+        external_url: source[:external_url]
+      )
+    end
+  rescue ActiveRecord::RecordNotUnique
     Track.find_by(spotify_id: spotify_id)
   end
 
