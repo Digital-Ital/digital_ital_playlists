@@ -112,16 +112,37 @@ module Spotify
       track_ids = tracks.pluck(:id)
       playlist_tracks = PlaylistTrack.where(track_id: track_ids).includes(playlist: :categories)
 
+      playlists = playlist_tracks.group_by(&:playlist_id).map do |_playlist_id, playlist_memberships|
+        playlist = playlist_memberships.first.playlist
+        {
+          playlist: playlist,
+          matching_track_count: playlist_memberships.map(&:track_id).uniq.size,
+          categories: ordered_categories(playlist.categories.to_a)
+        }
+      end.sort_by do |entry|
+        playlist = entry[:playlist]
+        [ playlist.position || Float::INFINITY, playlist.title.to_s.downcase ]
+      end
+
+      categories = ordered_categories(playlists.flat_map { |entry| entry[:categories] }.uniq(&:id))
+
       {
-        track_count: tracks.count,
-        playlist_count: playlist_tracks.select(:playlist_id).distinct.count,
-        category_count: playlist_tracks.joins(playlist: :categories).select("categories.id").distinct.count,
-        categories: playlist_tracks.flat_map { |playlist_track| playlist_track.playlist.categories.to_a }.uniq(&:id)
+        track_count: track_ids.size,
+        playlist_count: playlists.size,
+        category_count: categories.size,
+        categories: categories,
+        playlists: playlists
       }
     end
 
     def empty_stats
-      { track_count: 0, playlist_count: 0, category_count: 0, categories: [] }
+      { track_count: 0, playlist_count: 0, category_count: 0, categories: [], playlists: [] }
+    end
+
+    def ordered_categories(categories)
+      categories.sort_by do |category|
+        [ category.display_order || category.position || Float::INFINITY, category.name.to_s.downcase ]
+      end
     end
 
     def compatible_duration?(duration_ms)
