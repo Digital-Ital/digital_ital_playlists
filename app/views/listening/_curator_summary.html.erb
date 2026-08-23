@@ -74,7 +74,6 @@
           <p class="mt-3 text-sm text-gray-400">No saved source-backed release year yet.</p>
         <% end %>
         </section>
-<% end %>
 
       <section class="rounded-xl border border-gray-700 bg-black/25 p-4">
         <h4 class="font-semibold text-gray-100">Genre & style</h4>
@@ -136,7 +135,7 @@
     <section class="mt-5 rounded-xl border border-dashed border-cyan-400/30 bg-black/20 p-4">
       <h4 class="font-semibold text-cyan-100">No cached source research yet</h4>
       <p class="mt-1 text-sm text-gray-300">Use “Refresh source years” above to fetch this one exact recording once. The results are saved locally and shown side by side here; regular live refreshes never repeat the API calls.</p>
-      <%= link_to "Advanced owner research controls →", admin_track_enrichment_path(track), class: "mt-3 inline-flex text-sm font-semibold text-violet-300 hover:text-violet-200" %>
+      <%= link_to "Advanced owner research controls →", admin_track_enrichment_path(track), data: { turbo_frame: "_top" }, class: "mt-3 inline-flex text-sm font-semibold text-violet-300 hover:text-violet-200" %>
     </section>
   <% end %>
 
@@ -145,4 +144,5 @@
   <% end %>
 
   <p class="mt-4 text-xs text-gray-500">This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.</p>
-</section>
+  </section>
+<% end %>
