@@ -1,51 +1,47 @@
 <section class="mt-7 rounded-xl border border-cyan-500/25 bg-cyan-950/10 p-5">
+  <% exact_matches = same_title_matches.select { |match| match[:match_kind] == :exact_spotify_id } %>
+  <% suspected_matches = same_title_matches.select { |match| match[:match_kind] == :strong_artist_variant } %>
+  <% discovery_matches = same_title_matches.select { |match| match[:match_kind] == :different_artist } %>
+
   <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
     <div>
-      <h3 class="text-xl font-bold text-white">Same-title links</h3>
-      <p class="mt-1 text-sm text-gray-300">Every local track with this cleaned song title, including other artists. These are discovery signals for human judgement—not automatic duplicate claims.</p>
+      <h3 class="text-xl font-bold text-white">Duplicate & same-title signals</h3>
+      <p class="mt-1 text-sm text-gray-300">Exact Spotify IDs come first. Artist variants with a different ID are highlighted for review; clearly different artists remain discovery links only.</p>
     </div>
     <span class="shrink-0 text-sm font-semibold text-cyan-300"><%= pluralize(same_title_matches.size, "local track") %></span>
   </div>
 
-  <% if same_title_matches.any? %>
-    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <% same_title_matches.each do |title_match| %>
-        <% track = title_match[:track] %>
-        <article class="rounded-xl border border-white/10 bg-black/25 p-4">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-              <h4 class="truncate font-bold text-white"><%= track.name %></h4>
-              <p class="truncate text-sm text-gray-200"><%= track.artist %></p>
-              <% if track.album.present? %><p class="truncate text-xs text-gray-500"><%= track.album %></p><% end %>
-            </div>
-            <% if title_match[:exact_spotify_id] %>
-              <span class="shrink-0 rounded-full border border-green-400/40 bg-green-500/10 px-2 py-1 text-[11px] font-semibold text-green-300">Same Spotify ID</span>
-            <% else %>
-              <span class="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-1 text-[11px] font-semibold text-cyan-200">Title match</span>
-            <% end %>
-          </div>
+  <% if exact_matches.any? %>
+    <section class="mt-5">
+      <h4 class="font-bold text-emerald-300">Exact Spotify ID</h4>
+      <p class="mt-1 text-xs text-gray-400">These are the same Spotify recording. A red warning appears only when that recording occurs more than once in one playlist.</p>
+      <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <%= render partial: "same_title_match_card", collection: exact_matches, as: :title_match %>
+      </div>
+    </section>
+  <% end %>
 
-          <ul class="mt-4 space-y-2">
-            <% title_match[:memberships].each do |membership| %>
-              <li class="rounded-lg border border-white/10 bg-gray-900/70 p-3">
-                <div class="flex items-start justify-between gap-3">
-                  <%= link_to membership[:playlist].title, playlist_path(membership[:playlist]), class: "min-w-0 font-semibold text-yellow-300 hover:text-yellow-200" %>
-                  <span class="shrink-0 text-xs text-gray-400">#<%= membership[:position].to_i + 1 %></span>
-                </div>
-                <% if membership[:categories].any? %>
-                  <div class="mt-2 flex flex-wrap gap-1">
-                    <% membership[:categories].each do |category| %>
-                      <span class="rounded-full px-2 py-0.5 text-[11px] text-white" style="background-color: <%= category.color.presence || '#4B5563' %>"><%= category.name %></span>
-                    <% end %>
-                  </div>
-                <% end %>
-              </li>
-            <% end %>
-          </ul>
-        </article>
-      <% end %>
-    </div>
-  <% else %>
+  <% if suspected_matches.any? %>
+    <section class="mt-6 border-t border-yellow-500/20 pt-5">
+      <h4 class="font-bold text-yellow-300">Strong suspected duplicates</h4>
+      <p class="mt-1 text-xs text-gray-400">Same cleaned title plus an artist-name variation, but a different Spotify ID. Review these before treating them as duplicates.</p>
+      <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <%= render partial: "same_title_match_card", collection: suspected_matches, as: :title_match %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if discovery_matches.any? %>
+    <section class="mt-6 border-t border-green-500/20 pt-5">
+      <h4 class="font-bold text-green-300">Different artists, same title</h4>
+      <p class="mt-1 text-xs text-gray-400">Useful local discovery links, not duplicate suggestions.</p>
+      <div class="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <%= render partial: "same_title_match_card", collection: discovery_matches, as: :title_match %>
+      </div>
+    </section>
+  <% end %>
+
+  <% if same_title_matches.empty? %>
     <p class="mt-4 rounded-lg bg-black/20 p-4 text-sm text-gray-400">No other local crate tracks have this cleaned title yet.</p>
   <% end %>
 </section>

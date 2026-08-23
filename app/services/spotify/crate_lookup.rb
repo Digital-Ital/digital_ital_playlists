@@ -120,19 +120,95 @@ module Spotify
         playlist_tracks = memberships_by_track[track.id]
         next if playlist_tracks.blank?
 
+        memberships = playlist_tracks.map do |playlist_track|
+          playlist = playlist_track.playlist
+          {
+            playlist: playlist,
+            position: playlist_track.position,
+            categories: ordered_categories(playlist.categories.to_a)
+          }
+        end
+
+        match_kind = same_title_match_kind(track)
+
         {
           track: track,
-          exact_spotify_id: track.spotify_id == @track[:spotify_id],
-          memberships: playlist_tracks.map do |playlist_track|
-            playlist = playlist_track.playlist
-            {
-              playlist: playlist,
-              position: playlist_track.position,
-              categories: ordered_categories(playlist.categories.to_a)
-            }
-          end
+          match_kind: match_kind,
+          exact_spotify_id: match_kind == :exact_spotify_id,
+          duplicate_playlists: duplicate_playlists_for(memberships),
+          memberships: memberships
+        }
+      end.sort_by do |match|
+        [
+          same_title_match_priority(match[:match_kind]),
+          match[:track].artist.to_s.downcase,
+          match[:track].album.to_s.downcase,
+          match[:track].name.to_s.downcase
+        ]
+      end
+    end
+
+    def same_title_match_kind(track)
+      return :exact_spotify_id if @track[:spotify_id].present? && track.spotify_id == @track[:spotify_id]
+      return :strong_artist_variant if strong_artist_variant?(track.artist)
+
+      :different_artist
+    end
+
+    def same_title_match_priority(match_kind)
+      case match_kind
+      when :exact_spotify_id then 0
+      when :strong_artist_variant then 1
+      else 2
+      end
+    end
+
+    def duplicate_playlists_for(memberships)
+      memberships.group_by { |membership| membership[:playlist].id }
+                 .values
+                 .filter_map do |playlist_memberships|
+        next unless playlist_memberships.size > 1
+
+        {
+          playlist: playlist_memberships.first[:playlist],
+          positions: playlist_memberships.map { |membership| membership[:position].to_i + 1 }.sort
         }
       end
+    end
+
+    def strong_artist_variant?(candidate_artist)
+      source_key = artist_identity_key(@track[:artist])
+      candidate_key = artist_identity_key(candidate_artist)
+      return false if source_key.blank? || candidate_key.blank?
+      return true if source_key == candidate_key
+
+      source_family = artist_family_key(source_key)
+      candidate_family = artist_family_key(candidate_key)
+      return true if source_family.present? && source_family == candidate_family
+
+      source_tokens = source_key.split
+      candidate_tokens = candidate_key.split
+      shared_tokens = source_tokens & candidate_tokens
+
+      shared_tokens.size >= 2 ||
+        (source_tokens - candidate_tokens).empty? ||
+        (candidate_tokens - source_tokens).empty?
+    end
+
+    def artist_identity_key(value)
+      value.to_s.downcase
+           .gsub(/\bfeat(?:uring)?\.?\b.*/, " ")
+           .gsub(/\b(the|and|with)\b/, " ")
+           .gsub(/[^a-z0-9]+/, " ")
+           .squish
+    end
+
+    def artist_family_key(key)
+      {
+        "bob marley" => "bob-marley-and-the-wailers",
+        "bob marley wailers" => "bob-marley-and-the-wailers",
+        "wailers" => "bob-marley-and-the-wailers"
+      }[key]
     end
 
     def tracks_with_title_key(key)
