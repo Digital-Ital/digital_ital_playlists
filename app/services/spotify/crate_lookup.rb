@@ -48,7 +48,8 @@ module Spotify
         local_tracks: local_tracks,
         memberships: memberships_for(local_tracks),
         artist_stats: artist_stats,
-        album_stats: album_stats
+        album_stats: album_stats,
+        same_title_matches: same_title_matches
       }
     end
 
@@ -90,6 +91,44 @@ module Spotify
           categories: playlist.categories.to_a
         }
       end
+    end
+
+    def same_title_matches
+      key = title_key(@track[:name])
+      return [] if key.blank?
+
+      tracks = tracks_with_title_key(key)
+      return [] if tracks.empty?
+
+      memberships_by_track = PlaylistTrack.includes(playlist: :categories)
+                                          .where(track_id: tracks.map(&:id))
+                                          .order(:track_id, :playlist_id, :position)
+                                          .group_by(&:track_id)
+
+      tracks.filter_map do |track|
+        playlist_tracks = memberships_by_track[track.id]
+        next if playlist_tracks.blank?
+
+        {
+          track: track,
+          exact_spotify_id: track.spotify_id == @track[:spotify_id],
+          memberships: playlist_tracks.map do |playlist_track|
+            playlist = playlist_track.playlist
+            {
+              playlist: playlist,
+              position: playlist_track.position,
+              categories: ordered_categories(playlist.categories.to_a)
+            }
+          end
+        }
+      end
+    end
+
+    def tracks_with_title_key(key)
+      key.split.reduce(Track.all) do |scope, token|
+        pattern = "%#{ActiveRecord::Base.sanitize_sql_like(token)}%"
+        scope.where("LOWER(name) LIKE ?", pattern)
+      end.order(:artist, :album, :name).select { |track| title_key(track.name) == key }
     end
 
     def artist_stats
