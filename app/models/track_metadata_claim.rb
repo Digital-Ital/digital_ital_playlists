@@ -36,8 +36,13 @@ class TrackMetadataClaim < ApplicationRecord
     {
       "spotify" => "Spotify",
       "musicbrainz" => "MusicBrainz",
-      "discogs" => "Discogs"
+      "discogs" => "Discogs",
+      "discogs_candidate" => "Discogs candidate"
     }.fetch(source, source.to_s.humanize)
+  end
+
+  def discogs?
+    source.in?(%w[discogs discogs_candidate])
   end
 
   def release_year
