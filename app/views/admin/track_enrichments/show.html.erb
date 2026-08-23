@@ -53,7 +53,7 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h2 class="text-xl font-bold text-white">Verified Discogs release</h2>
-        <p class="mt-2 max-w-3xl text-sm text-gray-300">Discogs is especially useful for pressings and vintage credits. Find the exact release first, then paste only its release ID or URL. The API will reject it if that release does not contain this exact title.</p>
+        <p class="mt-2 max-w-3xl text-sm text-gray-300">Discogs is especially useful for pressings and vintage credits. Find the release first, then paste only its release ID or URL. The API checks the title and any track artist Discogs provides; use your own judgment for the exact version.</p>
       </div>
       <%= link_to "Search Discogs ↗", @discogs_search_url, target: "_blank", rel: "noopener", class: "shrink-0 text-sm font-semibold text-orange-300 hover:text-orange-200" %>
     </div>
@@ -70,7 +70,7 @@
       <%= form.submit "Save selection", class: "rounded-lg bg-orange-600 px-5 py-3 font-bold text-white transition hover:bg-orange-500" %>
     <% end %>
 
-    <p class="mt-3 text-xs text-gray-400">Changing or clearing the selected release removes its saved Discogs claims. Click “Refresh source evidence” after saving. Discogs facts expire after six hours and are never used as an origin claim.</p>
+    <p class="mt-3 text-xs text-gray-400">Changing or clearing the selected release removes its saved Discogs claims. Click “Refresh source evidence” after saving. Ambiguous same-title entries never contribute track-level credits. Discogs facts expire after six hours and are never used as an origin claim.</p>
   </section>
 
   <section class="mt-6 rounded-2xl border border-gray-700 bg-gray-900/70 p-6">
