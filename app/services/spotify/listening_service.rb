@@ -97,11 +97,10 @@ module Spotify
     private
 
     def access_token
-      response = token_request(
+      @access_token ||= token_request(
         grant_type: "refresh_token",
         refresh_token: @refresh_token
-      )
-      response.fetch("access_token")
+      ).fetch("access_token")
     end
 
     def token_request(params)
