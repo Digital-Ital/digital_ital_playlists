@@ -41,7 +41,7 @@
             <% end %>
 
             <% if membership[:added_at].present? %>
-              <p class="mt-3 text-xs text-gray-500">Added <%= membership[:added_at].strftime("%b %-d, %Y") %></p>
+              <p class="mt-3 text-xs text-gray-500" title="<%= membership[:added_at].strftime("%B %-d, %Y at %-l:%M %p") %>">Added <%= time_ago_in_words(membership[:added_at]) %> ago</p>
             <% end %>
           </div>
         </article>
