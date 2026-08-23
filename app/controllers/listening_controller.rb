@@ -2,7 +2,6 @@ class ListeningController < ApplicationController
   AUTO_REFRESH_AFTER = 30.days
   AUTO_RETRY_AFTER = 1.hour
   AUTO_ERROR_RETRY_AFTER = 10.minutes
-  DISCOGS_REFRESH_AFTER = 6.hours
 
   def show
     @query = params[:q].to_s.strip
@@ -110,9 +109,14 @@ class ListeningController < ApplicationController
     claims = enrichment.active_claims
     discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
 
+    # A missing Discogs candidate must retry after the ordinary retry window.
+    # Otherwise a temporary failure (including another source's 503) can hide
+    # Discogs for six hours even though this screen is designed to fill it in
+    # automatically while the song is playing.
+    return true if discogs_missing
+
     enrichment.last_refreshed_at.blank? ||
-      enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago ||
-      (discogs_missing && (enrichment.last_attempted_at.blank? || enrichment.last_attempted_at < DISCOGS_REFRESH_AFTER.ago))
+      enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago
   end
 
   def selected_lookup
