@@ -6,7 +6,7 @@ class CreateTrackMetadataClaims < ActiveRecord::Migration[8.0]
       t.string :source_identifier
       t.string :source_url
       t.string :field, null: false
-      t.json :value, default: {}
+      t.json :value, null: false, default: {}
       t.string :match_confidence, null: false, default: "supported"
       t.datetime :fetched_at, null: false
       t.datetime :expires_at
