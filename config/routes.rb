@@ -31,7 +31,7 @@ Rails.application.routes.draw do
     post "scheduler/pause", to: "scheduler#pause"
     post "scheduler/unpause", to: "scheduler#unpause"
     post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
-      end
+  end
 
   # API endpoints for infinite scroll
   get "api/playlists", to: "api/playlists#index"
