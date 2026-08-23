@@ -17,7 +17,7 @@
   <% end %>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
-    <section class="lg:col-span-3">
+    <section class="lg:col-span-3" data-listening-track-id="<%= @current_track&.dig(:spotify_id) %>">
       <div class="overflow-hidden rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-950/70 via-gray-900 to-gray-950 shadow-xl">
         <div class="border-b border-green-500/20 px-6 py-4">
           <p class="text-sm font-semibold text-green-400">● LIVE NOW PLAYING</p>
@@ -338,18 +338,29 @@
 <% if @connected && @query.blank? %>
   <script>
     (function() {
-      function scheduleListeningDeskRefresh() {
-        if (typeof window.listeningDeskSavedScrollY === "number") {
-          const savedScrollY = window.listeningDeskSavedScrollY;
-          delete window.listeningDeskSavedScrollY;
+      function currentListeningTrackId() {
+        return document.querySelector("[data-listening-track-id]")?.dataset.listeningTrackId || null;
+      }
 
+      function scheduleListeningDeskRefresh() {
+        const previousTrackId = window.listeningDeskPreviousTrackId;
+        const currentTrackId = currentListeningTrackId();
+        const savedScrollY = window.listeningDeskSavedScrollY;
+
+        delete window.listeningDeskPreviousTrackId;
+        delete window.listeningDeskSavedScrollY;
+
+        if (typeof savedScrollY === "number" && previousTrackId === currentTrackId) {
           window.requestAnimationFrame(function() {
             window.scrollTo(0, savedScrollY);
           });
+        } else if (previousTrackId !== undefined && previousTrackId !== currentTrackId) {
+          window.scrollTo(0, 0);
         }
 
         window.clearTimeout(window.listeningDeskRefreshTimer);
         window.listeningDeskRefreshTimer = window.setTimeout(function() {
+          window.listeningDeskPreviousTrackId = currentListeningTrackId();
           window.listeningDeskSavedScrollY = window.scrollY;
           Turbo.visit(window.location.href, { action: "replace" });
         }, 20000);
