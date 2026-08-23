@@ -340,9 +340,11 @@
     (function() {
       function scheduleListeningDeskRefresh() {
         if (typeof window.listeningDeskSavedScrollY === "number") {
+          const savedScrollY = window.listeningDeskSavedScrollY;
+          delete window.listeningDeskSavedScrollY;
+
           window.requestAnimationFrame(function() {
-            window.scrollTo(0, window.listeningDeskSavedScrollY);
-            delete window.listeningDeskSavedScrollY;
+            window.scrollTo(0, savedScrollY);
           });
         }
 
