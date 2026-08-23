@@ -3,7 +3,8 @@
   <style>#sticky-footer { display: none !important; }</style>
 <% end %>
 
-<div class="container mx-auto max-w-7xl px-4 py-8 sm:px-6">
+<div class="min-h-screen bg-gradient-to-b from-gray-950 via-slate-950 to-black">
+  <div class="container mx-auto max-w-7xl px-4 py-8 sm:px-6">
   <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
     <div>
       <p class="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-green-400">Digital Ital Listening Desk</p>
@@ -20,7 +21,7 @@
   <% end %>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-5">
-    <section class="lg:col-span-3" data-listening-track-id="<%= @current_track&.dig(:spotify_id) %>">
+    <section class="lg:col-span-5" data-listening-track-id="<%= @current_track&.dig(:spotify_id) %>">
       <div class="overflow-hidden rounded-2xl border border-green-500/30 bg-gradient-to-br from-green-950/70 via-gray-900 to-gray-950 shadow-xl">
         <div class="border-b border-green-500/20 px-6 py-4">
           <p class="text-sm font-semibold text-green-400">● LIVE NOW PLAYING</p>
@@ -69,45 +70,6 @@
       </div>
     </section>
 
-    <section class="rounded-2xl border border-gray-700 bg-gray-900/80 p-5 lg:col-span-2">
-      <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-bold text-white">Recent listens</h2>
-        <span class="text-xs text-gray-400">Last 10</span>
-      </div>
-
-      <% if @recent_tracks.any? %>
-        <div class="space-y-2">
-          <% @recent_tracks.each do |track| %>
-            <%= link_to listening_path(
-                  spotify_id: track[:spotify_id],
-                  name: track[:name],
-                  artist: track[:artist],
-                  album: track[:album],
-                  image_url: track[:image_url],
-                  external_url: track[:external_url],
-                  duration_ms: track[:duration_ms]
-                ), class: "flex items-center gap-3 rounded-lg p-2 transition hover:bg-gray-800" do %>
-              <% if track[:image_url].present? %>
-                <img src="<%= track[:image_url] %>" alt="" class="h-11 w-11 rounded object-cover">
-              <% else %>
-                <div class="flex h-11 w-11 items-center justify-center rounded bg-gray-800">🎵</div>
-              <% end %>
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-semibold text-white"><%= track[:name] %></p>
-                <p class="truncate text-xs text-gray-400"><%= track[:artist] %></p>
-              </div>
-              <% if track[:played_at].present? %>
-                <span class="whitespace-nowrap text-xs text-gray-500"><%= time_ago_in_words(Time.zone.parse(track[:played_at])) %> ago</span>
-              <% end %>
-            <% end %>
-          <% end %>
-        </div>
-      <% elsif @connected %>
-        <p class="py-8 text-center text-sm text-gray-400">Spotify has no recent song history to show yet.</p>
-      <% else %>
-        <p class="py-8 text-center text-sm text-gray-400">Recent listening will appear here after Spotify is linked.</p>
-      <% end %>
-    </section>
   </div>
 
   <section class="mt-8 rounded-2xl border border-yellow-500/25 bg-black/40 p-6">
@@ -226,6 +188,9 @@
       </section>
     </section>
   <% end %>
+
+  <%= render "recent_listens", recent_tracks: @recent_tracks, connected: @connected %>
+  </div>
 </div>
 
 <script>
