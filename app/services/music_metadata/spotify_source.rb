@@ -8,8 +8,9 @@ module MusicMetadata
     TOKEN_URL = URI("https://accounts.spotify.com/api/token")
     TRACK_BASE_URL = "https://api.spotify.com/v1/tracks/"
 
-    def initialize(track)
+    def initialize(track, deadline: nil)
       @track = track
+      @deadline = deadline
     end
 
     def call
@@ -105,7 +106,14 @@ module MusicMetadata
     end
 
     def json_response(uri, request)
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 10) do |http|
+      timeouts = request_timeouts
+      response = Net::HTTP.start(
+        uri.host,
+        uri.port,
+        use_ssl: true,
+        open_timeout: timeouts.fetch(:open_timeout),
+        read_timeout: timeouts.fetch(:read_timeout)
+      ) do |http|
         http.request(request)
       end
       raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
@@ -115,6 +123,25 @@ module MusicMetadata
       raise "unreadable response"
     rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
       raise "network error (#{e.message})"
+    end
+
+    def request_timeouts
+      remaining = seconds_remaining
+      return { open_timeout: 1.5, read_timeout: 3 } unless remaining
+
+      raise "refresh time budget exhausted" if remaining <= 0.2
+
+      open_timeout = [ 1.5, remaining / 2 ].min
+      read_timeout = [ 3, remaining - open_timeout ].min
+      raise "refresh time budget exhausted" if read_timeout <= 0.1
+
+      { open_timeout: open_timeout, read_timeout: read_timeout }
+    end
+
+    def seconds_remaining
+      return unless @deadline
+
+      @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def skipped
