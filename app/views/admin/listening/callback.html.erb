@@ -1,0 +1,24 @@
+<% content_for :title, "Spotify Listening Connected | Digital Ital Crates" %>
+
+<div class="container mx-auto max-w-2xl px-4 py-12 sm:px-6">
+  <div class="rounded-2xl border border-green-500/40 bg-gray-900 p-7 shadow-2xl">
+    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-green-400">Spotify authorization complete</p>
+    <h1 class="mt-2 text-3xl font-bold text-white">Save this refresh token once</h1>
+    <p class="mt-3 text-gray-300">Add it to Heroku as <code class="rounded bg-gray-800 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code>. It is not stored in the app database or committed to GitHub.</p>
+
+    <label for="refresh-token" class="mt-6 block text-sm font-semibold text-white">One-time refresh token</label>
+    <textarea id="refresh-token" readonly rows="5" onclick="this.select()" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 font-mono text-xs text-green-300"><%= @refresh_token %></textarea>
+    <p class="mt-2 text-xs text-gray-400">Click the field to select it, then copy it. This page is not cached.</p>
+
+    <ol class="mt-6 list-decimal space-y-2 pl-5 text-sm text-gray-300">
+      <li>In Heroku, open <strong>Settings → Config Vars</strong>.</li>
+      <li>Add <code class="rounded bg-gray-800 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code> with the value above.</li>
+      <li>Return to the public Listening Desk and refresh it.</li>
+    </ol>
+
+    <div class="mt-7 flex flex-wrap gap-3">
+      <%= link_to "Open Listening Desk →", listening_path, class: "rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
+      <%= link_to "Back to admin", admin_root_path, class: "rounded-lg bg-gray-700 px-5 py-3 font-semibold text-white transition hover:bg-gray-600" %>
+    </div>
+  </div>
+</div>

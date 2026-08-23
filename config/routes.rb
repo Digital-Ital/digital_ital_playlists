@@ -5,9 +5,12 @@ Rails.application.routes.draw do
   resources :categories, only: [ :show ]
   get "whats-new", to: "pages#whats_new", as: :whats_new
   get "all-songs", to: "pages#all_songs", as: :all_songs
+  get "listening", to: "listening#show", as: :listening
 
       namespace :admin do
         root to: "dashboard#index"
+        get "listening/connect", to: "listening#authorize", as: :listening_authorize
+        get "listening/spotify/callback", to: "listening#callback", as: :listening_spotify_callback
         resources :categories
         resources :playlists do
           collection do
