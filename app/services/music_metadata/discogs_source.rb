@@ -8,9 +8,10 @@ module MusicMetadata
     API_BASE_URL = "https://api.discogs.com/releases/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
 
-    def initialize(track, enrichment)
+    def initialize(track, enrichment, deadline: nil)
       @track = track
       @enrichment = enrichment
+      @deadline = deadline
     end
 
     def call
@@ -47,7 +48,14 @@ module MusicMetadata
       request["Authorization"] = "Discogs token=#{ENV.fetch("DISCOGS_USER_TOKEN")}"
       request["User-Agent"] = USER_AGENT
 
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 10) do |http|
+      timeouts = request_timeouts
+      response = Net::HTTP.start(
+        uri.host,
+        uri.port,
+        use_ssl: true,
+        open_timeout: timeouts.fetch(:open_timeout),
+        read_timeout: timeouts.fetch(:read_timeout)
+      ) do |http|
         http.request(request)
       end
       raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
@@ -61,13 +69,45 @@ module MusicMetadata
 
     def matching_release_tracks(payload)
       title = normalize(@track.name)
-      Array(payload["tracklist"]).select { |entry| normalize(entry["title"]) == title }
+
+      Array(payload["tracklist"]).select do |entry|
+        next false unless normalize(entry["title"]) == title
+
+        artist = track_artist(entry)
+        artist.blank? || compatible_artist?(artist)
+      end
+    end
+
+    def track_artist(entry)
+      artists = entry["artists"] || entry["artist"]
+      Array(artists).filter_map do |artist|
+        artist.is_a?(Hash) ? artist["name"] : artist
+      end.join(", ").presence
+    end
+
+    def compatible_artist?(candidate)
+      source_tokens = normalize(@track.artist).split
+      candidate_tokens = normalize(candidate).split
+      return false if source_tokens.empty? || candidate_tokens.empty?
+
+      (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
     end
 
     def claims_from(payload, matching_tracks)
       source_url = "https://www.discogs.com/release/#{release_id}"
       source_identifier = release_id
       release_date = payload["released"].presence || payload["year"].presence
+      track_level_claims = if matching_tracks.one?
+        credit_claims(
+          matching_tracks.first["extraartists"],
+          "Discogs track-level credit from a single compatible title match",
+          source_identifier,
+          source_url,
+          scope: "discogs_selected_release_track"
+        )
+      else
+        []
+      end
 
       [
         claim(
@@ -92,15 +132,7 @@ module MusicMetadata
           source_identifier,
           source_url
         ),
-        *matching_tracks.flat_map do |entry|
-          credit_claims(
-            entry["extraartists"],
-            "Discogs track-level credit",
-            source_identifier,
-            source_url,
-            scope: "discogs_selected_release_track"
-          )
-        end,
+        *track_level_claims,
         *tag_claims(payload, source_identifier, source_url)
       ].compact
     end
@@ -188,12 +220,31 @@ module MusicMetadata
         source: "discogs",
         claims: [],
         metadata: {},
-        error: "Discogs: the selected release does not contain an exact matching track title."
+        error: "Discogs: the selected release does not contain a compatible title and track artist."
       )
     end
 
     def skipped
       SourceResult.new(source: "discogs", claims: [], metadata: {}, skipped: true, error: nil)
+    end
+
+    def request_timeouts
+      remaining = seconds_remaining
+      return { open_timeout: 1.5, read_timeout: 3 } unless remaining
+
+      raise "refresh time budget exhausted" if remaining <= 0.2
+
+      open_timeout = [ 1.5, remaining / 2 ].min
+      read_timeout = [ 3, remaining - open_timeout ].min
+      raise "refresh time budget exhausted" if read_timeout <= 0.1
+
+      { open_timeout: open_timeout, read_timeout: read_timeout }
+    end
+
+    def seconds_remaining
+      return unless @deadline
+
+      @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def normalize(value)
