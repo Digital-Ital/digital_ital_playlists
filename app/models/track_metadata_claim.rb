@@ -15,8 +15,21 @@ class TrackMetadataClaim < ApplicationRecord
     (claim_data["comparison"].presence || display_value).to_s.downcase.squish.presence
   end
 
+  def comparison_scope
+    claim_data["scope"].presence || field
+  end
+
   def high_confidence_match?
     %w[spotify_id isrc_exact curator_selected_release].include?(match_confidence)
+  end
+
+  def confidence_label
+    {
+      "spotify_id" => "Spotify recording match",
+      "isrc_exact" => "ISRC recording match",
+      "curator_selected_release" => "Curator-selected release",
+      "candidate_title_artist_duration" => "Title / artist / duration candidate"
+    }.fetch(match_confidence, match_confidence.to_s.humanize)
   end
 
   def source_label
