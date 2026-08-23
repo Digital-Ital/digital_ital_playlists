@@ -19,7 +19,7 @@ module MusicMetadata
     def call
       return skipped unless configured?
 
-      candidate = search_results.find { |result| usable_candidate?(result) }
+      candidate = search_results.select { |result| usable_candidate?(result) }.min_by { |result| result.fetch("year").to_i }
       return SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil) unless candidate
 
       SourceResult.new(
@@ -44,7 +44,9 @@ module MusicMetadata
         track: @track.name.to_s,
         artist: @track.artist.to_s,
         type: "release",
-        per_page: 10
+        sort: "year",
+        sort_order: "asc",
+        per_page: 50
       )
       request = Net::HTTP::Get.new(uri)
       request["Authorization"] = "Discogs token=#{ENV.fetch("DISCOGS_USER_TOKEN")}"
@@ -86,7 +88,7 @@ module MusicMetadata
           value: {
             "text" => candidate.fetch("year").to_s,
             "comparison" => candidate.fetch("year").to_s,
-            "context" => "Discogs automatic title / artist search candidate — release or pressing not verified",
+            "context" => "Earliest compatible Discogs title / artist search candidate — release or pressing not verified",
             "scope" => "discogs_search_candidate"
           },
           match_confidence: "candidate_title_artist_duration",
@@ -99,7 +101,7 @@ module MusicMetadata
           value: {
             "text" => candidate["title"].to_s,
             "comparison" => candidate["title"].to_s,
-            "context" => "Discogs automatic search candidate release title",
+            "context" => "Earliest compatible Discogs search candidate release title",
             "scope" => "discogs_search_candidate"
           },
           match_confidence: "candidate_title_artist_duration",
