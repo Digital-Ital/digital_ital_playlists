@@ -136,6 +136,16 @@
             <span class="text-yellow-300 text-sm font-medium">Chronological order, daily updated</span>
           <% end %>
 
+          <%= link_to listening_path, class: "group flex flex-col items-center gap-3 px-10 py-6 bg-gradient-to-r from-violet-800 via-purple-800 to-indigo-900 rounded-2xl hover:from-violet-700 hover:via-purple-700 hover:to-indigo-800 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-purple-700/50 border-2 border-purple-400/30" do %>
+            <div class="flex items-center gap-4">
+              <span class="text-3xl">🎧</span>
+              <span class="text-white font-bold text-xl">Listening Desk</span>
+              <span class="text-3xl">🧭</span>
+            </div>
+            <span class="text-purple-100 text-base font-medium">→ Find where a song lives in the crates</span>
+            <span class="text-purple-200 text-sm font-medium">Search artists, titles, albums & live listening</span>
+          <% end %>
+
           <%= link_to all_songs_path, class: "group flex flex-col items-center gap-3 px-10 py-6 bg-gradient-to-r from-green-700 via-emerald-700 to-teal-800 rounded-2xl hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-105 shadow-2xl hover:shadow-emerald-700/50 border-2 border-green-400/30" do %>
             <div class="flex items-center gap-4">
               <span class="text-3xl">📚</span>
