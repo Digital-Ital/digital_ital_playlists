@@ -209,7 +209,6 @@ class SpotifyRecoveryClient
   end
 
 end
-
 requested_ids = ENV.fetch("ONLY", "").split(",").map(&:strip).reject(&:blank?)
 target_ids = requested_ids.presence || PLAYLIST_IDS
 unknown_requested_ids = target_ids - PLAYLIST_IDS
@@ -270,4 +269,3 @@ if failures.any?
 end
 
 puts APPLY ? "Recovery complete. No playlists or category links were deleted." : "Dry run complete. Re-run with APPLY=true to save."
-
