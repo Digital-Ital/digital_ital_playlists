@@ -75,11 +75,9 @@ class TrackEnrichment < ApplicationRecord
   def evidence_state_for(field, claims)
     return "supported" if MULTI_VALUE_FIELDS.include?(field)
 
-    comparison_values = claims.map(&:comparison_value).compact.uniq
-    return "disputed" if comparison_values.size > 1
-
-    high_confidence_sources = claims.select(&:high_confidence_match?).map(&:source).uniq
-    return "confirmed" if high_confidence_sources.size >= 2
+    comparable_claims = claims.group_by(&:comparison_scope).values
+    return "disputed" if comparable_claims.any? { |group| differing_values?(group) }
+    return "confirmed" if comparable_claims.any? { |group| corroborated?(group) }
 
     "supported"
   end
@@ -92,5 +90,15 @@ class TrackEnrichment < ApplicationRecord
 
   def decisions
     (curator_decisions || {}).to_h.deep_dup
+  end
+
+  def differing_values?(claims)
+    claims.map(&:comparison_value).compact.uniq.size > 1
+  end
+
+  def corroborated?(claims)
+    claims.group_by(&:comparison_value).any? do |_value, same_value_claims|
+      same_value_claims.select(&:high_confidence_match?).map(&:source).uniq.size >= 2
+    end
   end
 end
