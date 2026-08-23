@@ -108,6 +108,16 @@ module MusicMetadata
       else
         []
       end
+      track_position_claim = if matching_tracks.one?
+        claim(
+          "release_position",
+          matching_tracks.first["position"],
+          "Discogs track position on the curator-selected release",
+          source_identifier,
+          source_url,
+          scope: "discogs_selected_release_track"
+        )
+      end
 
       [
         claim(
@@ -125,6 +135,8 @@ module MusicMetadata
           source_url
         ),
         claim("release_title", payload["title"], "Discogs curator-selected release", source_identifier, source_url),
+        *format_claims(payload["formats"], source_identifier, source_url),
+        track_position_claim,
         *label_claims(payload["labels"], source_identifier, source_url),
         *credit_claims(
           payload["extraartists"],
@@ -135,6 +147,25 @@ module MusicMetadata
         *track_level_claims,
         *tag_claims(payload, source_identifier, source_url)
       ].compact
+    end
+
+    def format_claims(formats, source_identifier, source_url)
+      Array(formats).filter_map do |format|
+        parts = [
+          format["name"],
+          *Array(format["descriptions"]),
+          format["text"]
+        ].filter_map { |part| part.to_s.strip.presence }.uniq
+        next if parts.empty?
+
+        claim(
+          "release_format",
+          parts.join(" · "),
+          "Discogs curator-selected release format",
+          source_identifier,
+          source_url
+        )
+      end.uniq { |entry| entry.dig(:value, "text") }
     end
 
     def label_claims(labels, source_identifier, source_url)
