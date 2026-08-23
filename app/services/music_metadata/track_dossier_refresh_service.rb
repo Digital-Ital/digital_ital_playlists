@@ -40,14 +40,16 @@ module MusicMetadata
     def sync_source_result!(result)
       return unless result.successful?
 
-      @enrichment.track_metadata_claims.where(source: result.source).delete_all
-      Array(result.claims).each do |claim|
-        @enrichment.track_metadata_claims.create!(
-          claim.merge(
-            source: result.source,
-            fetched_at: Time.current
+      TrackMetadataClaim.transaction do
+        @enrichment.track_metadata_claims.where(source: result.source).delete_all
+        Array(result.claims).each do |claim|
+          @enrichment.track_metadata_claims.create!(
+            claim.merge(
+              source: result.source,
+              fetched_at: Time.current
+            )
           )
-        )
+        end
       end
     end
 
