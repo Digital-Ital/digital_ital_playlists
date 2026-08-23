@@ -129,6 +129,7 @@
     <section class="mt-5 rounded-xl border border-dashed border-cyan-400/30 bg-black/20 p-4">
       <h4 class="font-semibold text-cyan-100">No cached source research yet</h4>
       <p class="mt-1 text-sm text-gray-300">This exact local track is ready for research. A deliberate owner refresh can save release years, genre/style, credits, and verified edition details; the Listening Desk itself never contacts music services.</p>
+      <%= link_to "Owner research controls →", admin_track_enrichment_path(track), class: "mt-3 inline-flex text-sm font-semibold text-violet-300 hover:text-violet-200" %>
     </section>
   <% end %>
 

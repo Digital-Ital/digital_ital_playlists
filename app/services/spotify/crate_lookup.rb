@@ -44,7 +44,13 @@ module Spotify
 
     def result(local_tracks: nil, match_type: nil)
       local_tracks ||= matching_tracks
-      match_type ||= local_tracks.any? ? :likely_duplicate : :not_found
+      match_type ||= if exact_spotify_match?(local_tracks)
+        :exact
+      elsif local_tracks.any?
+        :likely_duplicate
+      else
+        :not_found
+      end
 
       {
         source: @track,
@@ -83,6 +89,11 @@ module Spotify
           artist_key(track.artist) == candidate_artist &&
           compatible_duration?(track.duration_ms)
       end.first(20)
+    end
+
+    def exact_spotify_match?(tracks)
+      @track[:spotify_id].present? &&
+        tracks.any? { |track| track.spotify_id == @track[:spotify_id] }
     end
 
     def memberships_for(local_tracks)
