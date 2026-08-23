@@ -10,6 +10,7 @@ module MusicMetadata
   class DiscogsCandidateSource
     SEARCH_URL = URI("https://api.discogs.com/database/search")
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
+    CANDIDATE_STRATEGY = "earliest-master-or-release-v2"
 
     def initialize(track, deadline: nil)
       @track = track
@@ -19,13 +20,13 @@ module MusicMetadata
     def call
       return skipped unless configured?
 
-      candidate = search_results.select { |result| usable_candidate?(result) }.min_by { |result| result.fetch("year").to_i }
+      candidate = earliest_candidate("master") || earliest_candidate("release")
       return SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil) unless candidate
 
       SourceResult.new(
         source: "discogs_candidate",
-        claims: claims_from(candidate),
-        metadata: { release_id: candidate["id"] },
+        claims: claims_from(candidate.fetch(:result), candidate.fetch(:kind)),
+        metadata: { identifier: candidate.dig(:result, "id"), kind: candidate.fetch(:kind) },
         error: nil
       )
     rescue StandardError => e
@@ -38,12 +39,20 @@ module MusicMetadata
       ENV["DISCOGS_USER_TOKEN"].present?
     end
 
-    def search_results
+    def earliest_candidate(kind)
+      result = search_results(kind)
+        .select { |entry| usable_candidate?(entry) }
+        .min_by { |entry| entry.fetch("year").to_i }
+
+      result && { result: result, kind: kind }
+    end
+
+    def search_results(kind)
       uri = SEARCH_URL.dup
       uri.query = URI.encode_www_form(
         track: @track.name.to_s,
         artist: @track.artist.to_s,
-        type: "release",
+        type: kind,
         sort: "year",
         sort_order: "asc",
         per_page: 50
@@ -69,45 +78,49 @@ module MusicMetadata
     end
 
     def usable_candidate?(result)
-      return false unless result["id"].present? && result["year"].to_s.match?(/\A(?:1[0-9]{3}|20[0-9]{2})\z/)
+      return false unless result["id"].present? && result["year"].to_s.match?(/A(?:1[0-9]{3}|20[0-9]{2})z/)
 
       title = normalize(result["title"])
       artist_tokens = normalize(@track.artist).split.first(4)
       artist_tokens.any? && artist_tokens.all? { |token| title.include?(token) }
     end
 
-    def claims_from(candidate)
-      release_id = candidate.fetch("id").to_s
-      source_url = "https://www.discogs.com/release/#{release_id}"
+    def claims_from(candidate, kind)
+      identifier = candidate.fetch("id").to_s
+      source_url = "https://www.discogs.com/#{kind}/#{identifier}"
+      context = candidate_context(kind)
 
       [
-        {
-          source_identifier: release_id,
-          source_url: source_url,
-          field: "release_date",
-          value: {
-            "text" => candidate.fetch("year").to_s,
-            "comparison" => candidate.fetch("year").to_s,
-            "context" => "Earliest compatible Discogs title / artist search candidate — release or pressing not verified",
-            "scope" => "discogs_search_candidate"
-          },
-          match_confidence: "candidate_title_artist_duration",
-          expires_at: 6.hours.from_now
+        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
+        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind)
+      ].compact
+    end
+
+    def claim(field, text, context, identifier, source_url, kind)
+      return if text.blank?
+
+      {
+        source_identifier: identifier,
+        source_url: source_url,
+        field: field,
+        value: {
+          "text" => text,
+          "comparison" => text,
+          "context" => context,
+          "scope" => "discogs_#{kind}_candidate",
+          "candidate_strategy" => CANDIDATE_STRATEGY
         },
-        {
-          source_identifier: release_id,
-          source_url: source_url,
-          field: "release_title",
-          value: {
-            "text" => candidate["title"].to_s,
-            "comparison" => candidate["title"].to_s,
-            "context" => "Earliest compatible Discogs search candidate release title",
-            "scope" => "discogs_search_candidate"
-          },
-          match_confidence: "candidate_title_artist_duration",
-          expires_at: 6.hours.from_now
-        }
-      ].select { |claim| claim.dig(:value, "text").present? }
+        match_confidence: "candidate_title_artist_duration",
+        expires_at: 6.hours.from_now
+      }
+    end
+
+    def candidate_context(kind)
+      if kind == "master"
+        "Earliest compatible Discogs master-release candidate — a release family, not a verified recording"
+      else
+        "Earliest compatible Discogs title / artist release candidate — pressing not verified"
+      end
     end
 
     def request_timeouts

@@ -1,6 +1,7 @@
 class ListeningController < ApplicationController
   AUTO_REFRESH_AFTER = 30.days
   AUTO_RETRY_AFTER = 1.hour
+  AUTO_ERROR_RETRY_AFTER = 10.minutes
   DISCOGS_REFRESH_AFTER = 6.hours
 
   def show
@@ -96,7 +97,15 @@ class ListeningController < ApplicationController
     return false if enrichment.status == "refreshing" &&
       enrichment.last_attempted_at.present? &&
       enrichment.last_attempted_at > MusicMetadata::TrackDossierRefreshService::REFRESH_STALE_AFTER.ago
-    return false if enrichment.last_attempted_at.present? && enrichment.last_attempted_at > AUTO_RETRY_AFTER.ago
+    if enrichment.discogs_candidate_strategy_stale?
+      discogs_failed_recently = enrichment.last_error.to_s.include?("Discogs:") &&
+        enrichment.last_attempted_at.present? &&
+        enrichment.last_attempted_at > AUTO_ERROR_RETRY_AFTER.ago
+      return !discogs_failed_recently
+    end
+
+    retry_after = enrichment.last_error.present? ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
+    return false if enrichment.last_attempted_at.present? && enrichment.last_attempted_at > retry_after.ago
 
     claims = enrichment.active_claims
     discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
