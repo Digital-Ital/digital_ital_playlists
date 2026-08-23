@@ -67,7 +67,11 @@ module MusicMetadata
     end
 
     def usable_candidate?(result)
-      result["id"].present? && result["year"].to_s.match?(/\A(?:1[0-9]{3}|20[0-9]{2})\z/)
+      return false unless result["id"].present? && result["year"].to_s.match?(/\A(?:1[0-9]{3}|20[0-9]{2})\z/)
+
+      title = normalize(result["title"])
+      artist_tokens = normalize(@track.artist).split.first(4)
+      artist_tokens.any? && artist_tokens.all? { |token| title.include?(token) }
     end
 
     def claims_from(candidate)
