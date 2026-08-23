@@ -124,9 +124,12 @@ class TrackEnrichment < ApplicationRecord
 
   def curator_summary(claims = active_claims.to_a)
     local_claims = Array(claims)
+    release_years = summary_release_years(local_claims)
 
     {
-      release_years: summary_release_years(local_claims),
+      release_years: release_years,
+      earliest_reliable_year: release_years.select(&:high_confidence_match?)
+                                           .min_by { |claim| claim.release_year.to_i },
       classifications: summary_claim_groups(
         local_claims,
         SUMMARY_CLASSIFICATION_FIELDS,
