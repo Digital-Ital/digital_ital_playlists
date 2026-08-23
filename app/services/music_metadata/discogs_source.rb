@@ -136,14 +136,20 @@ module MusicMetadata
         case part
         when /producer/
           "producer"
-        when /engineer|master/
+        when /master/
+          "mastering_engineer"
+        when /engineer/
           "engineer"
+        when /mixer/
+          "mixer"
         when /lyric/
           "lyricist"
         when /written|writer/
           "writer"
-        when /composer|composed|arrang/
+        when /composer|composed/
           "composer"
+        when /arrang/
+          "arranger"
         when /perform|vocals|guitar|drums|bass|keyboard|percussion/
           "performer"
         end
