@@ -358,7 +358,8 @@ module MusicMetadata
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
     end
 
-    def get(path, params = {}, allow_not_found: false)
+    def get(path, params = {}, allow_not_found: false, **keyword_params)
+      params = params.to_h.merge(keyword_params)
       attempts = 0
 
       begin
