@@ -1,0 +1,16 @@
+<% spotify_year = live_spotify_release_date.to_s[/\A(?:1[0-9]{3}|20[0-9]{2})\b/] %>
+<%= turbo_frame_tag "curator-summary-#{track.id}", data: { auto_dossier: true, auto_dossier_url: auto_listening_dossier_path(track_id: track.id) } do %>
+  <section class="mt-7 rounded-xl border border-cyan-400/25 bg-cyan-950/15 p-5">
+    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Automatic catalogue research</p>
+    <h3 class="mt-1 text-xl font-bold text-white">Source years & curator signals</h3>
+    <% if spotify_year.present? %>
+      <div class="mt-4 rounded-lg border border-green-400/25 bg-green-950/25 px-4 py-3">
+        <p class="text-xs font-semibold uppercase tracking-wide text-green-300">Spotify live playback</p>
+        <p class="mt-1 text-2xl font-bold text-white"><%= spotify_year %></p>
+        <p class="text-xs text-gray-300">Spotify album/reissue year. MusicBrainz and Discogs are loading automatically.</p>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-gray-300">Loading saved source years; any missing source is being researched automatically now.</p>
+    <% end %>
+  </section>
+<% end %>
