@@ -9,8 +9,9 @@ module MusicMetadata
   # treats a candidate pressing as a verified original release.
   class DiscogsCandidateSource
     SEARCH_URL = URI("https://api.discogs.com/database/search")
+    MASTER_BASE_URL = "https://api.discogs.com/masters/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
-    CANDIDATE_STRATEGY = "earliest-master-or-release-v3"
+    CANDIDATE_STRATEGY = "earliest-release-linked-master-v4"
 
     def initialize(track, deadline: nil)
       @track = track
@@ -20,12 +21,13 @@ module MusicMetadata
     def call
       return skipped unless configured?
 
-      candidate = earliest_candidate("master") || earliest_candidate("release")
+      release_candidate = earliest_candidate("release")
+      candidate = linked_master_for(release_candidate) || release_candidate || earliest_candidate("master")
       return no_candidate unless candidate
 
       SourceResult.new(
         source: "discogs_candidate",
-        claims: claims_from(candidate.fetch(:result), candidate.fetch(:kind)),
+        claims: claims_from(candidate.fetch(:result), candidate.fetch(:kind), linked_release_id: candidate[:linked_release_id]),
         metadata: { identifier: candidate.dig(:result, "id"), kind: candidate.fetch(:kind) },
         error: nil
       )
@@ -57,6 +59,27 @@ module MusicMetadata
         sort_order: "asc",
         per_page: 50
       )
+
+      Array(get_json(uri).fetch("results", []))
+    end
+
+    # A Discogs master is a release family, so searching masters by an
+    # individual track title often misses the real family. Search releases by
+    # track first, then follow the selected release's master_id when present.
+    def linked_master_for(release_candidate)
+      master_id = release_candidate&.dig(:result, "master_id").to_s
+      return if master_id.blank? || !master_id.match?(/\A\d+\z/)
+
+      master = get_json(URI("#{MASTER_BASE_URL}#{master_id}"))
+      return unless usable_candidate?(master)
+
+      { result: master, kind: "master", linked_release_id: release_candidate.dig(:result, "id") }
+    rescue StandardError => e
+      Rails.logger.info("Discogs master lookup skipped for #{@track.spotify_id}: #{e.message}")
+      nil
+    end
+
+    def get_json(uri)
       request = Net::HTTP::Get.new(uri)
       request["Authorization"] = "Discogs token=#{ENV.fetch("DISCOGS_USER_TOKEN")}"
       request["User-Agent"] = USER_AGENT
@@ -70,7 +93,7 @@ module MusicMetadata
       ) { |http| http.request(request) }
       raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-      Array(JSON.parse(response.body).fetch("results", []))
+      JSON.parse(response.body)
     rescue JSON::ParserError
       raise "unreadable response"
     rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
@@ -84,16 +107,16 @@ module MusicMetadata
       result["id"].present? && result["year"].to_s.match?(/^(?:1[0-9]{3}|20[0-9]{2})$/)
     end
 
-    def claims_from(candidate, kind)
+    def claims_from(candidate, kind, linked_release_id: nil)
       identifier = candidate.fetch("id").to_s
       source_url = "https://www.discogs.com/#{kind}/#{identifier}"
-      context = candidate_context(kind)
+      context = candidate_context(kind, linked_release_id)
 
       [
         claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
         claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind),
-        *taxonomy_claims(candidate["genre"], "genre", context, identifier, source_url, kind),
-        *taxonomy_claims(candidate["style"], "tag", context, identifier, source_url, kind)
+        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind),
+        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind)
       ].compact
     end
 
@@ -133,8 +156,10 @@ module MusicMetadata
       }
     end
 
-    def candidate_context(kind)
-      if kind == "master"
+    def candidate_context(kind, linked_release_id)
+      if kind == "master" && linked_release_id.present?
+        "Discogs master linked from an earliest compatible release candidate — release family, not a verified recording"
+      elsif kind == "master"
         "Earliest compatible Discogs master-release candidate — a release family, not a verified recording"
       else
         "Earliest compatible Discogs title / artist release candidate — pressing not verified"
