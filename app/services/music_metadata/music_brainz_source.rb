@@ -28,9 +28,10 @@ module MusicMetadata
       attr_accessor :last_request_at
     end
 
-    def initialize(track, isrc:)
+    def initialize(track, isrc:, deadline: nil)
       @track = track
       @isrc = isrc.presence
+      @deadline = deadline
     end
 
     def call
@@ -88,8 +89,8 @@ module MusicMetadata
       [
         claim(
           "isrc",
-          @isrc,
-          "MusicBrainz recording match",
+          recording_isrc(recording),
+          "MusicBrainz recording ISRC",
           recording_id,
           source_url,
           match_confidence,
@@ -267,7 +268,14 @@ module MusicMetadata
       request["Accept"] = "application/json"
       request["User-Agent"] = USER_AGENT
 
-      response = Net::HTTP.start(uri.host, uri.port, use_ssl: true, open_timeout: 5, read_timeout: 10) do |http|
+      timeouts = request_timeouts
+      response = Net::HTTP.start(
+        uri.host,
+        uri.port,
+        use_ssl: true,
+        open_timeout: timeouts.fetch(:open_timeout),
+        read_timeout: timeouts.fetch(:read_timeout)
+      ) do |http|
         http.request(request)
       end
       raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
@@ -283,9 +291,40 @@ module MusicMetadata
       REQUEST_MUTEX.synchronize do
         now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         elapsed = now - self.class.last_request_at.to_f
-        sleep(REQUEST_INTERVAL_SECONDS - elapsed) if elapsed < REQUEST_INTERVAL_SECONDS
+        wait_seconds = [ REQUEST_INTERVAL_SECONDS - elapsed, 0 ].max
+
+        if seconds_remaining && wait_seconds >= seconds_remaining
+          raise "refresh time budget exhausted"
+        end
+
+        sleep(wait_seconds) if wait_seconds.positive?
         self.class.last_request_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
+    end
+
+    def recording_isrc(recording)
+      return if @isrc.blank?
+
+      Array(recording["isrcs"]).find { |isrc| isrc.to_s.casecmp?(@isrc.to_s) }
+    end
+
+    def request_timeouts
+      remaining = seconds_remaining
+      return { open_timeout: 1.5, read_timeout: 3 } unless remaining
+
+      raise "refresh time budget exhausted" if remaining <= 0.2
+
+      open_timeout = [ 1.5, remaining / 2 ].min
+      read_timeout = [ 3, remaining - open_timeout ].min
+      raise "refresh time budget exhausted" if read_timeout <= 0.1
+
+      { open_timeout: open_timeout, read_timeout: read_timeout }
+    end
+
+    def seconds_remaining
+      return unless @deadline
+
+      @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
     def search_value(value)
