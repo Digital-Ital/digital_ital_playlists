@@ -61,8 +61,8 @@ module MusicMetadata
       if @isrc.present?
         # An ISRC lookup already returns its recordings. MusicBrainz rejects
         # inc=recordings here with HTTP 400, so do not add a subquery.
-        payload = get("isrc/#{URI.encode_www_form_component(@isrc)}")
-        candidate = Array(payload["recordings"]).first
+        payload = get("isrc/#{URI.encode_www_form_component(@isrc)}", allow_not_found: true)
+        candidate = Array(payload.to_h["recordings"]).first
         return [ candidate, "isrc_exact" ] if candidate.present?
       end
 
@@ -358,7 +358,7 @@ module MusicMetadata
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
     end
 
-    def get(path, params = {})
+    def get(path, params = {}, allow_not_found: false)
       attempts = 0
 
       begin
@@ -380,6 +380,7 @@ module MusicMetadata
         ) do |http|
           http.request(request)
         end
+        return nil if response.code == "404" && allow_not_found
         raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
         JSON.parse(response.body)
