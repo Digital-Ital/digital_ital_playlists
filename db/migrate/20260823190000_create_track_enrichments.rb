@@ -6,7 +6,7 @@ class CreateTrackEnrichments < ActiveRecord::Migration[8.0]
       t.datetime :last_refreshed_at
       t.datetime :last_attempted_at
       t.text :last_error
-      t.json :curator_decisions, default: {}
+      t.json :curator_decisions, null: false, default: {}
 
       t.timestamps
     end
