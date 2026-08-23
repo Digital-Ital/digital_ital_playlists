@@ -46,7 +46,7 @@ class Admin::TrackEnrichmentsController < Admin::BaseController
   end
 
   def discogs_release_id_from(value)
-    return value if value.match?(/Ad+z/)
+    return value if value.match?(/\A\d+\z/)
 
     value[%r{discogs\.com/(?:[^/]+/)?release/(\d+)}i, 1] ||
       value[%r{\Arelease/(\d+)}i, 1]
