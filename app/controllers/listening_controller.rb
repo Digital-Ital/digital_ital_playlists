@@ -20,6 +20,23 @@ class ListeningController < ApplicationController
     @recent_tracks ||= []
   end
 
+  def footprint
+    @scope = params[:scope].to_s
+    return head :bad_request unless %w[artist album].include?(@scope)
+
+    source = requested_track
+    return head :bad_request if source.blank?
+
+    @footprint = Spotify::CrateLookup.footprint_for(source, scope: @scope)
+    @footprint_key = params[:key].to_s.presence || "lookup"
+
+    render partial: "footprint", locals: {
+      footprint: @footprint,
+      scope: @scope,
+      footprint_key: @footprint_key
+    }
+  end
+
   private
 
   def cached_current_track
@@ -40,20 +57,21 @@ class ListeningController < ApplicationController
       return Spotify::CrateLookup.from_local_track(track) if track
     end
 
-    selected_track = if params[:spotify_id].present?
-      {
-        spotify_id: params[:spotify_id],
-        name: params[:name],
-        artist: params[:artist],
-        album: params[:album],
-        image_url: params[:image_url],
-        external_url: params[:external_url],
-        duration_ms: params[:duration_ms]
-      }
-    else
-      @current_track
-    end
-
+    selected_track = requested_track || @current_track
     Spotify::CrateLookup.from_spotify(selected_track) if selected_track.present?
+  end
+
+  def requested_track
+    return unless params[:spotify_id].present? || params[:name].present?
+
+    {
+      spotify_id: params[:spotify_id],
+      name: params[:name],
+      artist: params[:artist],
+      album: params[:album],
+      image_url: params[:image_url],
+      external_url: params[:external_url],
+      duration_ms: params[:duration_ms]
+    }
   end
 end

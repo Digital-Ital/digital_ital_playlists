@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   get "whats-new", to: "pages#whats_new", as: :whats_new
   get "all-songs", to: "pages#all_songs", as: :all_songs
   get "listening", to: "listening#show", as: :listening
+  get "listening/footprint", to: "listening#footprint", as: :listening_footprint
 
       namespace :admin do
         root to: "dashboard#index"

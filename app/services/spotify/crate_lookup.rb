@@ -6,6 +6,10 @@ module Spotify
       new(track).result
     end
 
+    def self.footprint_for(track, scope:)
+      new(track).footprint(scope)
+    end
+
     def self.from_local_track(track)
       new(
         spotify_id: track.spotify_id,
@@ -47,10 +51,17 @@ module Spotify
         match_type: match_type,
         local_tracks: local_tracks,
         memberships: memberships_for(local_tracks),
-        artist_stats: artist_stats,
-        album_stats: album_stats,
         same_title_matches: same_title_matches
       }
+    end
+
+    def footprint(scope)
+      case scope.to_s
+      when "artist" then artist_stats
+      when "album" then album_stats
+      else
+        raise ArgumentError, "Unknown footprint scope"
+      end
     end
 
     private
