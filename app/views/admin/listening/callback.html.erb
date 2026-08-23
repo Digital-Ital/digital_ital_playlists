@@ -1,24 +1,28 @@
 <% content_for :title, "Spotify Listening Connected | Digital Ital Crates" %>
 
 <div class="container mx-auto max-w-2xl px-4 py-12 sm:px-6">
-  <div class="rounded-2xl border border-green-500/40 bg-gray-900 p-7 shadow-2xl">
-    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-green-400">Spotify authorization complete</p>
-    <h1 class="mt-2 text-3xl font-bold text-white">Save this refresh token once</h1>
-    <p class="mt-3 text-gray-300">Add it to Heroku as <code class="rounded bg-gray-800 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code>. It is not stored in the app database or committed to GitHub.</p>
+  <div class="rounded-2xl border border-green-500/50 bg-gradient-to-br from-green-950/60 via-gray-900 to-gray-950 p-7 shadow-2xl">
+    <p class="text-sm font-semibold uppercase tracking-[0.2em] text-green-400">✓ Spotify authorization completed</p>
+    <h1 class="mt-2 text-3xl font-bold text-white">Spotify said yes — save the token below.</h1>
+    <p class="mt-3 text-gray-200">This is the successful connection screen. The one remaining step is to place this token in Heroku so the app can keep reading your listening activity.</p>
 
     <label for="refresh-token" class="mt-6 block text-sm font-semibold text-white">One-time refresh token</label>
-    <textarea id="refresh-token" readonly rows="5" onclick="this.select()" class="mt-2 w-full rounded-lg border border-gray-600 bg-black p-3 font-mono text-xs text-green-300"><%= @refresh_token %></textarea>
-    <p class="mt-2 text-xs text-gray-400">Click the field to select it, then copy it. This page is not cached.</p>
+    <textarea id="refresh-token" readonly rows="5" onclick="this.select()" class="mt-2 w-full rounded-lg border border-green-500/40 bg-black p-3 font-mono text-xs text-green-300"><%= @refresh_token %></textarea>
+    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('refresh-token').value); this.textContent = '✓ Copied';" class="mt-3 rounded-lg bg-green-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-600">Copy token</button>
+    <p class="mt-2 text-xs text-gray-400">This page is not cached. The token is not saved in your database or GitHub.</p>
 
-    <ol class="mt-6 list-decimal space-y-2 pl-5 text-sm text-gray-300">
-      <li>In Heroku, open <strong>Settings → Config Vars</strong>.</li>
-      <li>Add <code class="rounded bg-gray-800 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code> with the value above.</li>
-      <li>Return to the public Listening Desk and refresh it.</li>
-    </ol>
+    <div class="mt-6 rounded-xl border border-yellow-500/30 bg-yellow-950/20 p-5">
+      <p class="font-bold text-yellow-200">Do this before leaving this screen</p>
+      <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-gray-200">
+        <li>In Heroku, open <strong>Settings → Config Vars</strong>.</li>
+        <li>Add <code class="rounded bg-black/30 px-1.5 py-0.5 text-green-300">SPOTIFY_LISTENING_REFRESH_TOKEN</code> with the copied value.</li>
+        <li>Heroku restarts automatically after saving it.</li>
+      </ol>
+    </div>
 
     <div class="mt-7 flex flex-wrap gap-3">
-      <%= link_to "Open Listening Desk →", listening_path, class: "rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
-      <%= link_to "Back to admin", admin_root_path, class: "rounded-lg bg-gray-700 px-5 py-3 font-semibold text-white transition hover:bg-gray-600" %>
+      <%= link_to "I saved it — check status", admin_listening_path, class: "rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
+      <%= link_to "Open Listening Desk →", listening_path, class: "rounded-lg bg-gray-700 px-5 py-3 font-semibold text-white transition hover:bg-gray-600" %>
     </div>
   </div>
 </div>
