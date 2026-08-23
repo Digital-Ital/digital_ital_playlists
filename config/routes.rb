@@ -5,29 +5,32 @@ Rails.application.routes.draw do
   resources :categories, only: [ :show ]
   get "whats-new", to: "pages#whats_new", as: :whats_new
   get "all-songs", to: "pages#all_songs", as: :all_songs
+  get "listening", to: "listening#show", as: :listening
 
-      namespace :admin do
-        root to: "dashboard#index"
-        resources :categories
-        resources :playlists do
-          collection do
-            post :import_spotify
-            post :start_batch_update
-            get :batch_update_progress
-          end
-          member do
-            post :sync_with_spotify
-          end
-        end
-        resources :update_logs, only: [ :index ]
-        resources :share_events, only: [ :index ]
-        resources :spotify_opens, only: [ :index ]
-        resources :batch_updates, only: [ :index, :show ]
-        get "analytics", to: "analytics#index"
-        get "scheduler", to: "scheduler#index"
-        post "scheduler/pause", to: "scheduler#pause"
-        post "scheduler/unpause", to: "scheduler#unpause"
-        post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
+  namespace :admin do
+    root to: "dashboard#index"
+    get "listening/connect", to: "listening#authorize", as: :listening_authorize
+    get "listening/spotify/callback", to: "listening#callback", as: :listening_spotify_callback
+    resources :categories
+    resources :playlists do
+      collection do
+        post :import_spotify
+        post :start_batch_update
+        get :batch_update_progress
+      end
+      member do
+        post :sync_with_spotify
+      end
+    end
+    resources :update_logs, only: [ :index ]
+    resources :share_events, only: [ :index ]
+    resources :spotify_opens, only: [ :index ]
+    resources :batch_updates, only: [ :index, :show ]
+    get "analytics", to: "analytics#index"
+    get "scheduler", to: "scheduler#index"
+    post "scheduler/pause", to: "scheduler#pause"
+    post "scheduler/unpause", to: "scheduler#unpause"
+    post "scheduler/toggle_quick_updates", to: "scheduler#toggle_quick_updates"
       end
 
   # API endpoints for infinite scroll
