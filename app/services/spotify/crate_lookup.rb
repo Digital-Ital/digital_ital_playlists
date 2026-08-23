@@ -46,7 +46,7 @@ module Spotify
       local_tracks ||= matching_tracks
       match_type ||= if exact_spotify_match?(local_tracks)
         :exact
-      elsif local_tracks.any?
+      elsif local_tracks.any? { |track| curated_track?(track) }
         :likely_duplicate
       else
         :not_found
@@ -93,7 +93,15 @@ module Spotify
 
     def exact_spotify_match?(tracks)
       @track[:spotify_id].present? &&
-        tracks.any? { |track| track.spotify_id == @track[:spotify_id] }
+        tracks.any? do |track|
+          track.spotify_id == @track[:spotify_id] && curated_track?(track)
+        end
+    end
+
+    # Listening research is cached as a Track even before it has a crate
+    # placement. Such records must never be labelled as being in the crates.
+    def curated_track?(track)
+      track.playlist_tracks.exists?
     end
 
     def memberships_for(local_tracks)

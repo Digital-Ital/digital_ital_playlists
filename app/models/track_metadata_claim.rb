@@ -28,7 +28,8 @@ class TrackMetadataClaim < ApplicationRecord
       "spotify_id" => "Spotify recording match",
       "isrc_exact" => "ISRC recording match",
       "curator_selected_release" => "Curator-selected release",
-      "candidate_title_artist_duration" => "Title / artist / duration candidate"
+      "candidate_title_artist_duration" => "Title / artist / duration candidate",
+      "wikipedia_song_candidate" => "Wikipedia song-page candidate"
     }.fetch(match_confidence, match_confidence.to_s.humanize)
   end
 
@@ -37,7 +38,8 @@ class TrackMetadataClaim < ApplicationRecord
       "spotify" => "Spotify",
       "musicbrainz" => "MusicBrainz",
       "discogs" => "Discogs",
-      "discogs_candidate" => "Discogs candidate"
+      "discogs_candidate" => "Discogs candidate",
+      "wikipedia" => "Wikipedia"
     }.fetch(source, source.to_s.humanize)
   end
 
