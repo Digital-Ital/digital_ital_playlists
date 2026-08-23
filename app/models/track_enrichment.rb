@@ -4,9 +4,19 @@ class TrackEnrichment < ApplicationRecord
     release_date
     release_country
     release_title
+    release_type
+    release_format
     release_position
+    release_track_count
+    content_advisory
     label
     catalogue_number
+    recording_note
+    recording_location
+    work_title
+    work_type
+    work_disambiguation
+    iswc
     producer
     engineer
     mastering_engineer
@@ -22,8 +32,11 @@ class TrackEnrichment < ApplicationRecord
   ].freeze
 
   MULTI_VALUE_FIELDS = %w[
+    release_format
     label
     catalogue_number
+    recording_location
+    iswc
     producer
     engineer
     mastering_engineer
@@ -37,6 +50,35 @@ class TrackEnrichment < ApplicationRecord
     genre
     tag
   ].freeze
+
+  SUMMARY_CLASSIFICATION_FIELDS = %w[genre tag].freeze
+  SUMMARY_SIGNAL_FIELDS = %w[
+    release_type
+    release_format
+    release_position
+    release_track_count
+    content_advisory
+    recording_note
+    recording_location
+    work_title
+    work_type
+    work_disambiguation
+    iswc
+    producer
+    engineer
+    mastering_engineer
+    mixer
+    performer
+    writer
+    composer
+    lyricist
+    arranger
+    relationship_fact
+  ].freeze
+  SUMMARY_SOURCE_ORDER = %w[spotify musicbrainz discogs].freeze
+  SUMMARY_CLASSIFICATIONS_PER_SOURCE_LIMIT = 8
+  SUMMARY_SIGNALS_PER_SOURCE_LIMIT = 6
+  SUMMARY_SIGNAL_LIMIT = 12
 
   belongs_to :track
   has_many :track_metadata_claims, dependent: :destroy
@@ -80,6 +122,20 @@ class TrackEnrichment < ApplicationRecord
     end
   end
 
+  def curator_summary(claims = active_claims.to_a)
+    local_claims = Array(claims)
+
+    {
+      release_years: summary_release_years(local_claims),
+      classifications: summary_claim_groups(
+        local_claims,
+        SUMMARY_CLASSIFICATION_FIELDS,
+        limit: SUMMARY_CLASSIFICATIONS_PER_SOURCE_LIMIT
+      ),
+      signals: summary_signals(local_claims)
+    }
+  end
+
   def evidence_state_for(field, claims)
     return "supported" if MULTI_VALUE_FIELDS.include?(field)
 
@@ -98,6 +154,45 @@ class TrackEnrichment < ApplicationRecord
 
   def decisions
     (curator_decisions || {}).to_h.deep_dup
+  end
+
+  def summary_release_years(claims)
+    claims.select { |claim| claim.field == "release_date" && claim.release_year.present? }
+          .sort_by do |claim|
+            [ source_sort_key(claim.source), claim.comparison_scope.to_s, claim.display_value.to_s ]
+          end
+          .uniq { |claim| [ claim.source, claim.comparison_scope ] }
+  end
+
+  def summary_claim_groups(claims, fields, limit:)
+    claims.select { |claim| fields.include?(claim.field) }
+          .group_by(&:source)
+          .sort_by { |source, _source_claims| source_sort_key(source) }
+          .filter_map do |source, source_claims|
+            selected_claims = source_claims
+              .sort_by do |claim|
+                [
+                  DISPLAY_FIELD_ORDER.index(claim.field) || DISPLAY_FIELD_ORDER.length,
+                  claim.display_value.to_s.downcase
+                ]
+              end
+              .uniq { |claim| [ claim.field, claim.comparison_scope, claim.comparison_value ] }
+              .first(limit)
+
+            [ source, selected_claims ] if selected_claims.any?
+          end
+  end
+
+  def summary_signals(claims)
+    summary_claim_groups(
+      claims,
+      SUMMARY_SIGNAL_FIELDS,
+      limit: SUMMARY_SIGNALS_PER_SOURCE_LIMIT
+    ).flat_map { |_source, source_claims| source_claims }.first(SUMMARY_SIGNAL_LIMIT)
+  end
+
+  def source_sort_key(source)
+    SUMMARY_SOURCE_ORDER.index(source.to_s) || SUMMARY_SOURCE_ORDER.length
   end
 
   def differing_values?(claims)

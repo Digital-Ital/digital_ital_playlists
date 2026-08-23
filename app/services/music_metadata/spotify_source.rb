@@ -85,6 +85,30 @@ module MusicMetadata
           source_identifier,
           source_url,
           scope: "spotify_album_release"
+        ),
+        claim(
+          "release_type",
+          album["album_type"].to_s.humanize,
+          "Spotify album type for this edition",
+          source_identifier,
+          source_url,
+          scope: "spotify_album_release"
+        ),
+        claim(
+          "release_track_count",
+          album["total_tracks"].to_i.positive? ? "#{album["total_tracks"]} tracks" : nil,
+          "Track count on this Spotify album release",
+          source_identifier,
+          source_url,
+          scope: "spotify_album_release"
+        ),
+        claim(
+          "content_advisory",
+          payload["explicit"] ? "Explicit" : nil,
+          "Spotify track content advisory",
+          source_identifier,
+          source_url,
+          scope: "recording"
         )
       ].compact
     end

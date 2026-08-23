@@ -62,6 +62,7 @@
       <%= render "same_title_links", same_title_matches: @selected_lookup[:same_title_matches] %>
 
       <% if @dossier_track.present? %>
+        <%= render "curator_summary", track: @dossier_track, enrichment: @dossier_enrichment, claims: @dossier_claims %>
         <%= render "song_dossier", track: @dossier_track %>
       <% end %>
 

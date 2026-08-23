@@ -1,0 +1,140 @@
+<% summary = enrichment&.curator_summary(claims) || { release_years: [], classifications: [], signals: [] } %>
+<% release_years = summary.fetch(:release_years) %>
+<% classifications = summary.fetch(:classifications) %>
+<% signals = summary.fetch(:signals) %>
+<% signal_labels = {
+  "release_type" => "Release type",
+  "release_format" => "Format",
+  "release_position" => "Position",
+  "release_track_count" => "Album tracks",
+  "content_advisory" => "Advisory",
+  "recording_note" => "Version note",
+  "recording_location" => "Session / location",
+  "work_title" => "Composition / work",
+  "work_type" => "Work type",
+  "work_disambiguation" => "Work note",
+  "iswc" => "ISWC",
+  "producer" => "Producer",
+  "engineer" => "Engineer",
+  "mastering_engineer" => "Mastering",
+  "mixer" => "Mixer",
+  "performer" => "Performer",
+  "writer" => "Writer",
+  "composer" => "Composer",
+  "lyricist" => "Lyricist",
+  "arranger" => "Arranger",
+  "relationship_fact" => "Relationship"
+} %>
+
+<section class="mt-7 rounded-xl border border-cyan-400/25 bg-cyan-950/15 p-5" data-curator-summary>
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Saved catalogue research</p>
+      <h3 class="mt-1 text-xl font-bold text-white">Release & curator signals</h3>
+      <p class="mt-1 max-w-3xl text-sm text-gray-300">Years, genre, style, and edition clues are read from the local database. Sources stay separate because they can describe different releases or recordings.</p>
+    </div>
+    <% if enrichment&.last_refreshed_at.present? %>
+      <p class="shrink-0 text-xs text-gray-400" title="<%= enrichment.last_refreshed_at.strftime("%B %-d, %Y at %-l:%M %p") %>">Saved <%= time_ago_in_words(enrichment.last_refreshed_at) %> ago</p>
+    <% end %>
+  </div>
+
+  <% if release_years.any? || classifications.any? || signals.any? %>
+    <div class="mt-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <section class="rounded-xl border border-gray-700 bg-black/25 p-4">
+        <h4 class="font-semibold text-gray-100">Release years</h4>
+        <p class="mt-1 text-xs text-gray-400">Each year is source-scoped—not a single asserted “original release” year.</p>
+
+        <% if release_years.any? %>
+          <div class="mt-3 space-y-2">
+            <% release_years.each do |claim| %>
+              <article class="rounded-lg border border-gray-800 bg-gray-950/80 p-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-xs font-semibold text-cyan-200"><%= claim.source_label %></span>
+                  <span class="text-xl font-bold text-white"><%= claim.release_year %></span>
+                  <% unless claim.high_confidence_match? %>
+                    <span class="text-xs text-yellow-200"><%= claim.confidence_label %></span>
+                  <% end %>
+                </div>
+                <p class="mt-1 text-xs text-gray-400"><%= claim.context %></p>
+                <% if claim.source == "discogs" && claim.source_url.present? %>
+                  <%= link_to "Data provided by Discogs.", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-orange-300 hover:text-orange-200" %>
+                <% elsif claim.source_url.present? %>
+                  <%= link_to "#{claim.source_label} ↗", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
+                <% end %>
+              </article>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="mt-3 text-sm text-gray-400">No saved source-backed release year yet.</p>
+        <% end %>
+      </section>
+
+      <section class="rounded-xl border border-gray-700 bg-black/25 p-4">
+        <h4 class="font-semibold text-gray-100">Genre & style</h4>
+        <p class="mt-1 text-xs text-gray-400">These are source taxonomies and community tags, not one universal genre verdict.</p>
+
+        <% if classifications.any? %>
+          <div class="mt-3 space-y-3">
+            <% classifications.each do |source, source_claims| %>
+              <div class="rounded-lg border border-gray-800 bg-gray-950/80 p-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-semibold text-cyan-200"><%= source_claims.first.source_label %></span>
+                  <% if source == "discogs" && source_claims.first.source_url.present? %>
+                    <%= link_to "Data provided by Discogs.", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-orange-300 hover:text-orange-200" %>
+                  <% elsif source_claims.first.source_url.present? %>
+                    <%= link_to "#{source_claims.first.source_label} ↗", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
+                  <% end %>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <% source_claims.each do |claim| %>
+                    <span title="<%= claim.context %>" class="rounded-full border border-cyan-400/25 bg-cyan-500/10 px-2.5 py-1 text-xs text-cyan-100"><span class="font-semibold"><%= claim.field == "genre" ? "Genre" : "Style" %>:</span> <%= claim.display_value %></span>
+                  <% end %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <p class="mt-3 text-sm text-gray-400">No saved source-backed genre or style data yet.</p>
+        <% end %>
+      </section>
+    </div>
+
+    <% if signals.any? %>
+      <section class="mt-4 rounded-xl border border-gray-700 bg-black/25 p-4">
+        <h4 class="font-semibold text-gray-100">Edition & recording clues</h4>
+        <p class="mt-1 text-xs text-gray-400">Useful for curation, but still scoped to the source’s recording, work, album, or selected pressing.</p>
+
+        <div class="mt-3 space-y-3">
+          <% signals.group_by(&:source).each do |source, source_claims| %>
+            <div class="rounded-lg border border-gray-800 bg-gray-950/80 p-3">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-cyan-200"><%= source_claims.first.source_label %></span>
+                <% if source == "discogs" && source_claims.first.source_url.present? %>
+                  <%= link_to "Data provided by Discogs.", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-orange-300 hover:text-orange-200" %>
+                <% elsif source_claims.first.source_url.present? %>
+                  <%= link_to "#{source_claims.first.source_label} ↗", source_claims.first.source_url, target: "_blank", rel: "noopener", class: "text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
+                <% end %>
+              </div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <% source_claims.each do |claim| %>
+                  <span title="<%= claim.context %>" class="rounded-lg border border-gray-700 bg-gray-900 px-2.5 py-1.5 text-xs text-gray-200"><span class="font-semibold text-gray-100"><%= signal_labels.fetch(claim.field, claim.field.humanize) %>:</span> <%= claim.display_value %></span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  <% else %>
+    <section class="mt-5 rounded-xl border border-dashed border-cyan-400/30 bg-black/20 p-4">
+      <h4 class="font-semibold text-cyan-100">No cached source research yet</h4>
+      <p class="mt-1 text-sm text-gray-300">This exact local track is ready for research. A deliberate owner refresh can save release years, genre/style, credits, and verified edition details; the Listening Desk itself never contacts music services.</p>
+    </section>
+  <% end %>
+
+  <% if enrichment&.last_error.present? %>
+    <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Refresh incomplete: cached facts remain visible, but one or more sources could not update.</p>
+  <% end %>
+
+  <p class="mt-4 text-xs text-gray-500">This application uses Discogs’ API but is not affiliated with, sponsored or endorsed by Discogs. ‘Discogs’ is a trademark of Zink Media, LLC.</p>
+</section>

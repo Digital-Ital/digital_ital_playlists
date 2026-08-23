@@ -40,7 +40,7 @@ module MusicMetadata
 
       recording = get(
         "recording/#{candidate.fetch("id")}",
-        inc: "artist-credits+isrcs+releases+artist-rels+work-rels+recording-rels+tags+genres"
+        inc: "artist-credits+isrcs+releases+artist-rels+work-rels+recording-rels+place-rels+tags+genres"
       )
       work = fetch_work(recording)
       source_url = "https://musicbrainz.org/recording/#{recording.fetch("id")}"
@@ -123,6 +123,22 @@ module MusicMetadata
           match_confidence,
           scope: "musicbrainz_first_known_release"
         ),
+        claim(
+          "recording_note",
+          recording["disambiguation"],
+          "MusicBrainz recording disambiguation",
+          recording_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_recording"
+        ),
+        *recording_location_claims(
+          recording["relations"],
+          recording_id,
+          source_url,
+          match_confidence
+        ),
+        *work_claims(work, source_url, match_confidence),
         *relationship_claims(
           recording["relations"],
           CREDIT_FIELDS,
@@ -142,6 +158,80 @@ module MusicMetadata
         *fact_claims(recording["relations"], recording_id, source_url, match_confidence),
         *tag_claims(recording, recording_id, source_url, match_confidence)
       ].compact
+    end
+
+    def work_claims(work, fallback_source_url, match_confidence)
+      return [] unless work.present?
+
+      work_id = work["id"]
+      source_url = work_id.present? ? "https://musicbrainz.org/work/#{work_id}" : fallback_source_url
+
+      [
+        claim(
+          "work_title",
+          work["title"],
+          "MusicBrainz linked composition/work",
+          work_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_work"
+        ),
+        claim(
+          "work_type",
+          work["type"],
+          "MusicBrainz linked work type",
+          work_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_work"
+        ),
+        claim(
+          "work_disambiguation",
+          work["disambiguation"],
+          "MusicBrainz work disambiguation",
+          work_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_work"
+        ),
+        *Array(work["iswcs"]).filter_map do |iswc|
+          claim(
+            "iswc",
+            iswc,
+            "MusicBrainz linked work ISWC",
+            work_id,
+            source_url,
+            match_confidence,
+            scope: "musicbrainz_work"
+          )
+        end
+      ].compact
+    end
+
+    def recording_location_claims(relations, source_identifier, source_url, match_confidence)
+      location_types = [ "recorded at", "mixed at", "mastered at", "produced at" ]
+
+      Array(relations).filter_map do |relation|
+        next unless location_types.include?(relation["type"])
+
+        place = relation["place"] || relation["target"]
+        name = place.is_a?(Hash) ? place["name"] : nil
+        next if name.blank?
+
+        date_range = [ relation["begin"], relation["end"] ].compact.join("–").presence
+        context = "MusicBrainz session/location relationship"
+        context = "#{context} (#{date_range})" if date_range.present?
+
+        claim(
+          "recording_location",
+          "#{relation["type"].to_s.humanize}: #{name}",
+          context,
+          source_identifier,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_recording"
+        )
+      end.uniq { |entry| entry.dig(:value, "text") }
     end
 
     def first_known_release(recording, candidate)
@@ -202,7 +292,7 @@ module MusicMetadata
         claim(
           "genre",
           genre["name"],
-          "MusicBrainz recording genre",
+          musicbrainz_tag_context("genre", genre),
           source_identifier,
           source_url,
           match_confidence,
@@ -213,13 +303,20 @@ module MusicMetadata
           claim(
             "tag",
             tag["name"],
-            "MusicBrainz recording tag",
+            musicbrainz_tag_context("tag", tag),
             source_identifier,
             source_url,
             match_confidence,
             scope: "musicbrainz_recording"
           )
         end
+    end
+
+    def musicbrainz_tag_context(kind, tag)
+      support = tag["count"].to_i
+      return "MusicBrainz recording #{kind}" unless support.positive?
+
+      "MusicBrainz recording #{kind} (#{support} community votes)"
     end
 
     def claim(field, text, context, source_identifier, source_url, match_confidence, scope:)
