@@ -18,7 +18,8 @@ module MusicMetadata
       isrc = spotify_result.metadata.to_h[:isrc] || spotify_result.metadata.to_h["isrc"]
       musicbrainz_result = MusicBrainzSource.new(@track, isrc: isrc, deadline: deadline).call
       discogs_result = discogs_source_result(deadline)
-      results = [ spotify_result, musicbrainz_result, discogs_result ]
+      wikipedia_result = WikipediaSongContextSource.new(@track, deadline: deadline).call
+      results = [ spotify_result, musicbrainz_result, discogs_result, wikipedia_result ]
 
       @enrichment.with_lock do
         results.each { |result| sync_source_result!(result) }
