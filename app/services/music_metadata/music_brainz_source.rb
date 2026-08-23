@@ -1,5 +1,6 @@
 require "json"
 require "net/http"
+require "thread"
 require "timeout"
 require "uri"
 
@@ -7,6 +8,8 @@ module MusicMetadata
   class MusicBrainzSource
     BASE_URL = "https://musicbrainz.org/ws/2/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
+    REQUEST_INTERVAL_SECONDS = 1.1
+    REQUEST_MUTEX = Mutex.new
     CREDIT_FIELDS = {
       "producer" => "producer",
       "engineer" => "engineer",
@@ -20,6 +23,10 @@ module MusicMetadata
       "arranger" => "composer"
     }.freeze
     FACT_TYPES = %w[cover samples material remix remixer].freeze
+
+    class << self
+      attr_accessor :last_request_at
+    end
 
     def initialize(track, isrc:)
       @track = track
@@ -51,8 +58,8 @@ module MusicMetadata
 
     def find_candidate
       if @isrc.present?
-        payload = get("recording/", query: "isrc:#{@isrc}", limit: 5)
-        candidate = Array(payload["recordings"]).max_by { |recording| recording["score"].to_i }
+        payload = get("isrc/#{URI.encode_www_form_component(@isrc)}", inc: "recordings")
+        candidate = Array(payload["recordings"]).first
         return [ candidate, "isrc_exact" ] if candidate.present?
       end
 
@@ -62,7 +69,7 @@ module MusicMetadata
       payload = get("recording/", query: query, limit: 5)
       candidate = Array(payload["recordings"]).find { |recording| high_confidence_match?(recording) }
 
-      [ candidate, candidate.present? ? "title_artist_duration" : nil ]
+      [ candidate, candidate.present? ? "candidate_title_artist_duration" : nil ]
     end
 
     def fetch_work(recording)
@@ -79,14 +86,23 @@ module MusicMetadata
       recording_id = recording["id"]
 
       [
-        claim("isrc", @isrc, "MusicBrainz recording match", recording_id, source_url, match_confidence),
+        claim(
+          "isrc",
+          @isrc,
+          "MusicBrainz recording match",
+          recording_id,
+          source_url,
+          match_confidence,
+          scope: "recording"
+        ),
         claim(
           "release_date",
           release[:date],
           "MusicBrainz earliest known release",
           recording_id,
           source_url,
-          match_confidence
+          match_confidence,
+          scope: "musicbrainz_first_known_release"
         ),
         claim(
           "release_country",
@@ -94,7 +110,8 @@ module MusicMetadata
           "Country of MusicBrainz earliest known release",
           recording_id,
           source_url,
-          match_confidence
+          match_confidence,
+          scope: "musicbrainz_first_known_release"
         ),
         claim(
           "release_title",
@@ -102,10 +119,25 @@ module MusicMetadata
           "MusicBrainz earliest known release",
           recording_id,
           source_url,
-          match_confidence
+          match_confidence,
+          scope: "musicbrainz_first_known_release"
         ),
-        *relationship_claims(recording["relations"], CREDIT_FIELDS, recording_id, source_url, match_confidence),
-        *relationship_claims(work&.fetch("relations", []), WRITING_FIELDS, recording_id, source_url, match_confidence),
+        *relationship_claims(
+          recording["relations"],
+          CREDIT_FIELDS,
+          recording_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_recording"
+        ),
+        *relationship_claims(
+          work&.fetch("relations", []),
+          WRITING_FIELDS,
+          recording_id,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_work"
+        ),
         *fact_claims(recording["relations"], recording_id, source_url, match_confidence),
         *tag_claims(recording, recording_id, source_url, match_confidence)
       ].compact
@@ -122,7 +154,7 @@ module MusicMetadata
       }
     end
 
-    def relationship_claims(relations, field_map, source_identifier, source_url, match_confidence)
+    def relationship_claims(relations, field_map, source_identifier, source_url, match_confidence, scope:)
       Array(relations).filter_map do |relation|
         field = field_map[relation["type"]]
         next unless field
@@ -131,7 +163,15 @@ module MusicMetadata
         name = artist.is_a?(Hash) ? artist["name"] : nil
         next if name.blank?
 
-        claim(field, name, "MusicBrainz #{relation["type"]} credit", source_identifier, source_url, match_confidence)
+        claim(
+          field,
+          name,
+          "MusicBrainz #{relation["type"]} credit",
+          source_identifier,
+          source_url,
+          match_confidence,
+          scope: scope
+        )
       end.uniq { |entry| [ entry[:field], entry.dig(:value, "text") ] }
     end
 
@@ -142,20 +182,44 @@ module MusicMetadata
         target = relation["recording"] || relation["work"] || relation["artist"] || relation["target"]
         label = target.is_a?(Hash) ? target["title"].presence || target["name"] : nil
         text = [ relation["type"].to_s.humanize, label ].compact.join(": ")
-        claim("relationship_fact", text, "MusicBrainz recording relationship", source_identifier, source_url, match_confidence)
+        claim(
+          "relationship_fact",
+          text,
+          "MusicBrainz recording relationship",
+          source_identifier,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_recording"
+        )
       end.uniq { |entry| entry.dig(:value, "text") }
     end
 
     def tag_claims(recording, source_identifier, source_url, match_confidence)
       Array(recording["genres"]).filter_map do |genre|
-        claim("genre", genre["name"], "MusicBrainz genre", source_identifier, source_url, match_confidence)
+        claim(
+          "genre",
+          genre["name"],
+          "MusicBrainz recording genre",
+          source_identifier,
+          source_url,
+          match_confidence,
+          scope: "musicbrainz_recording"
+        )
       end +
         Array(recording["tags"]).filter_map do |tag|
-          claim("tag", tag["name"], "MusicBrainz tag", source_identifier, source_url, match_confidence)
+          claim(
+            "tag",
+            tag["name"],
+            "MusicBrainz recording tag",
+            source_identifier,
+            source_url,
+            match_confidence,
+            scope: "musicbrainz_recording"
+          )
         end
     end
 
-    def claim(field, text, context, source_identifier, source_url, match_confidence)
+    def claim(field, text, context, source_identifier, source_url, match_confidence, scope:)
       return if text.blank?
 
       {
@@ -165,7 +229,8 @@ module MusicMetadata
         value: {
           "text" => text.to_s,
           "comparison" => text.to_s,
-          "context" => context
+          "context" => context,
+          "scope" => scope
         },
         match_confidence: match_confidence
       }
@@ -213,13 +278,11 @@ module MusicMetadata
     end
 
     def reserve_request_slot
-      key = "track-enrichments/musicbrainz/request-slot"
-      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
-
-      until Rails.cache.write(key, true, expires_in: 1.second, unless_exist: true)
-        raise "busy; try again shortly" if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
-
-        sleep 0.2
+      REQUEST_MUTEX.synchronize do
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        elapsed = now - self.class.last_request_at.to_f
+        sleep(REQUEST_INTERVAL_SECONDS - elapsed) if elapsed < REQUEST_INTERVAL_SECONDS
+        self.class.last_request_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
     end
 
