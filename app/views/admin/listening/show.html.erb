@@ -1,6 +1,7 @@
 <% content_for :title, "Spotify Listening Connection | Digital Ital Crates" %>
 <% credentials_ready = @setup[:client_id_present] && @setup[:client_secret_present] && @setup[:redirect_uri].present? %>
-<% ready_to_connect = credentials_ready && @callback_host_matches %>
+<% callback_connection_safe = @callback_host_matches && @callback_uses_https && @request_uses_https %>
+<% ready_to_connect = credentials_ready && callback_connection_safe %>
 
 <div class="container mx-auto max-w-4xl px-4 py-10 sm:px-6">
   <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -22,10 +23,14 @@
   <div class="rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/70 via-gray-900 to-gray-950 p-6 shadow-xl">
     <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <% if @spotify.connected? %>
+        <% if @spotify.connected? && callback_connection_safe %>
           <p class="text-sm font-bold uppercase tracking-wider text-green-400">● Connection configured</p>
           <h2 class="mt-1 text-2xl font-bold text-white">The refresh token is stored on this server.</h2>
           <p class="mt-2 text-gray-300">Open the Listening Desk to confirm live playback and recent listening.</p>
+        <% elsif @spotify.connected? %>
+          <p class="text-sm font-bold uppercase tracking-wider text-red-300">● Connection needs HTTPS</p>
+          <h2 class="mt-1 text-2xl font-bold text-white">A token is stored, but this site is being opened insecurely.</h2>
+          <p class="mt-2 text-gray-300">Finish the Heroku TLS certificate before using Spotify authorization or the public Listening Desk.</p>
         <% elsif ready_to_connect %>
           <p class="text-sm font-bold uppercase tracking-wider text-yellow-300">● Ready to authorize</p>
           <h2 class="mt-1 text-2xl font-bold text-white">One secure Spotify approval remains.</h2>
@@ -37,7 +42,7 @@
         <% end %>
       </div>
 
-      <% if @spotify.connected? %>
+      <% if @spotify.connected? && callback_connection_safe %>
         <div class="flex flex-wrap gap-3">
           <%= link_to "Open Listening Desk →", listening_path, class: "rounded-lg bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-500" %>
           <%= link_to "Reconnect", admin_listening_authorize_path, class: "rounded-lg bg-gray-700 px-5 py-3 font-semibold text-white transition hover:bg-gray-600" %>
@@ -59,10 +64,13 @@
       <% end %>
     </section>
 
-    <section class="rounded-xl border <%= @setup[:redirect_uri].present? ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
+    <section class="rounded-xl border <%= @setup[:redirect_uri].present? && @callback_uses_https ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
       <p class="text-sm font-bold text-white">2. Callback URL</p>
-      <% if @setup[:redirect_uri].present? %>
-        <p class="mt-3 text-sm font-semibold text-green-300">✓ Redirect URI is set</p>
+      <% if @setup[:redirect_uri].present? && @callback_uses_https %>
+        <p class="mt-3 text-sm font-semibold text-green-300">✓ Secure redirect URI is set</p>
+        <p class="mt-1 break-all rounded bg-black/35 p-2 font-mono text-xs text-gray-300"><%= @setup[:redirect_uri] %></p>
+      <% elsif @setup[:redirect_uri].present? %>
+        <p class="mt-3 text-sm font-semibold text-red-300">✕ Callback must use HTTPS</p>
         <p class="mt-1 break-all rounded bg-black/35 p-2 font-mono text-xs text-gray-300"><%= @setup[:redirect_uri] %></p>
       <% else %>
         <p class="mt-3 text-sm font-semibold text-red-300">✕ Redirect URI is missing</p>
@@ -82,20 +90,24 @@
     </section>
   </div>
 
-  <section class="mt-6 rounded-xl border <%= @callback_host_matches ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
-    <h2 class="text-lg font-bold text-white">Browser and callback host check</h2>
+  <section class="mt-6 rounded-xl border <%= callback_connection_safe ? "border-green-500/35 bg-green-950/20" : "border-red-500/35 bg-red-950/20" %> p-5">
+    <h2 class="text-lg font-bold text-white">Browser, callback, and HTTPS check</h2>
     <div class="mt-3 grid gap-3 text-sm sm:grid-cols-2">
       <div>
         <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">You are connecting from</p>
-        <p class="mt-1 break-all font-mono text-gray-100"><%= @request_host %></p>
+        <p class="mt-1 break-all font-mono text-gray-100"><%= @request_scheme %>://<%= @request_host %></p>
       </div>
       <div>
         <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Spotify will return to</p>
-        <p class="mt-1 break-all font-mono text-gray-100"><%= @configured_callback_host || "No valid callback host configured" %></p>
+        <p class="mt-1 break-all font-mono text-gray-100"><%= @configured_callback_scheme || "unknown" %>://<%= @configured_callback_host || "No valid callback host configured" %></p>
       </div>
     </div>
-    <% if @callback_host_matches %>
-      <p class="mt-4 text-sm font-semibold text-green-300">✓ These hosts match. It is safe to use the Connect Spotify button above.</p>
+    <% if !@request_uses_https %>
+      <p class="mt-4 text-sm font-semibold text-red-300">✕ You are on HTTP. Spotify will not permit this production OAuth connection. Enable the Heroku TLS certificate, then return using <code>https://italcrates.com/admin/listening</code>.</p>
+    <% elsif !@callback_uses_https %>
+      <p class="mt-4 text-sm font-semibold text-red-300">✕ The configured callback URL must start with <code>https://</code>.</p>
+    <% elsif @callback_host_matches %>
+      <p class="mt-4 text-sm font-semibold text-green-300">✓ HTTPS is active and the hosts match. It is safe to use the Connect Spotify button above.</p>
     <% else %>
       <p class="mt-4 text-sm font-semibold text-red-300">✕ These hosts must match. Use one hostname consistently—either <code>italcrates.com</code> everywhere or the Heroku hostname everywhere.</p>
     <% end %>
