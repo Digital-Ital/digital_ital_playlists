@@ -23,13 +23,13 @@ class ListeningController < ApplicationController
   private
 
   def cached_current_track
-    Rails.cache.fetch("listening-desk/current-track", expires_in: 15.seconds) do
+    Rails.cache.fetch("listening-desk/current-track", expires_in: 20.seconds) do
       @spotify.currently_playing
     end
   end
 
   def cached_recent_tracks
-    Rails.cache.fetch("listening-desk/recent-tracks", expires_in: 30.seconds) do
+    Rails.cache.fetch("listening-desk/recent-tracks", expires_in: 60.seconds) do
       @spotify.recently_played(limit: 10)
     end
   end
