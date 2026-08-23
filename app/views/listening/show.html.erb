@@ -337,11 +337,25 @@
 
 <% if @connected && @query.blank? %>
   <script>
-    document.addEventListener("turbo:load", function() {
-      window.clearTimeout(window.listeningDeskRefreshTimer);
-      window.listeningDeskRefreshTimer = window.setTimeout(function() {
-        Turbo.visit(window.location.href);
-      }, 20000);
-    });
+    (function() {
+      function scheduleListeningDeskRefresh() {
+        if (typeof window.listeningDeskSavedScrollY === "number") {
+          window.requestAnimationFrame(function() {
+            window.scrollTo(0, window.listeningDeskSavedScrollY);
+            delete window.listeningDeskSavedScrollY;
+          });
+        }
+
+        window.clearTimeout(window.listeningDeskRefreshTimer);
+        window.listeningDeskRefreshTimer = window.setTimeout(function() {
+          window.listeningDeskSavedScrollY = window.scrollY;
+          Turbo.visit(window.location.href, { action: "replace" });
+        }, 20000);
+      }
+
+      document.removeEventListener("turbo:load", window.listeningDeskOnLoad);
+      window.listeningDeskOnLoad = scheduleListeningDeskRefresh;
+      document.addEventListener("turbo:load", window.listeningDeskOnLoad);
+    })();
   </script>
 <% end %>
