@@ -164,7 +164,7 @@ module MusicMetadata
     end
 
     def credit_fields(role)
-      role.to_s.downcase.split(/[;,/]/).filter_map do |part|
+      role.to_s.downcase.split(%r{[;,/]}).filter_map do |part|
         case part
         when /producer/
           "producer"
