@@ -21,7 +21,7 @@ module MusicMetadata
       return skipped unless configured?
 
       candidate = earliest_candidate("master") || earliest_candidate("release")
-      return SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil) unless candidate
+      return no_candidate unless candidate
 
       SourceResult.new(
         source: "discogs_candidate",
@@ -77,12 +77,11 @@ module MusicMetadata
       raise "network error (#{e.message})"
     end
 
+    # Discogs applies the artist + track filters server-side. Its result title is
+    # the release or master title, so a second artist-in-title check rejects
+    # legitimate album and compilation matches.
     def usable_candidate?(result)
-      return false unless result["id"].present? && result["year"].to_s.match?(/A(?:1[0-9]{3}|20[0-9]{2})z/)
-
-      title = normalize(result["title"])
-      artist_tokens = normalize(@track.artist).split.first(4)
-      artist_tokens.any? && artist_tokens.all? { |token| title.include?(token) }
+      result["id"].present? && result["year"].to_s.match?(/^(?:1[0-9]{3}|20[0-9]{2})$/)
     end
 
     def claims_from(candidate, kind)
@@ -142,8 +141,13 @@ module MusicMetadata
       @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
-    def normalize(value)
-      value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    def no_candidate
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {},
+        error: "Discogs: no year-bearing master or release candidate was returned for this artist and track."
+      )
     end
 
     def skipped
