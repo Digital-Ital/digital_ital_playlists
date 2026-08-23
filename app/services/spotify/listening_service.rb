@@ -149,6 +149,8 @@ module Spotify
         name: track["name"],
         artist: Array(track["artists"]).filter_map { |artist| artist["name"] }.join(", "),
         album: track.dig("album", "name"),
+        spotify_release_date: track.dig("album", "release_date"),
+        spotify_release_date_precision: track.dig("album", "release_date_precision"),
         image_url: track.dig("album", "images")&.first&.dig("url"),
         external_url: track.dig("external_urls", "spotify"),
         duration_ms: track["duration_ms"],
