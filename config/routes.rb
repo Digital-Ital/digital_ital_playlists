@@ -9,6 +9,7 @@ Rails.application.routes.draw do
 
       namespace :admin do
         root to: "dashboard#index"
+        get "listening", to: "listening#show", as: :listening
         get "listening/connect", to: "listening#authorize", as: :listening_authorize
         get "listening/spotify/callback", to: "listening#callback", as: :listening_spotify_callback
         resources :categories

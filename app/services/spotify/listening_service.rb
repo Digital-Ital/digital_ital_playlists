@@ -34,6 +34,15 @@ module Spotify
       authorization_ready? && @refresh_token.present?
     end
 
+    def setup_status
+      {
+        client_id_present: @client_id.present?,
+        client_secret_present: @client_secret.present?,
+        redirect_uri: @redirect_uri.presence,
+        refresh_token_present: @refresh_token.present?
+      }
+    end
+
     def authorization_url(state:)
       raise ConfigurationError, "Set SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, and SPOTIFY_LISTENING_REDIRECT_URI first." unless authorization_ready?
 

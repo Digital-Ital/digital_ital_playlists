@@ -22,9 +22,10 @@ Existing `SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` are reused.
 2. In Heroku Config Vars, set the exact same URI as:
    `SPOTIFY_LISTENING_REDIRECT_URI`
 3. Deploy the change, then sign in to the protected admin dashboard and visit:
-   `/admin/listening/connect`
-4. Approve Spotify access. The callback shows a refresh token once.
-5. Add that value in Heroku as:
+   `/admin/listening`
+4. Use the status screen to verify the configured callback host matches the hostname in your browser, then choose **Connect Spotify**.
+5. Approve Spotify access. The callback shows a clear one-time refresh-token screen.
+6. Add that value in Heroku as:
    `SPOTIFY_LISTENING_REFRESH_TOKEN`
 
 If DNS is still propagating, use the current `*.herokuapp.com` hostname in both places instead. The Spotify redirect URI and the Heroku config variable must match exactly.
