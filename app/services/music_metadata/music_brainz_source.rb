@@ -359,31 +359,40 @@ module MusicMetadata
     end
 
     def get(path, params = {})
-      reserve_request_slot
+      attempts = 0
 
-      uri = URI("#{BASE_URL}#{path}")
-      uri.query = URI.encode_www_form(params.merge(fmt: "json"))
-      request = Net::HTTP::Get.new(uri)
-      request["Accept"] = "application/json"
-      request["User-Agent"] = USER_AGENT
+      begin
+        reserve_request_slot
 
-      timeouts = request_timeouts
-      response = Net::HTTP.start(
-        uri.host,
-        uri.port,
-        use_ssl: true,
-        open_timeout: timeouts.fetch(:open_timeout),
-        read_timeout: timeouts.fetch(:read_timeout)
-      ) do |http|
-        http.request(request)
+        uri = URI("#{BASE_URL}#{path}")
+        uri.query = URI.encode_www_form(params.merge(fmt: "json"))
+        request = Net::HTTP::Get.new(uri)
+        request["Accept"] = "application/json"
+        request["User-Agent"] = USER_AGENT
+
+        timeouts = request_timeouts
+        response = Net::HTTP.start(
+          uri.host,
+          uri.port,
+          use_ssl: true,
+          open_timeout: timeouts.fetch(:open_timeout),
+          read_timeout: timeouts.fetch(:read_timeout)
+        ) do |http|
+          http.request(request)
+        end
+        raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+        JSON.parse(response.body)
+      rescue Net::OpenTimeout, Net::ReadTimeout => e
+        attempts += 1
+        retry if attempts == 1 && retryable_timeout?
+
+        raise "network error (#{e.message})"
+      rescue JSON::ParserError
+        raise "unreadable response"
+      rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
+        raise "network error (#{e.message})"
       end
-      raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
-
-      JSON.parse(response.body)
-    rescue JSON::ParserError
-      raise "unreadable response"
-    rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
-      raise "network error (#{e.message})"
     end
 
     def reserve_request_slot
@@ -409,15 +418,19 @@ module MusicMetadata
 
     def request_timeouts
       remaining = seconds_remaining
-      return { open_timeout: 1.5, read_timeout: 3 } unless remaining
+      return { open_timeout: 2.5, read_timeout: 4 } unless remaining
 
       raise "refresh time budget exhausted" if remaining <= 0.2
 
-      open_timeout = [ 1.5, remaining / 2 ].min
-      read_timeout = [ 3, remaining - open_timeout ].min
+      open_timeout = [ 2.5, remaining / 2 ].min
+      read_timeout = [ 4, remaining - open_timeout ].min
       raise "refresh time budget exhausted" if read_timeout <= 0.1
 
       { open_timeout: open_timeout, read_timeout: read_timeout }
+    end
+
+    def retryable_timeout?
+      seconds_remaining.nil? || seconds_remaining > 5
     end
 
     def seconds_remaining
