@@ -1,0 +1,53 @@
+<section class="mt-7">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h3 class="text-xl font-bold text-white">Crate placements</h3>
+      <p class="mt-1 text-sm text-gray-400">The exact local placements for this recording or its likely local version.</p>
+    </div>
+    <% if memberships.any? %>
+      <span class="shrink-0 text-sm font-semibold text-green-300"><%= pluralize(memberships.size, "placement") %></span>
+    <% end %>
+  </div>
+
+  <% if memberships.any? %>
+    <div class="mt-4 space-y-3">
+      <% memberships.each do |membership| %>
+        <% playlist = membership[:playlist] %>
+        <article class="flex flex-col gap-4 rounded-xl border border-green-500/20 bg-green-950/10 p-4 sm:flex-row">
+          <% if playlist.cover_image_url.present? %>
+            <img src="<%= playlist.cover_image_url %>" alt="" class="h-24 w-24 shrink-0 rounded-lg object-cover shadow-lg">
+          <% else %>
+            <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-gray-800 text-3xl">🎵</div>
+          <% end %>
+
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-wider text-green-300">Local version</p>
+                <p class="truncate font-medium text-white"><%= membership[:track].name %></p>
+                <p class="truncate text-sm text-gray-400"><%= membership[:track].artist %></p>
+              </div>
+              <span class="shrink-0 rounded-full bg-black/30 px-3 py-1 text-sm font-semibold text-gray-200">#<%= membership[:position].to_i + 1 %> of <%= playlist.track_count %></span>
+            </div>
+
+            <%= link_to playlist.title, playlist_path(playlist), class: "mt-3 block font-bold text-yellow-300 hover:text-yellow-200" %>
+
+            <% if membership[:categories].any? %>
+              <div class="mt-3 flex flex-wrap gap-1">
+                <% membership[:categories].each do |category| %>
+                  <span class="rounded-full px-2 py-1 text-xs text-white" style="background-color: <%= category.color.presence || '#4B5563' %>"><%= category.name %></span>
+                <% end %>
+              </div>
+            <% end %>
+
+            <% if membership[:added_at].present? %>
+              <p class="mt-3 text-xs text-gray-500">Added <%= membership[:added_at].strftime("%b %-d, %Y") %></p>
+            <% end %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="mt-4 rounded-lg bg-gray-900 p-4 text-gray-400">This song does not currently have a placement in your saved crates.</p>
+  <% end %>
+</section>
