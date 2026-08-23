@@ -95,6 +95,15 @@ class TrackEnrichment < ApplicationRecord
                          .delete_all
   end
 
+  def discogs_candidate_strategy_stale?
+    candidate_claims = active_claims.where(source: "discogs_candidate").to_a
+    return false if candidate_claims.empty?
+
+    candidate_claims.none? do |claim|
+      claim.value.to_h["candidate_strategy"] == MusicMetadata::DiscogsCandidateSource::CANDIDATE_STRATEGY
+    end
+  end
+
   def discogs_release_id
     decisions["discogs_release_id"].presence
   end
