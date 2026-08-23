@@ -9,10 +9,13 @@ class TrackEnrichment < ApplicationRecord
     catalogue_number
     producer
     engineer
+    mastering_engineer
+    mixer
     performer
     writer
     composer
     lyricist
+    arranger
     relationship_fact
     genre
     tag
@@ -21,10 +24,13 @@ class TrackEnrichment < ApplicationRecord
   MULTI_VALUE_FIELDS = %w[
     producer
     engineer
+    mastering_engineer
+    mixer
     performer
     writer
     composer
     lyricist
+    arranger
     relationship_fact
     genre
     tag
