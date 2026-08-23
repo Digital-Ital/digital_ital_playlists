@@ -110,6 +110,11 @@ class ListeningController < ApplicationController
     retry_after = enrichment.last_error.present? ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
     return false if enrichment.last_attempted_at.present? && enrichment.last_attempted_at > retry_after.ago
 
+    # A cached Spotify/Discogs claim must not make a failed MusicBrainz or
+    # Wikipedia source permanent. Once the error cooldown has elapsed, rerun
+    # the source set automatically and replace the saved error on success.
+    return true if enrichment.last_error.present?
+
     claims = enrichment.active_claims
     discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
 
