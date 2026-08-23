@@ -209,7 +209,7 @@ module MusicMetadata
     end
 
     def recording_location_claims(relations, source_identifier, source_url, match_confidence)
-      location_types = %w[recorded at mixed at mastered at produced at]
+      location_types = [ "recorded at", "mixed at", "mastered at", "produced at" ]
 
       Array(relations).filter_map do |relation|
         next unless location_types.include?(relation["type"])
