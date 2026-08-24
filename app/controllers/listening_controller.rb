@@ -100,6 +100,8 @@ class ListeningController < ApplicationController
     return false if enrichment.status == "refreshing" &&
       enrichment.last_attempted_at.present? &&
       enrichment.last_attempted_at > MusicMetadata::TrackDossierRefreshService::REFRESH_STALE_AFTER.ago
+    return true if discogs_became_configured?(enrichment)
+
     if enrichment.discogs_release_id.blank? && enrichment.discogs_candidate_strategy_stale?
       # A strategy upgrade should re-check a cached automatic candidate, but
       # never override or repeatedly retry a curator-selected release.
@@ -153,6 +155,13 @@ class ListeningController < ApplicationController
   def selected_discogs_mismatch_stale?(enrichment)
     checked_at = Time.zone.parse(enrichment.discogs_lookup_state["checked_at"].to_s)
     checked_at.blank? || checked_at < AUTO_REFRESH_AFTER.ago
+  end
+
+  def discogs_became_configured?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["outcome"] == "skipped" &&
+      state["reason"] == "not_configured" &&
+      ENV["DISCOGS_USER_TOKEN"].present?
   end
 
   def discogs_not_configured?(enrichment)
