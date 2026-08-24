@@ -122,9 +122,11 @@ class ListeningController < ApplicationController
     # Wikipedia source permanent. Once the error cooldown has elapsed, rerun
     # the source set automatically and replace the saved error on success.
     # A selected Discogs release mismatch is different: it is a curator choice,
-    # not a transient provider failure, so wait for that choice to change.
-    return true if enrichment.last_error.present? && !only_selected_discogs_mismatch?(enrichment)
-    return selected_discogs_mismatch_stale?(enrichment) if only_selected_discogs_mismatch?(enrichment)
+    # not a transient provider failure, so leave it alone until that choice
+    # changes. Other provider errors can still retry independently.
+    return true if non_discogs_lookup_error?(enrichment)
+    return false if selected_discogs_mismatch?(enrichment)
+    return true if enrichment.last_error.present?
 
     claims = enrichment.active_claims
     discogs_sources = enrichment.discogs_release_id.present? ? [ "discogs" ] : [ "discogs", "discogs_candidate" ]
@@ -143,18 +145,16 @@ class ListeningController < ApplicationController
       enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago
   end
 
-  def only_selected_discogs_mismatch?(enrichment)
+  def selected_discogs_mismatch?(enrichment)
     state = enrichment.discogs_lookup_state
-    return false unless state["outcome"] == "error" &&
+    state["outcome"] == "error" &&
       state["reason"] == "selected_release_mismatch"
-
-    errors = enrichment.last_error.to_s.split(" | ").reject(&:blank?)
-    errors.any? && errors.all? { |error| error.start_with?("Discogs:") }
   end
 
-  def selected_discogs_mismatch_stale?(enrichment)
-    checked_at = Time.zone.parse(enrichment.discogs_lookup_state["checked_at"].to_s)
-    checked_at.blank? || checked_at < AUTO_REFRESH_AFTER.ago
+  def non_discogs_lookup_error?(enrichment)
+    enrichment.last_error.to_s.split(" | ").reject(&:blank?).any? do |error|
+      !error.start_with?("Discogs:")
+    end
   end
 
   def discogs_became_configured?(enrichment)
