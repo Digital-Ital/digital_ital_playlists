@@ -29,6 +29,8 @@ class TrackMetadataClaim < ApplicationRecord
       "isrc_exact" => "ISRC recording match",
       "curator_selected_release" => "Curator-selected release",
       "candidate_title_artist_duration" => "Title / artist / duration candidate",
+      "candidate_album_title_artist_duration" => "Album-supported title / artist / duration candidate",
+      "candidate_verified_track_release" => "Exact title / duration in Discogs release tracklist",
       "wikipedia_song_candidate" => "Wikipedia song-page candidate"
     }.fetch(match_confidence, match_confidence.to_s.humanize)
   end
