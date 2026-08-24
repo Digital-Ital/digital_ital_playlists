@@ -42,7 +42,9 @@ module MusicMetadata
       # selection first, so an owner change while Discogs is in flight cannot
       # later overwrite the newer choice with an older result.
       selected_discogs_release_id = @enrichment.discogs_release_id
-      discogs_result = discogs_source_result(global_deadline, spotify_album: spotify_album)
+      discogs_result = if discogs_refresh_due?
+        discogs_source_result(global_deadline, spotify_album: spotify_album)
+      end
       # Context is optional, so it only uses time left after the three primary
       # sources rather than stealing time from Discogs.
       wikipedia_result = WikipediaSongContextSource.new(@track, deadline: global_deadline).call
@@ -108,6 +110,44 @@ module MusicMetadata
         source_deadline(global_deadline, MUSICBRAINZ_MAX_SECONDS),
         global_deadline - DISCOGS_RESERVED_SECONDS
       ].min
+    end
+
+
+    # Discogs is independently rate-limited and its facts expire. Do not repeat
+    # a negative/mismatched/temporary result merely because another provider
+    # needs a retry. Its own saved state decides when it is due again.
+    def discogs_refresh_due?
+      state = @enrichment.discogs_lookup_state
+      return true if state.empty?
+      return true if state["mode"] != expected_discogs_mode
+      return true if @enrichment.discogs_release_id.blank? && @enrichment.discogs_candidate_strategy_stale?
+
+      outcome = state["outcome"].to_s
+      reason = state["reason"].to_s
+      return false if outcome == "error" && reason == "selected_release_mismatch"
+      return ENV["DISCOGS_USER_TOKEN"].present? if outcome == "skipped" && reason == "not_configured"
+
+      retry_at = parse_discogs_time(state["next_retry_at"])
+      return retry_at <= Time.current if retry_at.present?
+
+      if outcome == "claims"
+        expires_at = parse_discogs_time(state["claims_expires_at"])
+        return expires_at.blank? || expires_at <= Time.current
+      end
+
+      # A newly introduced/unknown outcome should be checked rather than
+      # silently becoming permanent. Known informational skips have no retry.
+      outcome != "skipped"
+    end
+
+    def expected_discogs_mode
+      @enrichment.discogs_release_id.present? ? "curator_selected" : "automatic_candidate"
+    end
+
+    def parse_discogs_time(value)
+      return if value.blank?
+
+      Time.zone.parse(value.to_s)
     end
 
     def discogs_source_result(deadline, spotify_album:)
