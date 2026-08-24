@@ -125,14 +125,16 @@ class ListeningController < ApplicationController
     return selected_discogs_mismatch_stale?(enrichment) if only_selected_discogs_mismatch?(enrichment)
 
     claims = enrichment.active_claims
-    discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
+    discogs_sources = enrichment.discogs_release_id.present? ? [ "discogs" ] : [ "discogs", "discogs_candidate" ]
+    discogs_missing = claims.where(source: discogs_sources).none?
 
-    # A missing Discogs candidate must retry after the ordinary retry window.
-    # Otherwise a temporary failure (including another source's 503) can hide
-    # Discogs for six hours even though this screen is designed to fill it in
-    # automatically while the song is playing. A recorded configuration skip is
-    # the exception: do not rerun every provider just because the server has no
-    # Discogs token; it will retry as soon as a token is configured.
+    # A missing curator-selected release or automatic candidate must retry
+    # after the ordinary retry window. Otherwise a temporary failure (including
+    # another source's 503) can hide Discogs for six hours even though this
+    # screen is designed to fill it in automatically while the song is playing.
+    # A recorded configuration skip is the exception: do not rerun every
+    # provider just because the server has no Discogs token; it will retry as
+    # soon as a token is configured.
     return true if discogs_missing && !discogs_not_configured?(enrichment)
 
     enrichment.last_refreshed_at.blank? ||
