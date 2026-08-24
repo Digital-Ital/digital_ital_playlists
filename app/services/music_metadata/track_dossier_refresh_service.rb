@@ -7,6 +7,8 @@ module MusicMetadata
     SPOTIFY_MAX_SECONDS = 5.0
     MUSICBRAINZ_MAX_SECONDS = 9.0
     DISCOGS_RESERVED_SECONDS = 9.0
+    DISCOGS_ERROR_RETRY_AFTER = 10.minutes
+    DISCOGS_NO_MATCH_RETRY_AFTER = 1.hour
     REFRESH_STALE_AFTER = 2.minutes
 
     class RefreshInProgress < StandardError; end
@@ -47,9 +49,11 @@ module MusicMetadata
         results.each { |result| sync_source_result!(result) }
         errors = results.filter_map(&:error)
 
+        checked_at = Time.current
         refresh_attributes = {
           status: resulting_status(errors),
-          last_error: errors.presence&.join(" | ")
+          last_error: errors.presence&.join(" | "),
+          discogs_refresh: discogs_refresh_attributes(discogs_result, checked_at)
         }
         # A partial refresh can update other sources while preserving older
         # MusicBrainz claims after a transient error. Only mark the dossier
@@ -118,6 +122,59 @@ module MusicMetadata
             )
           )
         end
+      end
+    end
+
+    # This is operational state rather than provider metadata. It gives the
+    # Listening Desk an honest Discogs outcome even when a safe lookup returns
+    # zero claims, when configuration is missing, or when an error preserves
+    # older temporary claims.
+    def discogs_refresh_attributes(result, checked_at)
+      metadata = result.metadata.to_h.stringify_keys
+      outcome = metadata["outcome"].presence || inferred_discogs_outcome(result)
+      state = {
+        "mode" => metadata["mode"].presence || (result.source == "discogs" ? "curator_selected" : "automatic_candidate"),
+        "outcome" => outcome,
+        "checked_at" => checked_at.iso8601
+      }
+      state["reason"] = metadata["reason"] if metadata["reason"].present?
+
+      case outcome
+      when "found"
+        expires_at = discogs_claims_expires_at(result)
+        state["claims_expires_at"] = expires_at.iso8601 if expires_at.present?
+      when "no_safe_candidate"
+        state["next_retry_at"] = (checked_at + DISCOGS_NO_MATCH_RETRY_AFTER).iso8601
+      when "error"
+        state["error_kind"] = discogs_error_kind(result.error)
+        state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
+      when "selected_release_mismatch"
+        state["error_kind"] = "selected_release_mismatch"
+      end
+
+      state
+    end
+
+    def inferred_discogs_outcome(result)
+      return "skipped" if result.skipped?
+      return "error" if result.error.present?
+      return "found" if Array(result.claims).any?
+
+      "no_safe_candidate"
+    end
+
+    def discogs_claims_expires_at(result)
+      Array(result.claims).filter_map do |claim|
+        claim[:expires_at] || claim["expires_at"]
+      end.max
+    end
+
+    def discogs_error_kind(error)
+      case error.to_s
+      when /rate limited/i then "rate_limited"
+      when /network error|Net::(?:Open|Read)Timeout/i then "network"
+      when /refresh time budget exhausted/i then "deadline"
+      else "unknown"
       end
     end
 
