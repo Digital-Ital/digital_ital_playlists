@@ -6,9 +6,19 @@
 <% signals = summary.fetch(:signals) %>
 <% musicbrainz_claims = Array(claims).select { |claim| claim.source == "musicbrainz" } %>
 <% musicbrainz_saved_at = musicbrainz_claims.map(&:fetched_at).compact.max %>
+<% discogs_claims = Array(claims).select(&:discogs?) %>
+<% discogs_state = enrichment&.discogs_lookup_state || {} %>
+<% discogs_outcome = discogs_state["outcome"].to_s %>
+<% discogs_reason = discogs_state["reason"].to_s %>
+<% discogs_checked_at = discogs_state["checked_at"].present? ? Time.zone.parse(discogs_state["checked_at"].to_s) : nil %>
+<% discogs_expires_at = discogs_state["claims_expires_at"].present? ? Time.zone.parse(discogs_state["claims_expires_at"].to_s) : nil %>
+<% discogs_next_retry_at = discogs_state["next_retry_at"].present? ? Time.zone.parse(discogs_state["next_retry_at"].to_s) : nil %>
+<% discogs_expired = discogs_outcome == "claims" && discogs_claims.empty? && discogs_expires_at.present? && discogs_expires_at <= Time.current %>
+<% discogs_mode_label = discogs_state["mode"] == "curator_selected" ? "Curator-selected release" : "Automatic candidate" %>
 <% lookup_errors = enrichment&.last_error.to_s.split(" | ").reject(&:blank?) %>
 <% musicbrainz_error = lookup_errors.find { |error| error.start_with?("MusicBrainz:") } %>
-<% non_musicbrainz_errors = lookup_errors.reject { |error| error.start_with?("MusicBrainz:") } %>
+<% discogs_error = lookup_errors.find { |error| error.start_with?("Discogs:") } %>
+<% other_lookup_errors = lookup_errors.reject { |error| error.start_with?("MusicBrainz:", "Discogs:") } %>
 <% musicbrainz_deferred_for_discogs = musicbrainz_error.to_s.include?("refresh time budget exhausted") %>
 <% musicbrainz_temporarily_unavailable = !musicbrainz_deferred_for_discogs && musicbrainz_error.to_s.match?(/(?:network error|HTTP 5\d\d|rate limited|request cap reached)/i) %>
 <% signal_labels = {
@@ -92,6 +102,115 @@
       <% end %>
     </section>
 
+    <section class="mt-4 rounded-xl border border-orange-400/30 bg-orange-950/15 p-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h4 class="font-semibold text-gray-100">Discogs lookup</h4>
+          <p class="mt-1 text-xs text-gray-400"><%= discogs_mode_label %> · operational result only; Discogs facts remain separately attributed above and below.</p>
+        </div>
+
+        <% if discogs_expired %>
+          <span class="inline-flex w-fit rounded-full border border-gray-600 bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">Previous evidence expired</span>
+        <% elsif discogs_outcome == "claims" %>
+          <span class="inline-flex w-fit rounded-full border border-emerald-400/35 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-100">Safe candidate found</span>
+        <% elsif discogs_outcome == "no_candidate" %>
+          <span class="inline-flex w-fit rounded-full border border-gray-600 bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">No safe match</span>
+        <% elsif discogs_outcome == "skipped" %>
+          <span class="inline-flex w-fit rounded-full border border-gray-600 bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">Skipped</span>
+        <% elsif discogs_outcome == "error" && discogs_reason == "selected_release_mismatch" %>
+          <span class="inline-flex w-fit rounded-full border border-red-400/35 bg-red-500/10 px-2.5 py-1 text-xs font-semibold text-red-100">Release needs review</span>
+        <% elsif discogs_outcome == "error" %>
+          <span class="inline-flex w-fit rounded-full border border-yellow-400/35 bg-yellow-500/10 px-2.5 py-1 text-xs font-semibold text-yellow-100">Temporary issue</span>
+        <% elsif discogs_claims.any? %>
+          <span class="inline-flex w-fit rounded-full border border-gray-600 bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">Saved evidence</span>
+        <% else %>
+          <span class="inline-flex w-fit rounded-full border border-gray-600 bg-gray-800 px-2.5 py-1 text-xs font-semibold text-gray-200">Not checked yet</span>
+        <% end %>
+      </div>
+
+      <% if discogs_expired %>
+        <p class="mt-3 text-sm text-gray-200">A previous Discogs lookup found temporary evidence, but it has expired and is no longer displayed.</p>
+        <p class="mt-2 text-xs text-gray-400">It will be checked again when this song next appears in the Listening Desk.</p>
+      <% elsif discogs_outcome == "claims" %>
+        <p class="mt-3 text-sm text-gray-200">
+          <% if discogs_state["mode"] == "curator_selected" %>
+            A curator-selected Discogs release contains a compatible title and artist match.
+          <% else %>
+            Exact title, duration, and compatible artist matched in a Discogs release tracklist.
+          <% end %>
+        </p>
+        <p class="mt-2 text-xs text-gray-400">
+          <%= pluralize(discogs_claims.size, "temporary Discogs fact") %> saved locally<%= discogs_checked_at.present? ? " #{time_ago_in_words(discogs_checked_at)} ago" : "" %>.
+          <% if discogs_expires_at.present? %>
+            <% if discogs_expires_at > Time.current %>
+              Expires in <%= distance_of_time_in_words(Time.current, discogs_expires_at) %>.
+            <% else %>
+              Its saved expiry has passed; the next desk check will refresh it.
+            <% end %>
+          <% end %>
+        </p>
+      <% elsif discogs_outcome == "no_candidate" %>
+        <p class="mt-3 text-sm text-gray-200">No Discogs result passed the exact title, compatible-artist, and duration checks. No Discogs facts were inferred.</p>
+        <p class="mt-2 text-xs text-gray-400">
+          <% if discogs_checked_at.present? %>Checked <%= time_ago_in_words(discogs_checked_at) %> ago.<% end %>
+          <% if discogs_next_retry_at.present? && discogs_next_retry_at > Time.current %>
+            Eligible to check again in <%= distance_of_time_in_words(Time.current, discogs_next_retry_at) %> when this song next appears.
+          <% else %>
+            Eligible to check again when this song next appears.
+          <% end %>
+        </p>
+      <% elsif discogs_outcome == "skipped" && discogs_reason == "not_configured" %>
+        <p class="mt-3 text-sm text-gray-200">Discogs lookup was skipped because it is not configured on this server.</p>
+        <p class="mt-2 text-xs text-gray-400">No Discogs request was made.</p>
+      <% elsif discogs_outcome == "skipped" && discogs_reason == "time_budget" %>
+        <p class="mt-3 text-sm text-gray-200">Discogs was not contacted this pass because its protected lookup time ran out before a safe request could start.</p>
+        <p class="mt-2 text-xs text-gray-400">
+          <% if discogs_next_retry_at.present? && discogs_next_retry_at > Time.current %>
+            Eligible to retry in <%= distance_of_time_in_words(Time.current, discogs_next_retry_at) %> when this song next appears.
+          <% else %>
+            Eligible to retry when this song next appears.
+          <% end %>
+        </p>
+      <% elsif discogs_outcome == "skipped" %>
+        <p class="mt-3 text-sm text-gray-200">Discogs lookup was skipped for this pass.</p>
+        <p class="mt-2 text-xs text-gray-400">Reason: <%= discogs_reason.humanize.presence || "not recorded" %>.</p>
+      <% elsif discogs_outcome == "error" && discogs_reason == "selected_release_mismatch" %>
+        <p class="mt-3 text-sm text-gray-200">The selected Discogs release did not contain a safe compatible title and artist match. No Discogs facts were added.</p>
+        <p class="mt-2 text-xs text-gray-400">Choose another release in owner controls; this will not keep retrying until that selection changes.</p>
+      <% elsif discogs_outcome == "error" %>
+        <p class="mt-3 text-sm text-gray-200">
+          <% if discogs_reason == "rate_limited" %>
+            Discogs rate-limited this server for the moment.
+          <% elsif discogs_reason == "network" %>
+            Discogs could not be reached just now.
+          <% else %>
+            Discogs could not be checked just now.
+          <% end %>
+        </p>
+        <p class="mt-2 text-xs text-gray-400">
+          <% if discogs_claims.any? %>
+            Previously saved temporary Discogs evidence remains visible<%= discogs_expires_at.present? && discogs_expires_at > Time.current ? " until it expires" : "" %>.
+          <% else %>
+            No Discogs facts are shown.
+          <% end %>
+          <% if discogs_next_retry_at.present? && discogs_next_retry_at > Time.current %>
+            Eligible to retry in <%= distance_of_time_in_words(Time.current, discogs_next_retry_at) %> when this song next appears.
+          <% end %>
+        </p>
+      <% elsif discogs_claims.any? %>
+        <p class="mt-3 text-sm text-gray-200">Saved Discogs evidence is visible, but its lookup status predates this tracker.</p>
+        <p class="mt-2 text-xs text-gray-400">The next lookup will record whether Discogs found a safe match, found none, or could not run.</p>
+      <% elsif discogs_error.present? %>
+        <p class="mt-3 text-sm text-gray-200">Discogs could not be checked during a prior lookup.</p>
+        <p class="mt-2 text-xs text-gray-400">The next lookup will record the specific Discogs outcome and retry reason.</p>
+      <% elsif enrichment.present? && enrichment.status == "refreshing" %>
+        <p class="mt-3 text-sm text-gray-200">Discogs lookup is being prepared for this exact recording.</p>
+      <% else %>
+        <p class="mt-3 text-sm text-gray-200">Discogs has not been checked for this recording yet.</p>
+        <p class="mt-2 text-xs text-gray-400">When this song appears in the Listening Desk, its Discogs lookup result will be recorded here.</p>
+      <% end %>
+    </section>
+
     <% if song_contexts.any? %>
       <section class="mt-4 rounded-xl border border-sky-400/25 bg-sky-950/20 p-4">
         <h4 class="font-semibold text-gray-100">Song context</h4>
@@ -144,8 +263,8 @@
       </section>
     <% end %>
 
-    <% if non_musicbrainz_errors.any? %>
-      <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Automatic lookup incomplete: <%= non_musicbrainz_errors.join(" | ") %></p>
+    <% if other_lookup_errors.any? %>
+      <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Automatic lookup incomplete: <%= other_lookup_errors.join(" | ") %></p>
     <% end %>
 
     <% if claims.any?(&:discogs?) %>
