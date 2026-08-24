@@ -98,17 +98,19 @@ module MusicMetadata
     end
 
     def validated_release_candidate(search_params, match_path:, require_spotify_album_title: false)
-      ranked_candidates("release", search_params).each do |candidate|
-        release = release_detail(candidate)
-        next unless usable_candidate?(release)
-        next unless exact_tracklist_match?(release)
-        next unless compatible_artist_on_release?(release)
-        next if require_spotify_album_title && !spotify_album_title_matches?(release)
+      # One earliest result per discovery path keeps the fallback bounded and
+      # preserves the deliberate order: single, then Spotify album, then
+      # general track-bearing release.
+      candidate = ranked_candidates("release", search_params).first
+      return unless candidate
 
-        return { result: release, kind: "release", match_path: match_path }
-      end
+      release = release_detail(candidate)
+      return unless usable_candidate?(release)
+      return unless exact_tracklist_match?(release)
+      return unless compatible_artist_on_release?(release)
+      return if require_spotify_album_title && !spotify_album_title_matches?(release)
 
-      nil
+      { result: release, kind: "release", match_path: match_path }
     end
 
     def release_detail(candidate)
