@@ -10,8 +10,9 @@ module MusicMetadata
   class DiscogsCandidateSource
     SEARCH_URL = URI("https://api.discogs.com/database/search")
     MASTER_BASE_URL = "https://api.discogs.com/masters/"
+    RELEASE_BASE_URL = "https://api.discogs.com/releases/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
-    CANDIDATE_STRATEGY = "single-then-spotify-album-master-v6"
+    CANDIDATE_STRATEGY = "single-then-album-then-verified-track-v7"
 
     def initialize(track, deadline: nil)
       @track = track
@@ -29,6 +30,16 @@ module MusicMetadata
         release_candidate ||
         album_master_candidate ||
         track_master_candidate
+
+      # Last resort: Discogs search data is release-focused and can miss songs
+      # that are album tracks or whose single was not labelled "Single". Query
+      # releases by track, then fetch the release and accept it only when its
+      # actual tracklist has an exact title (and, where supplied, duration)
+      # match. This is deliberately a candidate, never a confirmed recording.
+      unless candidate
+        relaxed_release_candidate = verified_track_release_candidate
+        candidate = linked_master_for(relaxed_release_candidate) || relaxed_release_candidate
+      end
       return no_candidate unless candidate
 
       SourceResult.new(
@@ -89,11 +100,32 @@ module MusicMetadata
     end
 
     def earliest_candidate(kind, search_params, match_path:)
-      result = search_results(kind, search_params)
-        .select { |entry| usable_candidate?(entry) }
-        .min_by { |entry| entry.fetch("year").to_i }
-
+      result = ranked_candidates(kind, search_params).first
       result && { result: result, kind: kind, match_path: match_path }
+    end
+
+    def ranked_candidates(kind, search_params)
+      search_results(kind, search_params)
+        .select { |entry| usable_candidate?(entry) }
+        .sort_by { |entry| entry.fetch("year").to_i }
+    end
+
+    def verified_track_release_candidate
+      # Limit the fallback to two earliest eligible releases so an unusual
+      # Discogs result cannot turn a live Listening Desk refresh into a crawl.
+      ranked_candidates("release", { track: @track.name.to_s }).first(2).each do |candidate|
+        release = get_json(URI("#{RELEASE_BASE_URL}#{candidate.fetch("id")}"))
+        next unless usable_candidate?(release)
+        next unless exact_tracklist_match?(release)
+
+        return {
+          result: release,
+          kind: "release",
+          match_path: "verified_release_track"
+        }
+      end
+
+      nil
     end
 
     def search_results(kind, search_params)
@@ -109,6 +141,27 @@ module MusicMetadata
       )
 
       Array(get_json(uri).fetch("results", []))
+    end
+
+    def exact_tracklist_match?(release)
+      Array(release["tracklist"]).any? do |entry|
+        next false unless normalize(entry["title"]) == normalize(@track.name)
+
+        listed_duration = duration_ms(entry["duration"])
+        listed_duration.blank? || @track.duration_ms.blank? ||
+          (listed_duration - @track.duration_ms.to_i).abs <= 12_000
+      end
+    end
+
+    def duration_ms(value)
+      match = value.to_s.strip.match(/\A(\d+):(\d{2})\z/)
+      return unless match
+
+      (match[1].to_i * 60 + match[2].to_i) * 1000
+    end
+
+    def normalize(value)
+      value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
     end
 
     # A Discogs master is a release family, so searching masters by an
@@ -162,12 +215,13 @@ module MusicMetadata
       identifier = candidate.fetch("id").to_s
       source_url = "https://www.discogs.com/#{kind}/#{identifier}"
       context = candidate_context(kind, linked_release_id, match_path)
+      match_confidence = match_confidence_for(match_path)
 
       [
-        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
-        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind),
-        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind),
-        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind)
+        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind, match_confidence),
+        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind, match_confidence),
+        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind, match_confidence),
+        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind, match_confidence)
       ].compact
     end
 
@@ -175,7 +229,7 @@ module MusicMetadata
     # taxonomy. Keeping it with the automatic candidate gives the Listening
     # Desk useful curation signals without an extra API request, while the
     # context makes clear that it is not a curator-verified pressing.
-    def taxonomy_claims(values, field, context, identifier, source_url, kind)
+    def taxonomy_claims(values, field, context, identifier, source_url, kind, match_confidence)
       Array(values).filter_map do |value|
         claim(
           field,
@@ -183,12 +237,13 @@ module MusicMetadata
           "#{context} #{field == "genre" ? "genre" : "style"}",
           identifier,
           source_url,
-          kind
+          kind,
+          match_confidence
         )
       end.uniq { |entry| entry.dig(:value, "text").to_s.downcase }
     end
 
-    def claim(field, text, context, identifier, source_url, kind)
+    def claim(field, text, context, identifier, source_url, kind, match_confidence)
       return if text.blank?
 
       {
@@ -202,7 +257,7 @@ module MusicMetadata
           "scope" => "discogs_#{kind}_candidate",
           "candidate_strategy" => CANDIDATE_STRATEGY
         },
-        match_confidence: "candidate_title_artist_duration",
+        match_confidence: match_confidence,
         expires_at: 6.hours.from_now
       }
     end
@@ -213,6 +268,8 @@ module MusicMetadata
         "single / track-title"
       when "spotify_album"
         "Spotify album / artist"
+      when "verified_release_track"
+        "tracklist-verified track-title / artist"
       else
         "track-title / artist"
       end
@@ -221,9 +278,17 @@ module MusicMetadata
         "Discogs master linked from a #{discovery} candidate — release family, not a verified recording"
       elsif kind == "master"
         "Earliest compatible Discogs master from a #{discovery} candidate — a release family, not a verified recording"
+      elsif match_path == "verified_release_track"
+        "Discogs release whose tracklist contains the exact song title — release-level data, not a confirmed recording"
       else
         "Earliest compatible Discogs #{discovery} release candidate — pressing not verified"
       end
+    end
+
+    def match_confidence_for(match_path)
+      return "candidate_verified_track_release" if match_path == "verified_release_track"
+
+      "candidate_title_artist_duration"
     end
 
     def request_timeouts
