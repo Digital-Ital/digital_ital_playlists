@@ -189,6 +189,20 @@ module MusicMetadata
       }
       state["reason"] = result.outcome_reason if result.outcome_reason.present?
 
+      # These are only lookup mechanics (not Discogs facts): they let the
+      # Listening Desk explain how much of the bounded automatic search ran
+      # without presenting unverified release data as evidence.
+      metadata = result.metadata.to_h.stringify_keys
+      if metadata["candidate_strategy"].present?
+        state["candidate_strategy"] = metadata["candidate_strategy"]
+      end
+      if metadata["search_attempts"].present?
+        state["search_attempts"] = Array(metadata["search_attempts"])
+      end
+      if metadata.key?("release_validations")
+        state["release_validations"] = metadata["release_validations"].to_i
+      end
+
       case outcome
       when "claims"
         expires_at = discogs_claims_expires_at(result)
