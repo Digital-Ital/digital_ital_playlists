@@ -103,11 +103,12 @@ class ListeningController < ApplicationController
     return true if discogs_became_configured?(enrichment)
 
     if enrichment.discogs_release_id.blank? && enrichment.discogs_candidate_strategy_stale?
-      # A strategy upgrade should re-check a cached automatic candidate, but
-      # never override or repeatedly retry a curator-selected release.
-      # every public live-track refresh when Discogs is unavailable or skipped.
-      # Any source failure, including MusicBrainz, needs the short error
-      # cooldown even if a Discogs-candidate strategy upgrade is also pending.
+      # A deployed lookup strategy upgrade gets one immediate re-check for a
+      # configured automatic candidate. This avoids making a curator wait an
+      # hour to benefit from a safer/fuller search route, while the saved
+      # strategy version prevents repeat calls on every page refresh.
+      return true if discogs_strategy_changed?(enrichment) && !discogs_not_configured?(enrichment)
+
       retry_after = enrichment.last_error.present? ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
       return false if enrichment.last_attempted_at.present? &&
         enrichment.last_attempted_at > retry_after.ago
@@ -155,6 +156,12 @@ class ListeningController < ApplicationController
     enrichment.last_error.to_s.split(" | ").reject(&:blank?).any? do |error|
       !error.start_with?("Discogs:")
     end
+  end
+
+  def discogs_strategy_changed?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["mode"] == "automatic_candidate" &&
+      state["candidate_strategy"] != MusicMetadata::DiscogsCandidateSource::CANDIDATE_STRATEGY
   end
 
   def discogs_became_configured?(enrichment)

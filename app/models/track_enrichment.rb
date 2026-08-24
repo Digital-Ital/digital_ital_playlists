@@ -105,6 +105,10 @@ class TrackEnrichment < ApplicationRecord
   end
 
   def discogs_candidate_strategy_stale?
+    state = discogs_lookup_state
+    return true if state["mode"] == "automatic_candidate" &&
+      state["candidate_strategy"] != MusicMetadata::DiscogsCandidateSource::CANDIDATE_STRATEGY
+
     candidate_claims = active_claims.where(source: "discogs_candidate").to_a
     return false if candidate_claims.empty?
 

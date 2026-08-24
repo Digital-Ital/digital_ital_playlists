@@ -70,10 +70,10 @@ module MusicMetadata
     end
 
     def matching_release_tracks(payload)
-      title = normalize(@track.name)
+      title = normalized_title(@track.name)
 
       Array(payload["tracklist"]).select do |entry|
-        next false unless normalize(entry["title"]) == title
+        next false unless normalized_title(entry["title"]) == title
 
         artist = track_artist(entry)
         artist.blank? || compatible_artist?(artist)
@@ -88,8 +88,8 @@ module MusicMetadata
     end
 
     def compatible_artist?(candidate)
-      source_tokens = normalize(@track.artist).split
-      candidate_tokens = normalize(candidate).split
+      source_tokens = artist_identity_tokens(@track.artist)
+      candidate_tokens = artist_identity_tokens(candidate)
       return false if source_tokens.empty? || candidate_tokens.empty?
 
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
@@ -314,6 +314,26 @@ module MusicMetadata
       return unless @deadline
 
       @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
+    def normalized_title(value)
+      value.to_s.downcase
+           .gsub(/\[[^\]]*\]|\([^\)]*\)/, " ")
+           .gsub(/\b(remaster(?:ed)?|mono|stereo|explicit|clean|version)\b/, " ")
+           .gsub(/\b(?:feat(?:uring)?|ft\.?)\b.*/, " ")
+           .gsub(/[^a-z0-9]+/, " ")
+           .squish
+    end
+
+    def artist_identity_tokens(value)
+      value.to_s.downcase
+           .gsub(/\([^\)]*\)|\[[^\]]*\]/, " ")
+           .gsub(/\b(?:feat(?:uring)?|with)\b.*/, " ")
+           .gsub(/\bft\.?(?=\s|$).*/, " ")
+           .gsub(/\bw\/(?=\s).*/, " ")
+           .gsub(/[^a-z0-9]+/, " ")
+           .squish
+           .split - %w[the and dj]
     end
 
     def normalize(value)
