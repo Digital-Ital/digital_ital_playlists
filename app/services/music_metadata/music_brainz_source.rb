@@ -419,8 +419,8 @@ module MusicMetadata
       attempts = 0
 
       begin
-        reserve_request_slot
         consume_request_budget!
+        reserve_request_slot
 
         uri = URI("#{BASE_URL}#{path}")
         uri.query = URI.encode_www_form(params.merge(fmt: "json"))
