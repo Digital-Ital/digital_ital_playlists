@@ -1,0 +1,11 @@
+<% thumbnail_class = local_assigns.fetch(:thumbnail_class, "h-24 w-24") %>
+<%= link_to playlist_path(playlist), class: "block shrink-0 rounded-lg transition hover:ring-2 hover:ring-yellow-300/70 focus:outline-none focus:ring-2 focus:ring-yellow-300/70", title: "Open #{playlist.title}" do %>
+  <% if playlist.cover_image_url.present? %>
+    <%= image_tag playlist.cover_image_url,
+      alt: "Cover for #{playlist.title}",
+      loading: "lazy",
+      class: "#{thumbnail_class} rounded-lg object-cover shadow-lg" %>
+  <% else %>
+    <span class="flex <%= thumbnail_class %> items-center justify-center rounded-lg bg-gray-800 text-3xl shadow-lg" aria-label="No cover saved for <%= playlist.title %>">🎵</span>
+  <% end %>
+<% end %>
