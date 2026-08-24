@@ -28,20 +28,24 @@ module MusicMetadata
       attr_accessor :last_request_at
     end
 
-    def initialize(track, isrc:, deadline: nil)
+    def initialize(track, isrc:, spotify_album: nil, deadline: nil)
       @track = track
       @isrc = isrc.presence
+      @spotify_album = spotify_album.to_h
       @deadline = deadline
     end
 
     def call
       candidate, match_confidence = find_candidate
-      return skipped unless candidate
+      return no_candidate unless candidate
 
       recording = get(
         "recording/#{candidate.fetch("id")}",
         inc: "artist-credits+isrcs+releases+artist-rels+work-rels+recording-rels+place-rels+tags+genres"
       )
+      return no_candidate if album_supported_candidate?(match_confidence) &&
+        !recording_has_spotify_album?(recording)
+
       work = fetch_work(recording)
       source_url = "https://musicbrainz.org/recording/#{recording.fetch("id")}"
 
@@ -78,7 +82,7 @@ module MusicMetadata
       # compatible-artist, and duration checks remain unchanged, so this route
       # cannot accept a merely similar song.
       candidate = recording_candidates(album_supported_recording_query)
-        .find { |recording| strict_recording_match?(recording) }
+        .find { |recording| album_supported_recording_match?(recording) }
       return [ candidate, "candidate_album_title_artist_duration" ] if candidate.present?
 
       [ nil, nil ]
@@ -89,18 +93,39 @@ module MusicMetadata
     end
 
     def album_supported_recording_query
-      return if @track.album.blank?
+      return if spotify_album_name.blank?
 
-      # Deliberately omit an artist term here: the later local artist check is
-      # stricter and tolerates harmless credit styling differences.
-      %(recording:"#{search_value(@track.name)}" AND release:"#{search_value(@track.album)}")
+      # The source-side album phrase is an extra clue only. The candidate is
+      # still rejected unless the title, artist, duration, and detailed
+      # recording release list all agree with Spotify's current album payload.
+      %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}" AND release:"#{search_value(spotify_album_name)}")
     end
 
     def recording_candidates(query)
       return [] if query.blank?
 
-      payload = get("recording/", query: query, limit: 10)
+      payload = get("recording/", query: query, limit: 5)
       Array(payload["recordings"])
+    end
+
+    def album_supported_recording_match?(recording)
+      return false if @track.duration_ms.blank? || recording["length"].blank?
+
+      strict_recording_match?(recording)
+    end
+
+    def album_supported_candidate?(match_confidence)
+      match_confidence == "candidate_album_title_artist_duration"
+    end
+
+    def recording_has_spotify_album?(recording)
+      Array(recording["releases"]).any? do |release|
+        normalize(release["title"]) == normalize(spotify_album_name)
+      end
+    end
+
+    def spotify_album_name
+      @spotify_album["name"].to_s.presence
     end
 
     def fetch_work(recording)
@@ -470,11 +495,20 @@ module MusicMetadata
     end
 
     def search_value(value)
-      value.to_s.delete('"').delete("\\")
+      # Escape Lucene operators before the quoted phrase is URL-encoded. Track
+      # titles such as "A/B (Dub)" must remain literal search text.
+      value.to_s.gsub(/[+\-!(){}\[\]^"~*?:\\\\/&|]/) { |character| "\\#{character}" }
     end
 
     def normalize(value)
       value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    end
+
+    def no_candidate
+      # A completed lookup with no safe match is normal absence, not an API
+      # failure. Returning an empty successful result clears old candidate
+      # claims rather than leaving stale source evidence on a new version.
+      SourceResult.new(source: "musicbrainz", claims: [], metadata: {}, error: nil)
     end
 
     def skipped
