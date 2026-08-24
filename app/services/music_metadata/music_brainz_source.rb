@@ -511,7 +511,7 @@ module MusicMetadata
     def search_value(value)
       # Escape Lucene operators before the quoted phrase is URL-encoded. Track
       # titles such as "A/B (Dub)" must remain literal search text.
-      value.to_s.gsub(/[+\-!(){}\[\]^"~*?:\\\\/&|]/) { |character| "\\#{character}" }
+      value.to_s.gsub(%r{[+\-!(){}\[\]^"~*?:\\/&|]}) { |character| "\\#{character}" }
     end
 
     def normalize(value)
