@@ -103,7 +103,9 @@ class ListeningController < ApplicationController
     if enrichment.discogs_candidate_strategy_stale?
       # A strategy upgrade should re-check a cached candidate, but never on
       # every public live-track refresh when Discogs is unavailable or skipped.
-      retry_after = enrichment.last_error.to_s.include?("Discogs:") ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
+      # Any source failure, including MusicBrainz, needs the short error
+      # cooldown even if a Discogs-candidate strategy upgrade is also pending.
+      retry_after = enrichment.last_error.present? ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
       return false if enrichment.last_attempted_at.present? &&
         enrichment.last_attempted_at > retry_after.ago
 
