@@ -4,53 +4,60 @@ require "timeout"
 require "uri"
 
 module MusicMetadata
-  # Discogs indexes releases/pressings, not one canonical song. This source
-  # therefore records an automatic search result as a candidate only. It never
-  # treats a candidate pressing as a verified original release.
+  # Discogs indexes releases/pressings, not one canonical song. Automatic
+  # results remain candidate evidence and are validated against a release
+  # tracklist before their metadata can appear in the Listening Desk.
   class DiscogsCandidateSource
     SEARCH_URL = URI("https://api.discogs.com/database/search")
     MASTER_BASE_URL = "https://api.discogs.com/masters/"
     RELEASE_BASE_URL = "https://api.discogs.com/releases/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
-    CANDIDATE_STRATEGY = "single-then-album-then-verified-track-v7"
+    CANDIDATE_STRATEGY = "validated-single-album-relaxed-track-v8"
+    MAX_RELEASE_VALIDATIONS = 3
 
-    def initialize(track, deadline: nil)
+    def initialize(track, spotify_album: nil, deadline: nil)
       @track = track
+      @spotify_album = spotify_album.to_h
       @deadline = deadline
+      @release_validations = 0
     end
 
     def call
       return skipped unless configured?
 
-      # Discogs is release-oriented: first look for a single carrying this
-      # track, since that often predates the album. Only if that returns
-      # nothing usable do we use the known Spotify album as the discovery key.
-      release_candidate = single_release_candidate || album_release_candidate
-      candidate = linked_master_for(release_candidate) ||
-        release_candidate ||
-        album_master_candidate ||
-        track_master_candidate
+      # Discogs is release-oriented. Check a track-bearing single first, then
+      # the Spotify album. Each raw search result is fetched and checked against
+      # its actual tracklist before it may be used.
+      release_candidate = single_release_candidate ||
+        spotify_album_release_candidate ||
+        relaxed_track_release_candidate
+      return no_candidate unless release_candidate
 
-      # Last resort: Discogs search data is release-focused and can miss songs
-      # that are album tracks or whose single was not labelled "Single". Query
-      # releases by track, then fetch the release and accept it only when its
-      # actual tracklist has an exact title (and, where supplied, duration)
-      # match. This is deliberately a candidate, never a confirmed recording.
-      unless candidate
-        relaxed_release_candidate = verified_track_release_candidate
-        candidate = linked_master_for(relaxed_release_candidate) || relaxed_release_candidate
+      master_candidate = linked_master_for(release_candidate)
+      claims = claims_from(
+        release_candidate.fetch(:result),
+        "release",
+        match_path: release_candidate.fetch(:match_path)
+      )
+      if master_candidate.present?
+        claims.concat(
+          claims_from(
+            master_candidate.fetch(:result),
+            "master",
+            linked_release_id: release_candidate.dig(:result, "id"),
+            match_path: release_candidate.fetch(:match_path)
+          )
+        )
       end
-      return no_candidate unless candidate
 
       SourceResult.new(
         source: "discogs_candidate",
-        claims: claims_from(
-          candidate.fetch(:result),
-          candidate.fetch(:kind),
-          linked_release_id: candidate[:linked_release_id],
-          match_path: candidate[:match_path]
-        ),
-        metadata: { identifier: candidate.dig(:result, "id"), kind: candidate.fetch(:kind) },
+        claims: claims,
+        metadata: {
+          identifier: release_candidate.dig(:result, "id"),
+          kind: "release",
+          master_identifier: master_candidate&.dig(:result, "id")
+        },
         error: nil
       )
     rescue StandardError => e
@@ -64,68 +71,57 @@ module MusicMetadata
     end
 
     def single_release_candidate
-      earliest_candidate(
-        "release",
+      validated_release_candidate(
         { track: @track.name.to_s, format: "Single" },
         match_path: "single_track"
       )
     end
 
-    def album_release_candidate
-      return if @track.album.blank?
+    def spotify_album_release_candidate
+      return if spotify_album_name.blank?
 
-      earliest_candidate(
-        "release",
-        { release_title: @track.album.to_s },
-        match_path: "spotify_album"
+      validated_release_candidate(
+        { release_title: spotify_album_name },
+        match_path: "spotify_album",
+        require_spotify_album_title: true
       )
     end
 
-    def album_master_candidate
-      return if @track.album.blank?
-
-      earliest_candidate(
-        "master",
-        { release_title: @track.album.to_s },
-        match_path: "spotify_album"
-      )
-    end
-
-    def track_master_candidate
-      earliest_candidate(
-        "master",
+    # This is intentionally last. It catches an album, EP, or compilation
+    # whose song was not marked as a Discogs "Single", but accepts it only
+    # after an exact tracklist title/duration check.
+    def relaxed_track_release_candidate
+      validated_release_candidate(
         { track: @track.name.to_s },
-        match_path: "track_title"
+        match_path: "verified_release_track"
       )
     end
 
-    def earliest_candidate(kind, search_params, match_path:)
-      result = ranked_candidates(kind, search_params).first
-      result && { result: result, kind: kind, match_path: match_path }
+    def validated_release_candidate(search_params, match_path:, require_spotify_album_title: false)
+      ranked_candidates("release", search_params).each do |candidate|
+        release = release_detail(candidate)
+        next unless usable_candidate?(release)
+        next unless exact_tracklist_match?(release)
+        next unless compatible_artist_on_release?(release)
+        next if require_spotify_album_title && !spotify_album_title_matches?(release)
+
+        return { result: release, kind: "release", match_path: match_path }
+      end
+
+      nil
+    end
+
+    def release_detail(candidate)
+      return if @release_validations >= MAX_RELEASE_VALIDATIONS
+
+      @release_validations += 1
+      get_json(URI("#{RELEASE_BASE_URL}#{candidate.fetch("id")}"))
     end
 
     def ranked_candidates(kind, search_params)
       search_results(kind, search_params)
         .select { |entry| usable_candidate?(entry) }
         .sort_by { |entry| entry.fetch("year").to_i }
-    end
-
-    def verified_track_release_candidate
-      # Limit the fallback to two earliest eligible releases so an unusual
-      # Discogs result cannot turn a live Listening Desk refresh into a crawl.
-      ranked_candidates("release", { track: @track.name.to_s }).first(2).each do |candidate|
-        release = get_json(URI("#{RELEASE_BASE_URL}#{candidate.fetch("id")}"))
-        next unless usable_candidate?(release)
-        next unless exact_tracklist_match?(release)
-
-        return {
-          result: release,
-          kind: "release",
-          match_path: "verified_release_track"
-        }
-      end
-
-      nil
     end
 
     def search_results(kind, search_params)
@@ -144,7 +140,11 @@ module MusicMetadata
     end
 
     def exact_tracklist_match?(release)
-      Array(release["tracklist"]).any? do |entry|
+      matching_track_entries(release).any?
+    end
+
+    def matching_track_entries(release)
+      Array(release["tracklist"]).select do |entry|
         next false unless normalize(entry["title"]) == normalize(@track.name)
 
         listed_duration = duration_ms(entry["duration"])
@@ -153,21 +153,53 @@ module MusicMetadata
       end
     end
 
-    def duration_ms(value)
-      match = value.to_s.strip.match(/\A(\d+):(\d{2})\z/)
-      return unless match
+    # The search request already includes Spotify's artist string. This local
+    # check prevents a fuzzy Discogs search result with another artist from
+    # borrowing facts for a same-titled song. Track-level artists take priority
+    # when Discogs supplies them; otherwise the release-level artist is used.
+    def compatible_artist_on_release?(release)
+      entries = matching_track_entries(release)
+      names = entries.flat_map { |entry| artist_names(entry["artists"]) }
+      names = artist_names(release["artists"]) if names.empty?
+      names = names.reject { |name| generic_artist_name?(name) }
 
-      (match[1].to_i * 60 + match[2].to_i) * 1000
+      # No artist payload is inconclusive rather than positive. The original
+      # Discogs search still had an artist filter, but the lack of detail keeps
+      # this an explicitly low-confidence candidate.
+      names.empty? || names.any? { |name| compatible_artist?(name) }
     end
 
-    def normalize(value)
-      value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    def artist_names(artists)
+      Array(artists).filter_map { |artist| artist.is_a?(Hash) ? artist["name"] : artist.to_s.presence }
     end
 
-    # A Discogs master is a release family, so searching masters by an
-    # individual track title often misses the real family. After finding a
-    # compatible single or Spotify-album release, follow its master_id when
-    # present to obtain the release-family year and taxonomy.
+    def generic_artist_name?(name)
+      normalize(name).in?([ "various", "various artists", "va" ])
+    end
+
+    def compatible_artist?(candidate)
+      source_tokens = artist_tokens(@track.artist)
+      candidate_tokens = artist_tokens(candidate)
+      return false if source_tokens.empty? || candidate_tokens.empty?
+
+      (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
+    end
+
+    def artist_tokens(value)
+      normalize(value).split - %w[the and feat featuring with]
+    end
+
+    def spotify_album_title_matches?(release)
+      normalize(release["title"]) == normalize(spotify_album_name)
+    end
+
+    def spotify_album_name
+      @spotify_album["name"].to_s.presence
+    end
+
+    # A Discogs master is a release family. It is shown alongside—not instead
+    # of—the validated release, so its earlier family year never masquerades
+    # as the precise release that proved the song placement.
     def linked_master_for(release_candidate)
       master_id = release_candidate&.dig(:result, "master_id").to_s
       return if master_id.blank? || !master_id.match?(/\A\d+\z/)
@@ -175,12 +207,7 @@ module MusicMetadata
       master = get_json(URI("#{MASTER_BASE_URL}#{master_id}"))
       return unless usable_candidate?(master)
 
-      {
-        result: master,
-        kind: "master",
-        linked_release_id: release_candidate.dig(:result, "id"),
-        match_path: release_candidate[:match_path]
-      }
+      { result: master, kind: "master" }
     rescue StandardError => e
       Rails.logger.info("Discogs master lookup skipped for #{@track.spotify_id}: #{e.message}")
       nil
@@ -211,25 +238,20 @@ module MusicMetadata
       result["id"].present? && result["year"].to_s.match?(/^(?:1[0-9]{3}|20[0-9]{2})$/)
     end
 
-    def claims_from(candidate, kind, linked_release_id: nil, match_path: nil)
+    def claims_from(candidate, kind, linked_release_id: nil, match_path:)
       identifier = candidate.fetch("id").to_s
       source_url = "https://www.discogs.com/#{kind}/#{identifier}"
       context = candidate_context(kind, linked_release_id, match_path)
-      match_confidence = match_confidence_for(match_path)
 
       [
-        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind, match_confidence),
-        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind, match_confidence),
-        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind, match_confidence),
-        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind, match_confidence)
+        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
+        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind),
+        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind),
+        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind)
       ].compact
     end
 
-    # The search response already carries Discogs' broad genre and style
-    # taxonomy. Keeping it with the automatic candidate gives the Listening
-    # Desk useful curation signals without an extra API request, while the
-    # context makes clear that it is not a curator-verified pressing.
-    def taxonomy_claims(values, field, context, identifier, source_url, kind, match_confidence)
+    def taxonomy_claims(values, field, context, identifier, source_url, kind)
       Array(values).filter_map do |value|
         claim(
           field,
@@ -237,13 +259,12 @@ module MusicMetadata
           "#{context} #{field == "genre" ? "genre" : "style"}",
           identifier,
           source_url,
-          kind,
-          match_confidence
+          kind
         )
       end.uniq { |entry| entry.dig(:value, "text").to_s.downcase }
     end
 
-    def claim(field, text, context, identifier, source_url, kind, match_confidence)
+    def claim(field, text, context, identifier, source_url, kind)
       return if text.blank?
 
       {
@@ -254,10 +275,10 @@ module MusicMetadata
           "text" => text,
           "comparison" => text,
           "context" => context,
-          "scope" => "discogs_#{kind}_candidate",
+          "scope" => "discogs_#{kind}_candidate:#{identifier}",
           "candidate_strategy" => CANDIDATE_STRATEGY
         },
-        match_confidence: match_confidence,
+        match_confidence: "candidate_verified_track_release",
         expires_at: 6.hours.from_now
       }
     end
@@ -268,27 +289,28 @@ module MusicMetadata
         "single / track-title"
       when "spotify_album"
         "Spotify album / artist"
-      when "verified_release_track"
-        "tracklist-verified track-title / artist"
       else
-        "track-title / artist"
+        "tracklist-verified track-title / artist"
       end
 
       if kind == "master" && linked_release_id.present?
-        "Discogs master linked from a #{discovery} candidate — release family, not a verified recording"
+        "Discogs master linked from a #{discovery} release — release-family context, not a verified recording"
       elsif kind == "master"
-        "Earliest compatible Discogs master from a #{discovery} candidate — a release family, not a verified recording"
-      elsif match_path == "verified_release_track"
-        "Discogs release whose tracklist contains the exact song title — release-level data, not a confirmed recording"
+        "Discogs master from a #{discovery} release — release-family context, not a verified recording"
       else
-        "Earliest compatible Discogs #{discovery} release candidate — pressing not verified"
+        "Discogs release with an exact tracklist title and compatible artist — release-level data, not a confirmed recording"
       end
     end
 
-    def match_confidence_for(match_path)
-      return "candidate_verified_track_release" if match_path == "verified_release_track"
+    def normalize(value)
+      value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    end
 
-      "candidate_title_artist_duration"
+    def duration_ms(value)
+      match = value.to_s.strip.match(/\A(\d+):(\d{2})\z/)
+      return unless match
+
+      (match[1].to_i * 60 + match[2].to_i) * 1000
     end
 
     def request_timeouts
@@ -311,8 +333,6 @@ module MusicMetadata
     end
 
     def no_candidate
-      # An automatic Discogs search has no guaranteed match for every song.
-      # Treat a clean absence as no data, not an application failure.
       SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil)
     end
 
