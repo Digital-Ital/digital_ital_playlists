@@ -17,6 +17,18 @@
 <% discogs_next_retry_at = discogs_state["next_retry_at"].present? ? Time.zone.parse(discogs_state["next_retry_at"].to_s) : nil %>
 <% discogs_expired = discogs_outcome == "claims" && discogs_state_claims.empty? && discogs_expires_at.present? && discogs_expires_at <= Time.current %>
 <% discogs_mode_label = discogs_state["mode"] == "curator_selected" ? "Curator-selected release" : "Automatic candidate" %>
+<% discogs_search_attempts = Array(discogs_state["search_attempts"]).filter_map do |attempt|
+  path = attempt.to_h["path"].to_s
+  count = attempt.to_h["candidate_count"].to_i
+  label = {
+    "single_track" => "single / exact title",
+    "spotify_album" => "Spotify album",
+    "verified_release_track" => "general title / tracklist"
+  }[path]
+  label.present? ? { label: label, count: count } : nil
+end %>
+<% discogs_release_validations = discogs_state["release_validations"].to_i %>
+<% discogs_search_url = "https://www.discogs.com/search/?type=release&q=#{ERB::Util.url_encode([track.artist, track.name].compact.join(" "))}" %>
 <% lookup_errors = enrichment&.last_error.to_s.split(" | ").reject(&:blank?) %>
 <% musicbrainz_error = lookup_errors.find { |error| error.start_with?("MusicBrainz:") } %>
 <% discogs_error = lookup_errors.find { |error| error.start_with?("Discogs:") } %>
@@ -152,8 +164,16 @@
           <% end %>
         </p>
       <% elsif discogs_outcome == "no_candidate" %>
-        <p class="mt-3 text-sm text-gray-200">No Discogs result passed the exact title, compatible-artist, and duration checks. No Discogs facts were inferred.</p>
+        <p class="mt-3 text-sm text-gray-200">No Discogs release passed the core-title, compatible-artist, and duration checks, so no unverified Discogs facts were shown.</p>
+        <% if discogs_search_attempts.any? %>
+          <p class="mt-2 text-xs text-gray-400">
+            Searched <%= discogs_search_attempts.map { |attempt| "#{attempt[:label]} (#{pluralize(attempt[:count], "year-bearing candidate")})" }.to_sentence %>.
+            <% if discogs_release_validations.positive? %>Validated <%= pluralize(discogs_release_validations, "release tracklist") %> before stopping.<% end %>
+          </p>
+        <% end %>
         <p class="mt-2 text-xs text-gray-400">
+          <%= link_to "Browse this Discogs query ↗", discogs_search_url, target: "_blank", rel: "noopener", class: "font-semibold text-orange-300 hover:text-orange-200" %>
+          <span class="text-gray-500">·</span>
           <% if discogs_checked_at.present? %>Checked <%= time_ago_in_words(discogs_checked_at) %> ago.<% end %>
           <% if discogs_next_retry_at.present? && discogs_next_retry_at > Time.current %>
             Eligible to check again in <%= distance_of_time_in_words(Time.current, discogs_next_retry_at) %> when this song next appears.
