@@ -38,23 +38,32 @@ module MusicMetadata
 
       # Discogs keeps the original global deadline. The MusicBrainz child
       # deadline above leaves it at least DISCOGS_RESERVED_SECONDS whenever
-      # Spotify has completed within its own bounded phase.
+      # Spotify has completed within its own bounded phase. Capture the curator
+      # selection first, so an owner change while Discogs is in flight cannot
+      # later overwrite the newer choice with an older result.
+      selected_discogs_release_id = @enrichment.discogs_release_id
       discogs_result = discogs_source_result(global_deadline, spotify_album: spotify_album)
       # Context is optional, so it only uses time left after the three primary
       # sources rather than stealing time from Discogs.
       wikipedia_result = WikipediaSongContextSource.new(@track, deadline: global_deadline).call
-      results = [ spotify_result, musicbrainz_result, discogs_result, wikipedia_result ]
 
       @enrichment.with_lock do
+        # An owner may have selected or changed a release during the external
+        # call. Keep the other providers' work, but never write the stale
+        # Discogs claims or operational state back over that change.
+        discogs_result = nil unless @enrichment.discogs_release_id == selected_discogs_release_id
+        results = [ spotify_result, musicbrainz_result, wikipedia_result ]
+        results << discogs_result if discogs_result.present?
+
         results.each { |result| sync_source_result!(result) }
         errors = results.filter_map(&:error)
 
         checked_at = Time.current
         refresh_attributes = {
           status: resulting_status(errors),
-          last_error: errors.presence&.join(" | "),
-          discogs_refresh: discogs_refresh_attributes(discogs_result, checked_at)
+          last_error: errors.presence&.join(" | ")
         }
+        refresh_attributes[:discogs_refresh] = discogs_refresh_attributes(discogs_result, checked_at) if discogs_result.present?
         # A partial refresh can update other sources while preserving older
         # MusicBrainz claims after a transient error. Only mark the dossier
         # fully refreshed when every source completed successfully.
