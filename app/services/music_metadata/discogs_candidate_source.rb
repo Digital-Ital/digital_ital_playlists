@@ -190,15 +190,19 @@ module MusicMetadata
     end
 
     def compatible_artist?(candidate)
-      source_tokens = artist_tokens(@track.artist)
-      candidate_tokens = artist_tokens(candidate)
-      return false if source_tokens.empty? || candidate_tokens.empty?
+      source = normalize(@track.artist)
+      candidate_name = normalize(candidate)
+      return true if source.present? && source == candidate_name
+
+      source_tokens = artist_identity_tokens(source)
+      candidate_tokens = artist_identity_tokens(candidate_name)
+      return false if source_tokens.size < 2 || candidate_tokens.size < 2
 
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
     end
 
-    def artist_tokens(value)
-      normalize(value).split - %w[the and feat featuring with]
+    def artist_identity_tokens(value)
+      value.to_s.split - %w[the and feat featuring with dj]
     end
 
     def spotify_album_title_matches?(release)
