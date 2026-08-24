@@ -138,6 +138,11 @@ module MusicMetadata
       return nil unless request_budget_available?
 
       get("work/#{relation.dig("work", "id")}", inc: "artist-rels")
+    rescue StandardError => e
+      # Work credits enrich a verified recording but must never discard its
+      # release date, tags, or recording-level relationships on a timeout.
+      Rails.logger.info("MusicBrainz work lookup skipped for #{@track.spotify_id}: #{e.message}")
+      nil
     end
 
     def claims_from(recording, candidate, work, source_url, match_confidence)
@@ -400,18 +405,26 @@ module MusicMetadata
         credit.dig("artist", "name") || credit["name"]
       end.join(" ")
       artist_matches = shared_artist_identity?(credited_artists)
-      duration_matches = @track.duration_ms.blank? || recording["length"].blank? ||
+      duration_matches = @track.duration_ms.present? && recording["length"].present? &&
         (recording["length"].to_i - @track.duration_ms.to_i).abs <= 12_000
 
       title_matches && artist_matches && duration_matches
     end
 
     def shared_artist_identity?(candidate)
-      source_tokens = normalize(@track.artist).split
-      candidate_tokens = normalize(candidate).split
-      return false if source_tokens.empty? || candidate_tokens.empty?
+      source = normalize(@track.artist)
+      candidate_name = normalize(candidate)
+      return true if source.present? && source == candidate_name
+
+      source_tokens = artist_identity_tokens(source)
+      candidate_tokens = artist_identity_tokens(candidate_name)
+      return false if source_tokens.size < 2 || candidate_tokens.size < 2
 
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
+    end
+
+    def artist_identity_tokens(value)
+      value.to_s.split - %w[the and feat featuring with dj]
     end
 
     def get(path, params = {}, allow_not_found: false, **keyword_params)
