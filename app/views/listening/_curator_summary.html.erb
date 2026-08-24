@@ -8,12 +8,14 @@
 <% musicbrainz_saved_at = musicbrainz_claims.map(&:fetched_at).compact.max %>
 <% discogs_claims = Array(claims).select(&:discogs?) %>
 <% discogs_state = enrichment&.discogs_lookup_state || {} %>
+<% discogs_state_source = discogs_state["source"].presence %>
+<% discogs_state_claims = discogs_state_source.present? ? discogs_claims.select { |claim| claim.source == discogs_state_source } : [] %>
 <% discogs_outcome = discogs_state["outcome"].to_s %>
 <% discogs_reason = discogs_state["reason"].to_s %>
 <% discogs_checked_at = discogs_state["checked_at"].present? ? Time.zone.parse(discogs_state["checked_at"].to_s) : nil %>
 <% discogs_expires_at = discogs_state["claims_expires_at"].present? ? Time.zone.parse(discogs_state["claims_expires_at"].to_s) : nil %>
 <% discogs_next_retry_at = discogs_state["next_retry_at"].present? ? Time.zone.parse(discogs_state["next_retry_at"].to_s) : nil %>
-<% discogs_expired = discogs_outcome == "claims" && discogs_claims.empty? && discogs_expires_at.present? && discogs_expires_at <= Time.current %>
+<% discogs_expired = discogs_outcome == "claims" && discogs_state_claims.empty? && discogs_expires_at.present? && discogs_expires_at <= Time.current %>
 <% discogs_mode_label = discogs_state["mode"] == "curator_selected" ? "Curator-selected release" : "Automatic candidate" %>
 <% lookup_errors = enrichment&.last_error.to_s.split(" | ").reject(&:blank?) %>
 <% musicbrainz_error = lookup_errors.find { |error| error.start_with?("MusicBrainz:") } %>
@@ -140,7 +142,7 @@
           <% end %>
         </p>
         <p class="mt-2 text-xs text-gray-400">
-          <%= pluralize(discogs_claims.size, "temporary Discogs fact") %> saved locally<%= discogs_checked_at.present? ? " #{time_ago_in_words(discogs_checked_at)} ago" : "" %>.
+          <%= pluralize(discogs_state_claims.size, "temporary Discogs fact") %> saved locally<%= discogs_checked_at.present? ? " #{time_ago_in_words(discogs_checked_at)} ago" : "" %>.
           <% if discogs_expires_at.present? %>
             <% if discogs_expires_at > Time.current %>
               Expires in <%= distance_of_time_in_words(Time.current, discogs_expires_at) %>.
@@ -188,8 +190,8 @@
           <% end %>
         </p>
         <p class="mt-2 text-xs text-gray-400">
-          <% if discogs_claims.any? %>
-            Previously saved temporary Discogs evidence remains visible<%= discogs_expires_at.present? && discogs_expires_at > Time.current ? " until it expires" : "" %>.
+          <% if discogs_state_claims.any? %>
+            Previously saved temporary Discogs evidence for this lookup remains visible<%= discogs_expires_at.present? && discogs_expires_at > Time.current ? " until it expires" : "" %>.
           <% else %>
             No Discogs facts are shown.
           <% end %>
