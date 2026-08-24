@@ -1,5 +1,6 @@
 require "json"
 require "net/http"
+require "thread"
 require "timeout"
 require "uri"
 
@@ -12,8 +13,14 @@ module MusicMetadata
     MASTER_BASE_URL = "https://api.discogs.com/masters/"
     RELEASE_BASE_URL = "https://api.discogs.com/releases/"
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
+    REQUEST_INTERVAL_SECONDS = 1.1
+    REQUEST_MUTEX = Mutex.new
     CANDIDATE_STRATEGY = "validated-single-album-relaxed-track-v8"
     MAX_RELEASE_VALIDATIONS = 3
+
+    class << self
+      attr_accessor :last_request_at
+    end
 
     def initialize(track, spotify_album: nil, deadline: nil)
       @track = track
@@ -219,6 +226,8 @@ module MusicMetadata
     end
 
     def get_json(uri)
+      reserve_request_slot
+
       request = Net::HTTP::Get.new(uri)
       request["Authorization"] = "Discogs token=#{ENV.fetch("DISCOGS_USER_TOKEN")}"
       request["User-Agent"] = USER_AGENT
@@ -230,6 +239,11 @@ module MusicMetadata
         open_timeout: request_timeouts.fetch(:open_timeout),
         read_timeout: request_timeouts.fetch(:read_timeout)
       ) { |http| http.request(request) }
+      if response.code == "429"
+        retry_after = response["Retry-After"].to_i
+        suffix = retry_after.positive? ? " (retry after #{retry_after}s)" : ""
+        raise "rate limited#{suffix}"
+      end
       raise "HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
       JSON.parse(response.body)
@@ -318,6 +332,21 @@ module MusicMetadata
       return unless match
 
       (match[1].to_i * 60 + match[2].to_i) * 1000
+    end
+
+    def reserve_request_slot
+      REQUEST_MUTEX.synchronize do
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+        elapsed = now - self.class.last_request_at.to_f
+        wait_seconds = [ REQUEST_INTERVAL_SECONDS - elapsed, 0 ].max
+
+        if seconds_remaining && wait_seconds >= seconds_remaining
+          raise "refresh time budget exhausted"
+        end
+
+        sleep(wait_seconds) if wait_seconds.positive?
+        self.class.last_request_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
     end
 
     def request_timeouts
