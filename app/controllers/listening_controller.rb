@@ -121,7 +121,7 @@ class ListeningController < ApplicationController
     # A selected Discogs release mismatch is different: it is a curator choice,
     # not a transient provider failure, so wait for that choice to change.
     return true if enrichment.last_error.present? && !only_selected_discogs_mismatch?(enrichment)
-    return false if only_selected_discogs_mismatch?(enrichment)
+    return selected_discogs_mismatch_stale?(enrichment) if only_selected_discogs_mismatch?(enrichment)
 
     claims = enrichment.active_claims
     discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
@@ -145,6 +145,11 @@ class ListeningController < ApplicationController
 
     errors = enrichment.last_error.to_s.split(" | ").reject(&:blank?)
     errors.any? && errors.all? { |error| error.start_with?("Discogs:") }
+  end
+
+  def selected_discogs_mismatch_stale?(enrichment)
+    checked_at = Time.zone.parse(enrichment.discogs_lookup_state["checked_at"].to_s)
+    checked_at.blank? || checked_at < AUTO_REFRESH_AFTER.ago
   end
 
   def discogs_not_configured?(enrichment)
