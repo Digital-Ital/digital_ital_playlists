@@ -91,8 +91,9 @@ class TrackEnrichment < ApplicationRecord
   end
 
   def expire_temporary_claims!
-    track_metadata_claims.where(source: "discogs")
-                         .where("expires_at IS NOT NULL AND expires_at <= ?", Time.current)
+    # Discogs data is temporary under its API terms; this includes automatic
+    # candidates as well as curator-selected Discogs release claims.
+    track_metadata_claims.where("expires_at IS NOT NULL AND expires_at <= ?", Time.current)
                          .delete_all
   end
 
@@ -180,9 +181,12 @@ class TrackEnrichment < ApplicationRecord
 
   def summary_claim_groups(claims, fields, limit:)
     claims.select { |claim| fields.include?(claim.field) }
-          .group_by(&:source)
-          .sort_by { |source, _source_claims| source_sort_key(source) }
-          .filter_map do |source, source_claims|
+          # Discogs facts need their own exact source link and attribution.
+          # Keep master-family and validated-release evidence separate instead
+          # of showing one Discogs URL for a mixed set of facts.
+          .group_by { |claim| summary_group_key(claim) }
+          .sort_by { |(source, _url, _scope), _source_claims| source_sort_key(source) }
+          .filter_map do |group_key, source_claims|
             selected_claims = source_claims
               .sort_by do |claim|
                 [
@@ -193,8 +197,14 @@ class TrackEnrichment < ApplicationRecord
               .uniq { |claim| [ claim.field, claim.comparison_scope, claim.comparison_value ] }
               .first(limit)
 
-            [ source, selected_claims ] if selected_claims.any?
+            [ group_key, selected_claims ] if selected_claims.any?
           end
+  end
+
+  def summary_group_key(claim)
+    return [ claim.source, nil, nil ] unless claim.discogs?
+
+    [ claim.source, claim.source_url, claim.comparison_scope ]
   end
 
   def summary_song_contexts(claims)

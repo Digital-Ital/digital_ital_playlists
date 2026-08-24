@@ -10,6 +10,7 @@ module MusicMetadata
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
     REQUEST_INTERVAL_SECONDS = 1.1
     REQUEST_MUTEX = Mutex.new
+    MAX_REQUESTS_PER_REFRESH = 4
     CREDIT_FIELDS = {
       "producer" => "producer",
       "engineer" => "engineer",
@@ -28,20 +29,25 @@ module MusicMetadata
       attr_accessor :last_request_at
     end
 
-    def initialize(track, isrc:, deadline: nil)
+    def initialize(track, isrc:, spotify_album: nil, deadline: nil)
       @track = track
       @isrc = isrc.presence
+      @spotify_album = spotify_album.is_a?(Hash) ? spotify_album : {}
       @deadline = deadline
+      @request_count = 0
     end
 
     def call
       candidate, match_confidence = find_candidate
-      return skipped unless candidate
+      return no_candidate unless candidate
 
       recording = get(
         "recording/#{candidate.fetch("id")}",
         inc: "artist-credits+isrcs+releases+artist-rels+work-rels+recording-rels+place-rels+tags+genres"
       )
+      return no_candidate if album_supported_candidate?(match_confidence) &&
+        !recording_has_spotify_album?(recording)
+
       work = fetch_work(recording)
       source_url = "https://musicbrainz.org/recording/#{recording.fetch("id")}"
 
@@ -68,11 +74,60 @@ module MusicMetadata
 
       return [ nil, nil ] if @track.name.blank? || @track.artist.blank?
 
-      query = %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}")
-      payload = get("recording/", query: query, limit: 5)
-      candidate = Array(payload["recordings"]).find { |recording| high_confidence_match?(recording) }
+      candidate = recording_candidates(strict_recording_query)
+        .find { |recording| strict_recording_match?(recording) }
+      return [ candidate, "candidate_title_artist_duration" ] if candidate.present?
 
-      [ candidate, candidate.present? ? "candidate_title_artist_duration" : nil ]
+      # A track may be indexed under a release's artist credit or title rather
+      # than Spotify's display strings. Only after the strict lookup fails, add
+      # Spotify's album as a second source-side clue. The local exact-title,
+      # compatible-artist, and duration checks remain unchanged, so this route
+      # cannot accept a merely similar song.
+      candidate = recording_candidates(album_supported_recording_query)
+        .find { |recording| album_supported_recording_match?(recording) }
+      return [ candidate, "candidate_album_title_artist_duration" ] if candidate.present?
+
+      [ nil, nil ]
+    end
+
+    def strict_recording_query
+      %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}")
+    end
+
+    def album_supported_recording_query
+      return if spotify_album_name.blank?
+
+      # The source-side album phrase is an extra clue only. The candidate is
+      # still rejected unless the title, artist, duration, and detailed
+      # recording release list all agree with Spotify's current album payload.
+      %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}" AND release:"#{search_value(spotify_album_name)}")
+    end
+
+    def recording_candidates(query)
+      return [] if query.blank?
+
+      payload = get("recording/", query: query, limit: 5)
+      Array(payload["recordings"])
+    end
+
+    def album_supported_recording_match?(recording)
+      return false if @track.duration_ms.blank? || recording["length"].blank?
+
+      strict_recording_match?(recording)
+    end
+
+    def album_supported_candidate?(match_confidence)
+      match_confidence == "candidate_album_title_artist_duration"
+    end
+
+    def recording_has_spotify_album?(recording)
+      Array(recording["releases"]).any? do |release|
+        normalize(release["title"]) == normalize(spotify_album_name)
+      end
+    end
+
+    def spotify_album_name
+      @spotify_album["name"].to_s.presence
     end
 
     def fetch_work(recording)
@@ -80,8 +135,14 @@ module MusicMetadata
         item["target-type"] == "work" && item.dig("work", "id").present?
       end
       return nil unless relation
+      return nil unless request_budget_available?
 
       get("work/#{relation.dig("work", "id")}", inc: "artist-rels")
+    rescue StandardError => e
+      # Work credits enrich a verified recording but must never discard its
+      # release date, tags, or recording-level relationships on a timeout.
+      Rails.logger.info("MusicBrainz work lookup skipped for #{@track.spotify_id}: #{e.message}")
+      nil
     end
 
     def claims_from(recording, candidate, work, source_url, match_confidence)
@@ -338,24 +399,32 @@ module MusicMetadata
       }
     end
 
-    def high_confidence_match?(recording)
+    def strict_recording_match?(recording)
       title_matches = normalize(recording["title"]) == normalize(@track.name)
       credited_artists = Array(recording["artist-credit"]).filter_map do |credit|
         credit.dig("artist", "name") || credit["name"]
       end.join(" ")
       artist_matches = shared_artist_identity?(credited_artists)
-      duration_matches = @track.duration_ms.blank? || recording["length"].blank? ||
+      duration_matches = @track.duration_ms.present? && recording["length"].present? &&
         (recording["length"].to_i - @track.duration_ms.to_i).abs <= 12_000
 
       title_matches && artist_matches && duration_matches
     end
 
     def shared_artist_identity?(candidate)
-      source_tokens = normalize(@track.artist).split
-      candidate_tokens = normalize(candidate).split
-      return false if source_tokens.empty? || candidate_tokens.empty?
+      source = normalize(@track.artist)
+      candidate_name = normalize(candidate)
+      return true if source.present? && source == candidate_name
+
+      source_tokens = artist_identity_tokens(source)
+      candidate_tokens = artist_identity_tokens(candidate_name)
+      return false if source_tokens.size < 2 || candidate_tokens.size < 2
 
       (source_tokens - candidate_tokens).empty? || (candidate_tokens - source_tokens).empty?
+    end
+
+    def artist_identity_tokens(value)
+      value.to_s.split - %w[the and feat featuring with dj]
     end
 
     def get(path, params = {}, allow_not_found: false, **keyword_params)
@@ -363,6 +432,7 @@ module MusicMetadata
       attempts = 0
 
       begin
+        consume_request_budget!
         reserve_request_slot
 
         uri = URI("#{BASE_URL}#{path}")
@@ -395,6 +465,16 @@ module MusicMetadata
       rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
         raise "network error (#{e.message})"
       end
+    end
+
+    def request_budget_available?
+      @request_count < MAX_REQUESTS_PER_REFRESH
+    end
+
+    def consume_request_budget!
+      raise "request cap reached" unless request_budget_available?
+
+      @request_count += 1
     end
 
     def reserve_request_slot
@@ -442,11 +522,20 @@ module MusicMetadata
     end
 
     def search_value(value)
-      value.to_s.delete('"').delete("\\")
+      # Escape Lucene operators before the quoted phrase is URL-encoded. Track
+      # titles such as "A/B (Dub)" must remain literal search text.
+      value.to_s.gsub(%r{[+\-!(){}\[\]^"~*?:\\/&|]}) { |character| "\\#{character}" }
     end
 
     def normalize(value)
       value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
+    end
+
+    def no_candidate
+      # A completed lookup with no safe match is normal absence, not an API
+      # failure. Returning an empty successful result clears old candidate
+      # claims rather than leaving stale source evidence on a new version.
+      SourceResult.new(source: "musicbrainz", claims: [], metadata: {}, error: nil)
     end
 
     def skipped

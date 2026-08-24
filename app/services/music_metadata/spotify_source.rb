@@ -20,7 +20,10 @@ module MusicMetadata
       SourceResult.new(
         source: "spotify",
         claims: claims_from(payload),
-        metadata: { isrc: payload.dig("external_ids", "isrc").presence },
+        metadata: {
+          isrc: payload.dig("external_ids", "isrc").presence,
+          album: spotify_album_metadata(payload)
+        },
         error: nil
       )
     rescue StandardError => e
@@ -45,6 +48,23 @@ module MusicMetadata
       request = Net::HTTP::Get.new(uri)
       request["Authorization"] = "Bearer #{token}"
       json_response(uri, request)
+    end
+
+    # This is passed directly from Spotify's current track response to the
+    # secondary sources. It avoids treating a stale locally stored album title
+    # as evidence when attempting their album-scoped fallback searches.
+    def spotify_album_metadata(payload)
+      album = payload["album"] || {}
+
+      {
+        "id" => album["id"],
+        "name" => album["name"],
+        "artists" => Array(album["artists"]).filter_map { |artist| artist["name"] },
+        "album_type" => album["album_type"],
+        "total_tracks" => album["total_tracks"],
+        "track_number" => payload["track_number"],
+        "disc_number" => payload["disc_number"]
+      }.compact
     end
 
     def claims_from(payload)

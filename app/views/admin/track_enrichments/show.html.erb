@@ -46,7 +46,7 @@
     <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div>
         <h2 class="text-xl font-bold text-white">Refresh source evidence</h2>
-        <p class="mt-2 max-w-3xl text-sm text-gray-300">This is the only action that contacts Spotify, MusicBrainz, or a verified Discogs release. The public Listening Desk only reads saved claims, and never triggers these calls itself.</p>
+        <p class="mt-2 max-w-3xl text-sm text-gray-300">This button refreshes a song on demand. The Listening Desk may also run one bounded, cooldown-protected refresh for the exact song currently playing, then displays the locally saved claims on subsequent refreshes.</p>
         <% if @enrichment.last_refreshed_at.present? %>
           <p class="mt-2 text-xs text-gray-400">Last refresh: <%= @enrichment.last_refreshed_at.in_time_zone("America/Toronto").strftime("%b %-d, %Y at %-l:%M %p %Z") %></p>
         <% end %>
@@ -101,7 +101,7 @@
                 <article class="rounded-lg border border-gray-800 bg-gray-950/80 p-3">
                   <p class="font-medium text-gray-100"><%= claim.display_value %></p>
                   <p class="mt-1 text-xs text-gray-400"><%= claim.context %> • <%= claim.confidence_label %></p>
-                  <% if claim.source == "discogs" %>
+                  <% if claim.discogs? %>
                     <%= link_to "Data provided by Discogs.", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-orange-300 hover:text-orange-200" %>
                   <% elsif claim.source_url.present? %>
                     <%= link_to "#{claim.source_label} ↗", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>

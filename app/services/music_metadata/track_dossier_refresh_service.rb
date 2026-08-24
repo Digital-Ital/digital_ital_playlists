@@ -15,9 +15,16 @@ module MusicMetadata
 
       deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + REFRESH_BUDGET_SECONDS
       spotify_result = SpotifySource.new(@track, deadline: deadline).call
-      isrc = spotify_result.metadata.to_h[:isrc] || spotify_result.metadata.to_h["isrc"]
-      musicbrainz_result = MusicBrainzSource.new(@track, isrc: isrc, deadline: deadline).call
-      discogs_result = discogs_source_result(deadline)
+      spotify_metadata = spotify_result.metadata.to_h
+      isrc = spotify_metadata[:isrc] || spotify_metadata["isrc"]
+      spotify_album = spotify_metadata[:album] || spotify_metadata["album"]
+      musicbrainz_result = MusicBrainzSource.new(
+        @track,
+        isrc: isrc,
+        spotify_album: spotify_album,
+        deadline: deadline
+      ).call
+      discogs_result = discogs_source_result(deadline, spotify_album: spotify_album)
       wikipedia_result = WikipediaSongContextSource.new(@track, deadline: deadline).call
       results = [ spotify_result, musicbrainz_result, discogs_result, wikipedia_result ]
 
@@ -59,11 +66,11 @@ module MusicMetadata
       end
     end
 
-    def discogs_source_result(deadline)
+    def discogs_source_result(deadline, spotify_album:)
       if @enrichment.discogs_release_id.present?
         DiscogsSource.new(@track, @enrichment, deadline: deadline).call
       else
-        DiscogsCandidateSource.new(@track, deadline: deadline).call
+        DiscogsCandidateSource.new(@track, spotify_album: spotify_album, deadline: deadline).call
       end
     end
 

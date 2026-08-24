@@ -101,10 +101,13 @@ class ListeningController < ApplicationController
       enrichment.last_attempted_at.present? &&
       enrichment.last_attempted_at > MusicMetadata::TrackDossierRefreshService::REFRESH_STALE_AFTER.ago
     if enrichment.discogs_candidate_strategy_stale?
-      discogs_failed_recently = enrichment.last_error.to_s.include?("Discogs:") &&
-        enrichment.last_attempted_at.present? &&
-        enrichment.last_attempted_at > AUTO_ERROR_RETRY_AFTER.ago
-      return !discogs_failed_recently
+      # A strategy upgrade should re-check a cached candidate, but never on
+      # every public live-track refresh when Discogs is unavailable or skipped.
+      retry_after = enrichment.last_error.to_s.include?("Discogs:") ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER
+      return false if enrichment.last_attempted_at.present? &&
+        enrichment.last_attempted_at > retry_after.ago
+
+      return true
     end
 
     retry_after = enrichment.last_error.present? ? AUTO_ERROR_RETRY_AFTER : AUTO_RETRY_AFTER

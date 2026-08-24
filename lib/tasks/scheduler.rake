@@ -4,6 +4,11 @@ require "json"
 namespace :scheduler do
   desc "Run scheduled playlist updates (respects pause/quick settings)"
   task update_playlists: :environment do
+    # Discogs API evidence is only displayable for a limited time. Purge every
+    # expired temporary claim even when playlist syncing is later paused.
+    expired_claims = TrackMetadataClaim.where("expires_at IS NOT NULL AND expires_at <= ?", Time.current).delete_all
+    puts "Purged #{expired_claims} expired temporary metadata claim(s)." if expired_claims.positive?
+
     # Check if scheduler is paused
     if SchedulerSetting.paused?
       puts "Scheduler is paused. Skipping update."
