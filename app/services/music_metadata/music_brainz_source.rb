@@ -135,14 +135,15 @@ module MusicMetadata
         item["target-type"] == "work" && item.dig("work", "id").present?
       end
       return nil unless relation
-      return nil unless request_budget_available?
 
-      get("work/#{relation.dig("work", "id")}", inc: "artist-rels")
-    rescue StandardError => e
-      # Work credits enrich a verified recording but must never discard its
-      # release date, tags, or recording-level relationships on a timeout.
-      Rails.logger.info("MusicBrainz work lookup skipped for #{@track.spotify_id}: #{e.message}")
-      nil
+      # This source is refreshed as one atomic claim set. If an optional work
+      # request times out (or the bounded request budget is exhausted), let the
+      # normal source error path preserve every previously saved MusicBrainz
+      # fact rather than silently replacing writer/work claims with a partial
+      # recording-only result.
+      raise "request cap reached before linked work lookup" unless request_budget_available?
+
+      get("work/#{relation.dig("work", "id")}", inc: "artist-rels", allow_not_found: true)
     end
 
     def claims_from(recording, candidate, work, source_url, match_confidence)
@@ -500,11 +501,11 @@ module MusicMetadata
 
     def request_timeouts
       remaining = seconds_remaining
-      return { open_timeout: 2.5, read_timeout: 4 } unless remaining
+      return { open_timeout: 3.5, read_timeout: 4 } unless remaining
 
       raise "refresh time budget exhausted" if remaining <= 0.2
 
-      open_timeout = [ 2.5, remaining / 2 ].min
+      open_timeout = [ 3.5, remaining / 2 ].min
       read_timeout = [ 4, remaining - open_timeout ].min
       raise "refresh time budget exhausted" if read_timeout <= 0.1
 
