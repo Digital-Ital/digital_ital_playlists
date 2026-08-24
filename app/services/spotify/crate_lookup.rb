@@ -85,8 +85,8 @@ module Spotify
 
       pattern = "%#{ActiveRecord::Base.sanitize_sql_like(title_fragment)}%"
       Track.where("LOWER(name) LIKE ?", pattern).limit(250).select do |track|
-        title_key(track.name) == candidate_title &&
-          artist_key(track.artist) == candidate_artist &&
+        title_matches?(track.name, candidate_title) &&
+          artist_matches?(track.artist, candidate_artist) &&
           compatible_duration?(track.duration_ms)
       end.first(20)
     end
@@ -195,6 +195,20 @@ module Spotify
       end
     end
 
+    # Compare the core song title and primary artist separately from optional
+    # release notes and guest credits. The complete names remain visible in the
+    # interface; these keys only decide whether two local records are candidates.
+    def title_matches?(candidate_title, source_key = title_key(@track[:name]))
+      source_key.present? && source_key == title_key(candidate_title)
+    end
+
+    def artist_matches?(candidate_artist, source_key = artist_key(@track[:artist]))
+      candidate_key = artist_key(candidate_artist)
+      return false if source_key.blank? || candidate_key.blank?
+
+      source_key == candidate_key || strong_artist_variant?(candidate_artist)
+    end
+
     def strong_artist_variant?(candidate_artist)
       source_key = artist_identity_key(@track[:artist])
       candidate_key = artist_identity_key(candidate_artist)
@@ -216,8 +230,11 @@ module Spotify
 
     def artist_identity_key(value)
       value.to_s.downcase
-           .gsub(/\bfeat(?:uring)?\.?\b.*/, " ")
-           .gsub(/\b(the|and|with)\b/, " ")
+           .gsub(/\([^\)]*\)|\[[^\]]*\]/, " ")
+           .gsub(/\b(?:feat(?:uring)?|with)\b.*/, " ")
+           .gsub(/\bft\.?(?=\s|$).*/, " ")
+           .gsub(/\bw\/(?=\s).*/, " ")
+           .gsub(/\b(the|and)\b/, " ")
            .gsub(/[^a-z0-9]+/, " ")
            .squish
     end
@@ -297,18 +314,25 @@ module Spotify
       (duration_ms.to_i - reference_duration).abs <= DURATION_TOLERANCE_MS
     end
 
+    # A title with a parenthetical mix, version, or guest-credit annotation
+    # intentionally compares as its core title. This catches e.g. "Fry
+    # Plantain (Radio Edit)" and "Fry Plantain" in the same-title view.
     def title_key(value)
       value.to_s.downcase
            .gsub(/\[[^\]]*\]|\([^\)]*\)/, " ")
            .gsub(/\b(remaster(?:ed)?|mono|stereo|explicit|clean|version)\b/, " ")
-           .gsub(/\bfeat(?:uring)?\.?\b.*/, " ")
+           .gsub(/\b(?:feat(?:uring)?|ft\.?)\b.*/, " ")
            .gsub(/[^a-z0-9]+/, " ")
            .squish
     end
 
+    # Featured credits are optional for matching. In particular, both
+    # "Fry Plantain (with Joey Bada$)" and "Fry Plantain" become
+    # "fry plantain"; the unmodified artist strings still appear to the curator.
     def artist_key(value)
       value.to_s.downcase
-           .split(/,|&|\bfeat(?:uring)?\.?\b/i)
+           .gsub(/\([^\)]*\)|\[[^\]]*\]/, " ")
+           .split(/,|&|\b(?:feat(?:uring)?|with)\b|\bft\.?(?=\s|$)|\bw\/(?=\s)/i)
            .first
            .to_s
            .gsub(/[^a-z0-9]+/, " ")
