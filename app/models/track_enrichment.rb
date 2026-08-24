@@ -130,8 +130,13 @@ class TrackEnrichment < ApplicationRecord
       end
 
       # A curator release change invalidates both its temporary claims and the
-      # operational result that described the previous release.
-      update!(curator_decisions: updated_decisions, discogs_refresh: {})
+      # operational result that described the previous release. Clearing the
+      # attempt timestamp lets the newly chosen release be checked immediately.
+      update!(
+        curator_decisions: updated_decisions,
+        discogs_refresh: {},
+        last_attempted_at: nil
+      )
       track_metadata_claims.where(source: "discogs").delete_all
     end
   end
