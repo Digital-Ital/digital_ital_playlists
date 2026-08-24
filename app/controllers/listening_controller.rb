@@ -126,11 +126,20 @@ class ListeningController < ApplicationController
     # A missing Discogs candidate must retry after the ordinary retry window.
     # Otherwise a temporary failure (including another source's 503) can hide
     # Discogs for six hours even though this screen is designed to fill it in
-    # automatically while the song is playing.
-    return true if discogs_missing
+    # automatically while the song is playing. A recorded configuration skip is
+    # the exception: do not rerun every provider just because the server has no
+    # Discogs token; it will retry as soon as a token is configured.
+    return true if discogs_missing && !discogs_not_configured?(enrichment)
 
     enrichment.last_refreshed_at.blank? ||
       enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago
+  end
+
+  def discogs_not_configured?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["outcome"] == "skipped" &&
+      state["reason"] == "not_configured" &&
+      ENV["DISCOGS_USER_TOKEN"].blank?
   end
 
   def selected_lookup
