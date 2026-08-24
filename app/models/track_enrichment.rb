@@ -97,6 +97,13 @@ class TrackEnrichment < ApplicationRecord
                          .delete_all
   end
 
+  def discogs_lookup_state
+    state = discogs_refresh
+    return {} unless state.is_a?(Hash)
+
+    state.stringify_keys
+  end
+
   def discogs_candidate_strategy_stale?
     candidate_claims = active_claims.where(source: "discogs_candidate").to_a
     return false if candidate_claims.empty?
@@ -122,7 +129,14 @@ class TrackEnrichment < ApplicationRecord
         updated_decisions.delete("discogs_release_id")
       end
 
-      update!(curator_decisions: updated_decisions)
+      # A curator release change invalidates both its temporary claims and the
+      # operational result that described the previous release. Clearing the
+      # attempt timestamp lets the newly chosen release be checked immediately.
+      update!(
+        curator_decisions: updated_decisions,
+        discogs_refresh: {},
+        last_attempted_at: nil
+      )
       track_metadata_claims.where(source: "discogs").delete_all
     end
   end

@@ -100,8 +100,11 @@ class ListeningController < ApplicationController
     return false if enrichment.status == "refreshing" &&
       enrichment.last_attempted_at.present? &&
       enrichment.last_attempted_at > MusicMetadata::TrackDossierRefreshService::REFRESH_STALE_AFTER.ago
-    if enrichment.discogs_candidate_strategy_stale?
-      # A strategy upgrade should re-check a cached candidate, but never on
+    return true if discogs_became_configured?(enrichment)
+
+    if enrichment.discogs_release_id.blank? && enrichment.discogs_candidate_strategy_stale?
+      # A strategy upgrade should re-check a cached automatic candidate, but
+      # never override or repeatedly retry a curator-selected release.
       # every public live-track refresh when Discogs is unavailable or skipped.
       # Any source failure, including MusicBrainz, needs the short error
       # cooldown even if a Discogs-candidate strategy upgrade is also pending.
@@ -118,19 +121,54 @@ class ListeningController < ApplicationController
     # A cached Spotify/Discogs claim must not make a failed MusicBrainz or
     # Wikipedia source permanent. Once the error cooldown has elapsed, rerun
     # the source set automatically and replace the saved error on success.
+    # A selected Discogs release mismatch is different: it is a curator choice,
+    # not a transient provider failure, so leave it alone until that choice
+    # changes. Other provider errors can still retry independently.
+    return true if non_discogs_lookup_error?(enrichment)
+    return false if selected_discogs_mismatch?(enrichment)
     return true if enrichment.last_error.present?
 
     claims = enrichment.active_claims
-    discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
+    discogs_sources = enrichment.discogs_release_id.present? ? [ "discogs" ] : [ "discogs", "discogs_candidate" ]
+    discogs_missing = claims.where(source: discogs_sources).none?
 
-    # A missing Discogs candidate must retry after the ordinary retry window.
-    # Otherwise a temporary failure (including another source's 503) can hide
-    # Discogs for six hours even though this screen is designed to fill it in
-    # automatically while the song is playing.
-    return true if discogs_missing
+    # A missing curator-selected release or automatic candidate must retry
+    # after the ordinary retry window. Otherwise a temporary failure (including
+    # another source's 503) can hide Discogs for six hours even though this
+    # screen is designed to fill it in automatically while the song is playing.
+    # A recorded configuration skip is the exception: do not rerun every
+    # provider just because the server has no Discogs token; it will retry as
+    # soon as a token is configured.
+    return true if discogs_missing && !discogs_not_configured?(enrichment)
 
     enrichment.last_refreshed_at.blank? ||
       enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago
+  end
+
+  def selected_discogs_mismatch?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["outcome"] == "error" &&
+      state["reason"] == "selected_release_mismatch"
+  end
+
+  def non_discogs_lookup_error?(enrichment)
+    enrichment.last_error.to_s.split(" | ").reject(&:blank?).any? do |error|
+      !error.start_with?("Discogs:")
+    end
+  end
+
+  def discogs_became_configured?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["outcome"] == "skipped" &&
+      state["reason"] == "not_configured" &&
+      ENV["DISCOGS_USER_TOKEN"].present?
+  end
+
+  def discogs_not_configured?(enrichment)
+    state = enrichment.discogs_lookup_state
+    state["outcome"] == "skipped" &&
+      state["reason"] == "not_configured" &&
+      ENV["DISCOGS_USER_TOKEN"].blank?
   end
 
   def selected_lookup

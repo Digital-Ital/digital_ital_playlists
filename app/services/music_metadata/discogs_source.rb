@@ -15,8 +15,8 @@ module MusicMetadata
     end
 
     def call
-      return skipped unless configured?
-      return skipped if release_id.blank?
+      return skipped(reason: "not_configured") unless configured?
+      return skipped(reason: "no_selected_release") if release_id.blank?
 
       payload = release_payload
       matching_tracks = matching_release_tracks(payload)
@@ -26,10 +26,12 @@ module MusicMetadata
         source: "discogs",
         claims: claims_from(payload, matching_tracks),
         metadata: { release_id: release_id },
-        error: nil
+        error: nil,
+        outcome: "claims",
+        outcome_reason: "curator_selected_release"
       )
     rescue StandardError => e
-      SourceResult.new(source: "discogs", claims: [], metadata: {}, error: "Discogs: #{e.message}")
+      error_result(e)
     end
 
     private
@@ -251,12 +253,48 @@ module MusicMetadata
         source: "discogs",
         claims: [],
         metadata: {},
-        error: "Discogs: the selected release does not contain a compatible title and track artist."
+        error: "Discogs: the selected release does not contain a compatible title and track artist.",
+        outcome: "error",
+        outcome_reason: "selected_release_mismatch"
       )
     end
 
-    def skipped
-      SourceResult.new(source: "discogs", claims: [], metadata: {}, skipped: true, error: nil)
+    def skipped(reason:, error: nil)
+      SourceResult.new(
+        source: "discogs",
+        claims: [],
+        metadata: {},
+        skipped: true,
+        error: error,
+        outcome: "skipped",
+        outcome_reason: reason
+      )
+    end
+
+    def error_result(error)
+      if error.message == "refresh time budget exhausted"
+        return skipped(
+          reason: "time_budget",
+          error: "Discogs: protected lookup time was exhausted before a request could start."
+        )
+      end
+
+      SourceResult.new(
+        source: "discogs",
+        claims: [],
+        metadata: {},
+        error: "Discogs: #{error.message}",
+        outcome: "error",
+        outcome_reason: error_reason(error)
+      )
+    end
+
+    def error_reason(error)
+      case error.message
+      when /rate limited/i then "rate_limited"
+      when /network error|Net::(?:Open|Read)Timeout/i then "network"
+      else "provider_error"
+      end
     end
 
     def request_timeouts

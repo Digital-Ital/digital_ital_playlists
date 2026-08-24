@@ -7,6 +7,8 @@ module MusicMetadata
     SPOTIFY_MAX_SECONDS = 5.0
     MUSICBRAINZ_MAX_SECONDS = 9.0
     DISCOGS_RESERVED_SECONDS = 9.0
+    DISCOGS_ERROR_RETRY_AFTER = 10.minutes
+    DISCOGS_NO_MATCH_RETRY_AFTER = 1.hour
     REFRESH_STALE_AFTER = 2.minutes
 
     class RefreshInProgress < StandardError; end
@@ -36,21 +38,34 @@ module MusicMetadata
 
       # Discogs keeps the original global deadline. The MusicBrainz child
       # deadline above leaves it at least DISCOGS_RESERVED_SECONDS whenever
-      # Spotify has completed within its own bounded phase.
-      discogs_result = discogs_source_result(global_deadline, spotify_album: spotify_album)
+      # Spotify has completed within its own bounded phase. Capture the curator
+      # selection first, so an owner change while Discogs is in flight cannot
+      # later overwrite the newer choice with an older result.
+      selected_discogs_release_id = @enrichment.discogs_release_id
+      discogs_result = if discogs_refresh_due?
+        discogs_source_result(global_deadline, spotify_album: spotify_album)
+      end
       # Context is optional, so it only uses time left after the three primary
       # sources rather than stealing time from Discogs.
       wikipedia_result = WikipediaSongContextSource.new(@track, deadline: global_deadline).call
-      results = [ spotify_result, musicbrainz_result, discogs_result, wikipedia_result ]
 
       @enrichment.with_lock do
+        # An owner may have selected or changed a release during the external
+        # call. Keep the other providers' work, but never write the stale
+        # Discogs claims or operational state back over that change.
+        discogs_result = nil unless @enrichment.discogs_release_id == selected_discogs_release_id
+        results = [ spotify_result, musicbrainz_result, wikipedia_result ]
+        results << discogs_result if discogs_result.present?
+
         results.each { |result| sync_source_result!(result) }
         errors = results.filter_map(&:error)
 
+        checked_at = Time.current
         refresh_attributes = {
           status: resulting_status(errors),
           last_error: errors.presence&.join(" | ")
         }
+        refresh_attributes[:discogs_refresh] = discogs_refresh_attributes(discogs_result, checked_at) if discogs_result.present?
         # A partial refresh can update other sources while preserving older
         # MusicBrainz claims after a transient error. Only mark the dossier
         # fully refreshed when every source completed successfully.
@@ -97,6 +112,44 @@ module MusicMetadata
       ].min
     end
 
+
+    # Discogs is independently rate-limited and its facts expire. Do not repeat
+    # a negative/mismatched/temporary result merely because another provider
+    # needs a retry. Its own saved state decides when it is due again.
+    def discogs_refresh_due?
+      state = @enrichment.discogs_lookup_state
+      return true if state.empty?
+      return true if state["mode"] != expected_discogs_mode
+      return true if @enrichment.discogs_release_id.blank? && @enrichment.discogs_candidate_strategy_stale?
+
+      outcome = state["outcome"].to_s
+      reason = state["reason"].to_s
+      return false if outcome == "error" && reason == "selected_release_mismatch"
+      return ENV["DISCOGS_USER_TOKEN"].present? if outcome == "skipped" && reason == "not_configured"
+
+      retry_at = parse_discogs_time(state["next_retry_at"])
+      return retry_at <= Time.current if retry_at.present?
+
+      if outcome == "claims"
+        expires_at = parse_discogs_time(state["claims_expires_at"])
+        return expires_at.blank? || expires_at <= Time.current
+      end
+
+      # A newly introduced/unknown outcome should be checked rather than
+      # silently becoming permanent. Known informational skips have no retry.
+      outcome != "skipped"
+    end
+
+    def expected_discogs_mode
+      @enrichment.discogs_release_id.present? ? "curator_selected" : "automatic_candidate"
+    end
+
+    def parse_discogs_time(value)
+      return if value.blank?
+
+      Time.zone.parse(value.to_s)
+    end
+
     def discogs_source_result(deadline, spotify_album:)
       if @enrichment.discogs_release_id.present?
         DiscogsSource.new(@track, @enrichment, deadline: deadline).call
@@ -119,6 +172,50 @@ module MusicMetadata
           )
         end
       end
+    end
+
+    # This is operational state rather than provider metadata. It gives the
+    # Listening Desk an honest Discogs outcome even when a safe lookup returns
+    # zero claims, is deliberately skipped, or preserves older temporary
+    # claims after an error. It deliberately stores no Discogs provider content.
+    def discogs_refresh_attributes(result, checked_at)
+      outcome = result.outcome.presence || "unknown"
+      state = {
+        "source" => result.source,
+        "mode" => result.source == "discogs" ? "curator_selected" : "automatic_candidate",
+        "outcome" => outcome,
+        "checked_at" => checked_at.iso8601,
+        "claim_count" => Array(result.claims).size
+      }
+      state["reason"] = result.outcome_reason if result.outcome_reason.present?
+
+      case outcome
+      when "claims"
+        expires_at = discogs_claims_expires_at(result)
+        state["claims_expires_at"] = expires_at.iso8601 if expires_at.present?
+      when "no_candidate"
+        state["next_retry_at"] = (checked_at + DISCOGS_NO_MATCH_RETRY_AFTER).iso8601
+      when "error"
+        # A curator-selected mismatch needs a curator decision, not an
+        # automatic retry. Other Discogs errors remain eligible after cooldown.
+        unless result.outcome_reason == "selected_release_mismatch"
+          state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
+        end
+      when "skipped"
+        # A protected time-budget skip is transient; configuration and missing
+        # curator selection are informational and should not promise a retry.
+        if result.error.present?
+          state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
+        end
+      end
+
+      state
+    end
+
+    def discogs_claims_expires_at(result)
+      Array(result.claims).filter_map do |claim|
+        claim[:expires_at] || claim["expires_at"]
+      end.max
     end
 
     def resulting_status(errors)

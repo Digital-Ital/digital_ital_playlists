@@ -30,7 +30,7 @@ module MusicMetadata
     end
 
     def call
-      return skipped unless configured?
+      return skipped(reason: "not_configured") unless configured?
 
       # Discogs is release-oriented. Check a track-bearing single first, then
       # the Spotify album. Each raw search result is fetched and checked against
@@ -65,10 +65,12 @@ module MusicMetadata
           kind: "release",
           master_identifier: master_candidate&.dig(:result, "id")
         },
-        error: nil
+        error: nil,
+        outcome: "claims",
+        outcome_reason: "validated_tracklist"
       )
     rescue StandardError => e
-      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: "Discogs: #{e.message}")
+      error_result(e)
     end
 
     private
@@ -373,11 +375,52 @@ module MusicMetadata
     end
 
     def no_candidate
-      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil)
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {},
+        error: nil,
+        outcome: "no_candidate",
+        outcome_reason: "no_safe_candidate"
+      )
     end
 
-    def skipped
-      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, skipped: true, error: nil)
+    def skipped(reason:, error: nil)
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {},
+        skipped: true,
+        error: error,
+        outcome: "skipped",
+        outcome_reason: reason
+      )
+    end
+
+    def error_result(error)
+      if error.message == "refresh time budget exhausted"
+        return skipped(
+          reason: "time_budget",
+          error: "Discogs: protected lookup time was exhausted before a safe request could start."
+        )
+      end
+
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {},
+        error: "Discogs: #{error.message}",
+        outcome: "error",
+        outcome_reason: error_reason(error)
+      )
+    end
+
+    def error_reason(error)
+      case error.message
+      when /rate limited/i then "rate_limited"
+      when /network error|Net::(?:Open|Read)Timeout/i then "network"
+      else "provider_error"
+      end
     end
   end
 end
