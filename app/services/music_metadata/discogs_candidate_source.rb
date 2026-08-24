@@ -146,11 +146,14 @@ module MusicMetadata
     end
 
     def matching_track_entries(release)
+      return [] if @track.duration_ms.blank?
+
       Array(release["tracklist"]).select do |entry|
+        next false unless entry["type_"].to_s == "track"
         next false unless normalize(entry["title"]) == normalize(@track.name)
 
         listed_duration = duration_ms(entry["duration"])
-        listed_duration.blank? || @track.duration_ms.blank? ||
+        listed_duration.present? &&
           (listed_duration - @track.duration_ms.to_i).abs <= 12_000
       end
     end
