@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_23_200000) do
   create_table "batch_updates", force: :cascade do |t|
     t.string "status"
     t.integer "current_index"
@@ -110,6 +110,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
     t.datetime "last_updated_at"
     t.integer "followers_count", default: 0
     t.integer "reaction_count", default: 0, null: false
+    t.string "youtube_url"
+    t.string "tidal_url"
+    t.string "qobuz_url"
+    t.string "deezer_url"
+    t.string "soundcloud_url"
+    t.string "mixcloud_url"
     t.index ["category_id"], name: "index_playlists_on_category_id"
   end
 
@@ -149,6 +155,36 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
     t.index ["session_id"], name: "index_spotify_opens_on_session_id"
   end
 
+  create_table "track_enrichments", force: :cascade do |t|
+    t.integer "track_id", null: false
+    t.string "status", default: "pending", null: false
+    t.datetime "last_refreshed_at"
+    t.datetime "last_attempted_at"
+    t.text "last_error"
+    t.json "curator_decisions", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.json "discogs_refresh", default: {}, null: false
+    t.index ["track_id"], name: "index_track_enrichments_on_track_id", unique: true
+  end
+
+  create_table "track_metadata_claims", force: :cascade do |t|
+    t.integer "track_enrichment_id", null: false
+    t.string "source", null: false
+    t.string "source_identifier"
+    t.string "source_url"
+    t.string "field", null: false
+    t.json "value", default: {}, null: false
+    t.string "match_confidence", default: "supported", null: false
+    t.datetime "fetched_at", null: false
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_track_metadata_claims_on_expires_at"
+    t.index ["track_enrichment_id", "source", "field"], name: "index_track_metadata_claims_on_enrichment_source_field"
+    t.index ["track_enrichment_id"], name: "index_track_metadata_claims_on_track_enrichment_id"
+  end
+
   create_table "tracks", force: :cascade do |t|
     t.string "spotify_id"
     t.string "name"
@@ -169,7 +205,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
     t.string "field_name"
     t.text "old_value"
     t.text "new_value"
-    t.integer "track_id", null: false
+    t.integer "track_id"
     t.text "change_summary"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -216,6 +252,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_17_023410) do
   add_foreign_key "playlist_updates", "update_sessions"
   add_foreign_key "share_events", "playlists"
   add_foreign_key "spotify_opens", "playlists"
+  add_foreign_key "track_enrichments", "tracks"
+  add_foreign_key "track_metadata_claims", "track_enrichments"
   add_foreign_key "update_logs", "playlists"
   add_foreign_key "update_logs", "tracks"
 end
