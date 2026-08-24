@@ -5,7 +5,12 @@
 <% song_contexts = summary.fetch(:song_contexts, []) %>
 <% signals = summary.fetch(:signals) %>
 <% musicbrainz_claims = Array(claims).select { |claim| claim.source == "musicbrainz" } %>
-<% musicbrainz_error = enrichment&.last_error.to_s.split(" | ").find { |error| error.start_with?("MusicBrainz:") } %>
+<% musicbrainz_saved_at = musicbrainz_claims.map(&:fetched_at).compact.max %>
+<% lookup_errors = enrichment&.last_error.to_s.split(" | ").reject(&:blank?) %>
+<% musicbrainz_error = lookup_errors.find { |error| error.start_with?("MusicBrainz:") } %>
+<% non_musicbrainz_errors = lookup_errors.reject { |error| error.start_with?("MusicBrainz:") } %>
+<% musicbrainz_deferred_for_discogs = musicbrainz_error.to_s.include?("refresh time budget exhausted") %>
+<% musicbrainz_temporarily_unavailable = !musicbrainz_deferred_for_discogs && musicbrainz_error.to_s.match?(/(?:network error|HTTP 5\d\d|rate limited|request cap reached)/i) %>
 <% signal_labels = {
   "release_type" => "Release type",
   "release_format" => "Format",
@@ -72,7 +77,16 @@
       <% end %>
 
       <% if musicbrainz_error.present? %>
-        <p class="mt-3 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100"><span class="font-semibold">MusicBrainz lookup:</span> <%= musicbrainz_error.delete_prefix("MusicBrainz: ") %></p>
+        <p class="mt-3 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">
+          <span class="font-semibold">MusicBrainz:</span>
+          <% if musicbrainz_deferred_for_discogs %>
+            deferred for this pass to preserve time for Discogs. <% if musicbrainz_claims.any? %><% if musicbrainz_saved_at.present? %>Previously saved MusicBrainz evidence from <%= time_ago_in_words(musicbrainz_saved_at) %> ago remains visible.<% else %>Previously saved MusicBrainz evidence remains visible.<% end %><% else %>No MusicBrainz facts were saved yet.<% end %> It will be retried after the 10-minute cooldown when the Listening Desk next checks this song.
+          <% elsif musicbrainz_temporarily_unavailable %>
+            temporarily unavailable. <% if musicbrainz_claims.any? %><% if musicbrainz_saved_at.present? %>Previously saved MusicBrainz evidence from <%= time_ago_in_words(musicbrainz_saved_at) %> ago remains visible.<% else %>Previously saved MusicBrainz evidence remains visible.<% end %><% else %>No MusicBrainz facts were saved yet.<% end %> It will be retried after the 10-minute cooldown when the Listening Desk next checks this song.
+          <% else %>
+            <%= musicbrainz_error.delete_prefix("MusicBrainz: ") %>
+          <% end %>
+        </p>
       <% elsif enrichment.present? && enrichment.status != "refreshing" && musicbrainz_claims.empty? %>
         <p class="mt-3 rounded-lg border border-gray-700 bg-gray-900/70 px-3 py-2 text-xs text-gray-300"><span class="font-semibold text-gray-100">MusicBrainz:</span> no reliable recording match found yet. Its year, credits, and tags are unavailable for this song.</p>
       <% end %>
@@ -130,8 +144,8 @@
       </section>
     <% end %>
 
-    <% if enrichment&.last_error.present? %>
-      <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Automatic lookup incomplete: <%= enrichment.last_error %></p>
+    <% if non_musicbrainz_errors.any? %>
+      <p class="mt-4 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">Automatic lookup incomplete: <%= non_musicbrainz_errors.join(" | ") %></p>
     <% end %>
 
     <% if claims.any?(&:discogs?) %>
