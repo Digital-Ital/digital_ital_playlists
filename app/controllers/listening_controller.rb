@@ -118,7 +118,10 @@ class ListeningController < ApplicationController
     # A cached Spotify/Discogs claim must not make a failed MusicBrainz or
     # Wikipedia source permanent. Once the error cooldown has elapsed, rerun
     # the source set automatically and replace the saved error on success.
-    return true if enrichment.last_error.present?
+    # A selected Discogs release mismatch is different: it is a curator choice,
+    # not a transient provider failure, so wait for that choice to change.
+    return true if enrichment.last_error.present? && !only_selected_discogs_mismatch?(enrichment)
+    return false if only_selected_discogs_mismatch?(enrichment)
 
     claims = enrichment.active_claims
     discogs_missing = claims.where(source: [ "discogs", "discogs_candidate" ]).none?
@@ -133,6 +136,15 @@ class ListeningController < ApplicationController
 
     enrichment.last_refreshed_at.blank? ||
       enrichment.last_refreshed_at < AUTO_REFRESH_AFTER.ago
+  end
+
+  def only_selected_discogs_mismatch?(enrichment)
+    state = enrichment.discogs_lookup_state
+    return false unless state["outcome"] == "error" &&
+      state["reason"] == "selected_release_mismatch"
+
+    errors = enrichment.last_error.to_s.split(" | ").reject(&:blank?)
+    errors.any? && errors.all? { |error| error.start_with?("Discogs:") }
   end
 
   def discogs_not_configured?(enrichment)
