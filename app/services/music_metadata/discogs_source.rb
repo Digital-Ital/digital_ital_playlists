@@ -15,8 +15,8 @@ module MusicMetadata
     end
 
     def call
-      return skipped unless configured?
-      return skipped if release_id.blank?
+      return skipped(reason: "not_configured") unless configured?
+      return skipped(reason: "no_selected_release") if release_id.blank?
 
       payload = release_payload
       matching_tracks = matching_release_tracks(payload)
@@ -25,7 +25,11 @@ module MusicMetadata
       SourceResult.new(
         source: "discogs",
         claims: claims_from(payload, matching_tracks),
-        metadata: { release_id: release_id },
+        metadata: {
+          outcome: "found",
+          mode: "curator_selected",
+          release_id: release_id
+        },
         error: nil
       )
     rescue StandardError => e
@@ -250,13 +254,27 @@ module MusicMetadata
       SourceResult.new(
         source: "discogs",
         claims: [],
-        metadata: {},
+        metadata: {
+          outcome: "selected_release_mismatch",
+          reason: "selected_release_mismatch",
+          mode: "curator_selected"
+        },
         error: "Discogs: the selected release does not contain a compatible title and track artist."
       )
     end
 
-    def skipped
-      SourceResult.new(source: "discogs", claims: [], metadata: {}, skipped: true, error: nil)
+    def skipped(reason:)
+      SourceResult.new(
+        source: "discogs",
+        claims: [],
+        metadata: {
+          outcome: "skipped",
+          reason: reason,
+          mode: "curator_selected"
+        },
+        skipped: true,
+        error: nil
+      )
     end
 
     def request_timeouts
