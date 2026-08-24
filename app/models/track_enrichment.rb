@@ -97,6 +97,13 @@ class TrackEnrichment < ApplicationRecord
                          .delete_all
   end
 
+  def discogs_lookup_state
+    state = discogs_refresh
+    return {} unless state.is_a?(Hash)
+
+    state.stringify_keys
+  end
+
   def discogs_candidate_strategy_stale?
     candidate_claims = active_claims.where(source: "discogs_candidate").to_a
     return false if candidate_claims.empty?
