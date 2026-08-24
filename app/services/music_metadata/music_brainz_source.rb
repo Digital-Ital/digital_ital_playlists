@@ -10,6 +10,7 @@ module MusicMetadata
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
     REQUEST_INTERVAL_SECONDS = 1.1
     REQUEST_MUTEX = Mutex.new
+    MAX_REQUESTS_PER_REFRESH = 4
     CREDIT_FIELDS = {
       "producer" => "producer",
       "engineer" => "engineer",
@@ -33,6 +34,7 @@ module MusicMetadata
       @isrc = isrc.presence
       @spotify_album = spotify_album.is_a?(Hash) ? spotify_album : {}
       @deadline = deadline
+      @request_count = 0
     end
 
     def call
@@ -133,6 +135,7 @@ module MusicMetadata
         item["target-type"] == "work" && item.dig("work", "id").present?
       end
       return nil unless relation
+      return nil unless request_budget_available?
 
       get("work/#{relation.dig("work", "id")}", inc: "artist-rels")
     end
@@ -417,6 +420,7 @@ module MusicMetadata
 
       begin
         reserve_request_slot
+        consume_request_budget!
 
         uri = URI("#{BASE_URL}#{path}")
         uri.query = URI.encode_www_form(params.merge(fmt: "json"))
@@ -448,6 +452,16 @@ module MusicMetadata
       rescue Timeout::Error, SocketError, Errno::ECONNREFUSED => e
         raise "network error (#{e.message})"
       end
+    end
+
+    def request_budget_available?
+      @request_count < MAX_REQUESTS_PER_REFRESH
+    end
+
+    def consume_request_budget!
+      raise "request cap reached" unless request_budget_available?
+
+      @request_count += 1
     end
 
     def reserve_request_slot
