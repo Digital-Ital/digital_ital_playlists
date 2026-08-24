@@ -10,7 +10,10 @@ module MusicMetadata
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
     REQUEST_INTERVAL_SECONDS = 1.1
     REQUEST_MUTEX = Mutex.new
-    # ISRC miss + strict recording miss + album-supported recording match +\n    # detailed recording + linked work is the one valid five-request path.\n    # The shared refresh deadline still bounds wall-clock time.\n    MAX_REQUESTS_PER_REFRESH = 5
+    # ISRC miss + strict recording miss + album-supported recording match +
+    # detailed recording + linked work is the one valid five-request path.
+    # The shared refresh deadline still bounds wall-clock time.
+    MAX_REQUESTS_PER_REFRESH = 5
     CREDIT_FIELDS = {
       "producer" => "producer",
       "engineer" => "engineer",
