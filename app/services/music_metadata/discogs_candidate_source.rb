@@ -15,8 +15,12 @@ module MusicMetadata
     USER_AGENT = "DigitalItalCrates/1.0 (https://italcrates.com)"
     REQUEST_INTERVAL_SECONDS = 1.1
     REQUEST_MUTEX = Mutex.new
-    CANDIDATE_STRATEGY = "validated-single-album-relaxed-track-v8"
-    MAX_RELEASE_VALIDATIONS = 3
+    CANDIDATE_STRATEGY = "validated-single-album-relaxed-track-v9"
+    # Discogs search order is useful but not authoritative: the first earliest
+    # release can have an incomplete tracklist. Try a bounded second candidate
+    # without allowing an automatic lookup to grow into an open-ended crawl.
+    MAX_RELEASE_VALIDATIONS = 4
+    CANDIDATES_PER_PATH = 2
 
     class << self
       attr_accessor :last_request_at
@@ -27,6 +31,7 @@ module MusicMetadata
       @spotify_album = spotify_album.is_a?(Hash) ? spotify_album : {}
       @deadline = deadline
       @release_validations = 0
+      @search_attempts = []
     end
 
     def call
@@ -35,9 +40,7 @@ module MusicMetadata
       # Discogs is release-oriented. Check a track-bearing single first, then
       # the Spotify album. Each raw search result is fetched and checked against
       # its actual tracklist before it may be used.
-      release_candidate = single_release_candidate ||
-        spotify_album_release_candidate ||
-        relaxed_track_release_candidate
+      release_candidate = automatic_release_candidate
       return no_candidate unless release_candidate
 
       master_candidate = linked_master_for(release_candidate)
@@ -60,11 +63,11 @@ module MusicMetadata
       SourceResult.new(
         source: "discogs_candidate",
         claims: claims,
-        metadata: {
+        metadata: lookup_metadata.merge(
           identifier: release_candidate.dig(:result, "id"),
           kind: "release",
           master_identifier: master_candidate&.dig(:result, "id")
-        },
+        ),
         error: nil,
         outcome: "claims",
         outcome_reason: "validated_tracklist"
@@ -79,47 +82,57 @@ module MusicMetadata
       ENV["DISCOGS_USER_TOKEN"].present?
     end
 
-    def single_release_candidate
-      validated_release_candidate(
-        { track: @track.name.to_s, format: "Single" },
-        match_path: "single_track"
-      )
-    end
+    def automatic_release_candidate
+      paths = [
+        {
+          search_params: { track: normalized_title(@track.name), format: "Single" },
+          match_path: "single_track"
+        },
+        (
+          {
+            search_params: { release_title: spotify_album_name },
+            match_path: "spotify_album",
+            require_spotify_album_title: true
+          } if spotify_album_name.present?
+        ),
+        {
+          search_params: { track: normalized_title(@track.name) },
+          match_path: "verified_release_track"
+        }
+      ].compact
 
-    def spotify_album_release_candidate
-      return if spotify_album_name.blank?
+      # Search every route first, then validate in rounds: first the earliest
+      # candidate from each route, then one additional earliest candidate from
+      # each route if time permits. This prevents an incomplete early single
+      # result from blocking the Spotify-album or general-track fallback.
+      candidate_sets = paths.map do |path|
+        candidates = ranked_candidates("release", path.fetch(:search_params))
+          .first(CANDIDATES_PER_PATH)
+        @search_attempts << {
+          "path" => path.fetch(:match_path),
+          "candidate_count" => candidates.size
+        }
+        path.merge(candidates: candidates)
+      end
 
-      validated_release_candidate(
-        { release_title: spotify_album_name },
-        match_path: "spotify_album",
-        require_spotify_album_title: true
-      )
-    end
+      CANDIDATES_PER_PATH.times do |rank|
+        candidate_sets.each do |path|
+          break if @release_validations >= MAX_RELEASE_VALIDATIONS
 
-    # This is intentionally last. It catches an album, EP, or compilation
-    # whose song was not marked as a Discogs "Single", but accepts it only
-    # after an exact tracklist title/duration check.
-    def relaxed_track_release_candidate
-      validated_release_candidate(
-        { track: @track.name.to_s },
-        match_path: "verified_release_track"
-      )
-    end
+          candidate = path.fetch(:candidates)[rank]
+          next unless candidate
 
-    def validated_release_candidate(search_params, match_path:, require_spotify_album_title: false)
-      # One earliest result per discovery path keeps the fallback bounded and
-      # preserves the deliberate order: single, then Spotify album, then
-      # general track-bearing release.
-      candidate = ranked_candidates("release", search_params).first
-      return unless candidate
+          release = release_detail(candidate)
+          next unless usable_candidate?(release)
+          next unless exact_tracklist_match?(release)
+          next unless compatible_artist_on_release?(release)
+          next if path[:require_spotify_album_title] && !spotify_album_title_matches?(release)
 
-      release = release_detail(candidate)
-      return unless usable_candidate?(release)
-      return unless exact_tracklist_match?(release)
-      return unless compatible_artist_on_release?(release)
-      return if require_spotify_album_title && !spotify_album_title_matches?(release)
+          return { result: release, kind: "release", match_path: path.fetch(:match_path) }
+        end
+      end
 
-      { result: release, kind: "release", match_path: match_path }
+      nil
     end
 
     def release_detail(candidate)
@@ -139,7 +152,7 @@ module MusicMetadata
       uri = SEARCH_URL.dup
       uri.query = URI.encode_www_form(
         {
-          artist: @track.artist.to_s,
+          artist: primary_artist_name,
           type: kind,
           sort: "year",
           sort_order: "asc",
@@ -159,7 +172,7 @@ module MusicMetadata
 
       Array(release["tracklist"]).select do |entry|
         next false unless entry["type_"].to_s == "track"
-        next false unless normalize(entry["title"]) == normalize(@track.name)
+        next false unless normalized_title(entry["title"]) == normalized_title(@track.name)
 
         listed_duration = duration_ms(entry["duration"])
         listed_duration.present? &&
@@ -204,7 +217,21 @@ module MusicMetadata
     end
 
     def artist_identity_tokens(value)
-      value.to_s.split - %w[the and feat featuring with dj]
+      value.to_s
+           .gsub(/\([^\)]*\)|\[[^\]]*\]/, " ")
+           .gsub(/\b(?:feat(?:uring)?|with)\b.*/, " ")
+           .gsub(/\bft\.?(?=\s|$).*/, " ")
+           .gsub(/\bw\/(?=\s).*/, " ")
+           .split - %w[the and dj]
+    end
+
+    def primary_artist_name
+      @track.artist.to_s
+            .gsub(/\([^\)]*\)|\[[^\]]*\]/, " ")
+            .split(/,|&|\b(?:feat(?:uring)?|with)\b|\bft\.?(?=\s|$)|\bw\/(?=\s)/i)
+            .first
+            .to_s
+            .squish
     end
 
     def spotify_album_title_matches?(release)
@@ -329,6 +356,15 @@ module MusicMetadata
       end
     end
 
+    def normalized_title(value)
+      value.to_s.downcase
+           .gsub(/\[[^\]]*\]|\([^\)]*\)/, " ")
+           .gsub(/\b(remaster(?:ed)?|mono|stereo|explicit|clean|version)\b/, " ")
+           .gsub(/\b(?:feat(?:uring)?|ft\.?)\b.*/, " ")
+           .gsub(/[^a-z0-9]+/, " ")
+           .squish
+    end
+
     def normalize(value)
       value.to_s.downcase.gsub(/[^a-z0-9]+/, " ").squish
     end
@@ -374,11 +410,19 @@ module MusicMetadata
       @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
 
+    def lookup_metadata
+      {
+        candidate_strategy: CANDIDATE_STRATEGY,
+        search_attempts: @search_attempts,
+        release_validations: @release_validations
+      }
+    end
+
     def no_candidate
       SourceResult.new(
         source: "discogs_candidate",
         claims: [],
-        metadata: {},
+        metadata: lookup_metadata,
         error: nil,
         outcome: "no_candidate",
         outcome_reason: "no_safe_candidate"
