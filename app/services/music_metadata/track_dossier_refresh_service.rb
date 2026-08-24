@@ -127,55 +127,46 @@ module MusicMetadata
 
     # This is operational state rather than provider metadata. It gives the
     # Listening Desk an honest Discogs outcome even when a safe lookup returns
-    # zero claims, when configuration is missing, or when an error preserves
-    # older temporary claims.
+    # zero claims, is deliberately skipped, or preserves older temporary
+    # claims after an error. It deliberately stores no Discogs provider content.
     def discogs_refresh_attributes(result, checked_at)
-      metadata = result.metadata.to_h.stringify_keys
-      outcome = metadata["outcome"].presence || inferred_discogs_outcome(result)
+      outcome = result.outcome.presence || "unknown"
       state = {
-        "mode" => metadata["mode"].presence || (result.source == "discogs" ? "curator_selected" : "automatic_candidate"),
+        "source" => result.source,
+        "mode" => result.source == "discogs" ? "curator_selected" : "automatic_candidate",
         "outcome" => outcome,
-        "checked_at" => checked_at.iso8601
+        "checked_at" => checked_at.iso8601,
+        "claim_count" => Array(result.claims).size
       }
-      state["reason"] = metadata["reason"] if metadata["reason"].present?
+      state["reason"] = result.outcome_reason if result.outcome_reason.present?
 
       case outcome
-      when "found"
+      when "claims"
         expires_at = discogs_claims_expires_at(result)
         state["claims_expires_at"] = expires_at.iso8601 if expires_at.present?
-      when "no_safe_candidate"
+      when "no_candidate"
         state["next_retry_at"] = (checked_at + DISCOGS_NO_MATCH_RETRY_AFTER).iso8601
       when "error"
-        state["error_kind"] = discogs_error_kind(result.error)
-        state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
-      when "selected_release_mismatch"
-        state["error_kind"] = "selected_release_mismatch"
+        # A curator-selected mismatch needs a curator decision, not an
+        # automatic retry. Other Discogs errors remain eligible after cooldown.
+        unless result.outcome_reason == "selected_release_mismatch"
+          state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
+        end
+      when "skipped"
+        # A protected time-budget skip is transient; configuration and missing
+        # curator selection are informational and should not promise a retry.
+        if result.error.present?
+          state["next_retry_at"] = (checked_at + DISCOGS_ERROR_RETRY_AFTER).iso8601
+        end
       end
 
       state
-    end
-
-    def inferred_discogs_outcome(result)
-      return "skipped" if result.skipped?
-      return "error" if result.error.present?
-      return "found" if Array(result.claims).any?
-
-      "no_safe_candidate"
     end
 
     def discogs_claims_expires_at(result)
       Array(result.claims).filter_map do |claim|
         claim[:expires_at] || claim["expires_at"]
       end.max
-    end
-
-    def discogs_error_kind(error)
-      case error.to_s
-      when /rate limited/i then "rate_limited"
-      when /network error|Net::(?:Open|Read)Timeout/i then "network"
-      when /refresh time budget exhausted/i then "deadline"
-      else "unknown"
-      end
     end
 
     def resulting_status(errors)
