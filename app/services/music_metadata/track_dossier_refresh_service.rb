@@ -32,11 +32,15 @@ module MusicMetadata
         results.each { |result| sync_source_result!(result) }
         errors = results.filter_map(&:error)
 
-        @enrichment.update!(
+        refresh_attributes = {
           status: resulting_status(errors),
-          last_refreshed_at: Time.current,
           last_error: errors.presence&.join(" | ")
-        )
+        }
+        # A partial refresh can update other sources while preserving older
+        # MusicBrainz claims after a transient error. Only mark the dossier
+        # fully refreshed when every source completed successfully.
+        refresh_attributes[:last_refreshed_at] = Time.current if errors.empty?
+        @enrichment.update!(refresh_attributes)
       end
 
       @enrichment
