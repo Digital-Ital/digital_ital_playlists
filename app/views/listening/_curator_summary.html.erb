@@ -5,6 +5,7 @@
 <% song_contexts = summary.fetch(:song_contexts, []) %>
 <% signals = summary.fetch(:signals) %>
 <% musicbrainz_claims = Array(claims).select { |claim| claim.source == "musicbrainz" } %>
+<% musicbrainz_saved_at = musicbrainz_claims.map(&:fetched_at).compact.max %>
 <% lookup_errors = enrichment&.last_error.to_s.split(" | ").reject(&:blank?) %>
 <% musicbrainz_error = lookup_errors.find { |error| error.start_with?("MusicBrainz:") } %>
 <% non_musicbrainz_errors = lookup_errors.reject { |error| error.start_with?("MusicBrainz:") } %>
@@ -78,7 +79,7 @@
         <p class="mt-3 rounded-lg border border-yellow-500/30 bg-yellow-950/25 px-3 py-2 text-xs text-yellow-100">
           <span class="font-semibold">MusicBrainz:</span>
           <% if musicbrainz_temporarily_unavailable %>
-            temporarily unavailable. <% if musicbrainz_claims.any? %>Saved MusicBrainz evidence remains visible.<% else %>No MusicBrainz facts were saved yet.<% end %> The Listening Desk will retry automatically in about 10 minutes.
+            temporarily unavailable. <% if musicbrainz_claims.any? %><% if musicbrainz_saved_at.present? %>Previously saved MusicBrainz evidence from <%= time_ago_in_words(musicbrainz_saved_at) %> ago remains visible.<% else %>Previously saved MusicBrainz evidence remains visible.<% end %><% else %>No MusicBrainz facts were saved yet.<% end %> It will be retried after the 10-minute cooldown when the Listening Desk next checks this song.
           <% else %>
             <%= musicbrainz_error.delete_prefix("MusicBrainz: ") %>
           <% end %>
