@@ -91,8 +91,9 @@ class TrackEnrichment < ApplicationRecord
   end
 
   def expire_temporary_claims!
-    track_metadata_claims.where(source: "discogs")
-                         .where("expires_at IS NOT NULL AND expires_at <= ?", Time.current)
+    # Discogs data is temporary under its API terms; this includes automatic
+    # candidates as well as curator-selected Discogs release claims.
+    track_metadata_claims.where("expires_at IS NOT NULL AND expires_at <= ?", Time.current)
                          .delete_all
   end
 
