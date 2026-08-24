@@ -165,10 +165,10 @@ module MusicMetadata
       names = artist_names(release["artists"]) if names.empty?
       names = names.reject { |name| generic_artist_name?(name) }
 
-      # No artist payload is inconclusive rather than positive. The original
-      # Discogs search still had an artist filter, but the lack of detail keeps
-      # this an explicitly low-confidence candidate.
-      names.empty? || names.any? { |name| compatible_artist?(name) }
+      # The search request has an artist filter, but it can be fuzzy. Require
+      # a compatible artist in the detailed release payload before asserting an
+      # exact tracklist candidate.
+      names.any? { |name| compatible_artist?(name) }
     end
 
     def artist_names(artists)
@@ -244,16 +244,17 @@ module MusicMetadata
       identifier = candidate.fetch("id").to_s
       source_url = "https://www.discogs.com/#{kind}/#{identifier}"
       context = candidate_context(kind, linked_release_id, match_path)
+      match_confidence = kind == "master" ? "candidate_linked_release_master" : "candidate_verified_track_release"
 
       [
-        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind),
-        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind),
-        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind),
-        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind)
+        claim("release_date", candidate.fetch("year").to_s, context, identifier, source_url, kind, match_confidence),
+        claim("release_title", candidate["title"].to_s, "#{context} title", identifier, source_url, kind, match_confidence),
+        *taxonomy_claims(candidate["genre"] || candidate["genres"], "genre", context, identifier, source_url, kind, match_confidence),
+        *taxonomy_claims(candidate["style"] || candidate["styles"], "tag", context, identifier, source_url, kind, match_confidence)
       ].compact
     end
 
-    def taxonomy_claims(values, field, context, identifier, source_url, kind)
+    def taxonomy_claims(values, field, context, identifier, source_url, kind, match_confidence)
       Array(values).filter_map do |value|
         claim(
           field,
@@ -261,12 +262,13 @@ module MusicMetadata
           "#{context} #{field == "genre" ? "genre" : "style"}",
           identifier,
           source_url,
-          kind
+          kind,
+          match_confidence
         )
       end.uniq { |entry| entry.dig(:value, "text").to_s.downcase }
     end
 
-    def claim(field, text, context, identifier, source_url, kind)
+    def claim(field, text, context, identifier, source_url, kind, match_confidence)
       return if text.blank?
 
       {
@@ -280,7 +282,7 @@ module MusicMetadata
           "scope" => "discogs_#{kind}_candidate:#{identifier}",
           "candidate_strategy" => CANDIDATE_STRATEGY
         },
-        match_confidence: "candidate_verified_track_release",
+        match_confidence: match_confidence,
         expires_at: 6.hours.from_now
       }
     end
