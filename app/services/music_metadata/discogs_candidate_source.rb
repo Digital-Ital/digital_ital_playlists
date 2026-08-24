@@ -17,7 +17,7 @@ module MusicMetadata
 
     def initialize(track, spotify_album: nil, deadline: nil)
       @track = track
-      @spotify_album = spotify_album.to_h
+      @spotify_album = spotify_album.is_a?(Hash) ? spotify_album : {}
       @deadline = deadline
       @release_validations = 0
     end
