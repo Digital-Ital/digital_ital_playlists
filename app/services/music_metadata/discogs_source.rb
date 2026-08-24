@@ -25,15 +25,13 @@ module MusicMetadata
       SourceResult.new(
         source: "discogs",
         claims: claims_from(payload, matching_tracks),
-        metadata: {
-          outcome: "found",
-          mode: "curator_selected",
-          release_id: release_id
-        },
-        error: nil
+        metadata: { release_id: release_id },
+        error: nil,
+        outcome: "claims",
+        outcome_reason: "curator_selected_release"
       )
     rescue StandardError => e
-      SourceResult.new(source: "discogs", claims: [], metadata: {}, error: "Discogs: #{e.message}")
+      error_result(e)
     end
 
     private
@@ -254,27 +252,49 @@ module MusicMetadata
       SourceResult.new(
         source: "discogs",
         claims: [],
-        metadata: {
-          outcome: "selected_release_mismatch",
-          reason: "selected_release_mismatch",
-          mode: "curator_selected"
-        },
-        error: "Discogs: the selected release does not contain a compatible title and track artist."
+        metadata: {},
+        error: "Discogs: the selected release does not contain a compatible title and track artist.",
+        outcome: "error",
+        outcome_reason: "selected_release_mismatch"
       )
     end
 
-    def skipped(reason:)
+    def skipped(reason:, error: nil)
       SourceResult.new(
         source: "discogs",
         claims: [],
-        metadata: {
-          outcome: "skipped",
-          reason: reason,
-          mode: "curator_selected"
-        },
+        metadata: {},
         skipped: true,
-        error: nil
+        error: error,
+        outcome: "skipped",
+        outcome_reason: reason
       )
+    end
+
+    def error_result(error)
+      if error.message == "refresh time budget exhausted"
+        return skipped(
+          reason: "time_budget",
+          error: "Discogs: protected lookup time was exhausted before a request could start."
+        )
+      end
+
+      SourceResult.new(
+        source: "discogs",
+        claims: [],
+        metadata: {},
+        error: "Discogs: #{error.message}",
+        outcome: "error",
+        outcome_reason: error_reason(error)
+      )
+    end
+
+    def error_reason(error)
+      case error.message
+      when /rate limited/i then "rate_limited"
+      when /network error|Net::(?:Open|Read)Timeout/i then "network"
+      else "provider_error"
+      end
     end
 
     def request_timeouts
