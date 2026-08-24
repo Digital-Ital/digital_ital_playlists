@@ -14,11 +14,7 @@
       <% memberships.each do |membership| %>
         <% playlist = membership[:playlist] %>
         <article class="flex flex-col gap-4 rounded-xl border border-green-500/20 bg-green-950/10 p-4 sm:flex-row">
-          <% if playlist.cover_image_url.present? %>
-            <img src="<%= playlist.cover_image_url %>" alt="" class="h-24 w-24 shrink-0 rounded-lg object-cover shadow-lg">
-          <% else %>
-            <div class="flex h-24 w-24 shrink-0 items-center justify-center rounded-lg bg-gray-800 text-3xl">🎵</div>
-          <% end %>
+          <%= render "crate_cover", playlist: playlist, thumbnail_class: "h-48 w-48" %>
 
           <div class="min-w-0 flex-1">
             <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
