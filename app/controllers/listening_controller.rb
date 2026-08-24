@@ -100,8 +100,9 @@ class ListeningController < ApplicationController
     return false if enrichment.status == "refreshing" &&
       enrichment.last_attempted_at.present? &&
       enrichment.last_attempted_at > MusicMetadata::TrackDossierRefreshService::REFRESH_STALE_AFTER.ago
-    if enrichment.discogs_candidate_strategy_stale?
-      # A strategy upgrade should re-check a cached candidate, but never on
+    if enrichment.discogs_release_id.blank? && enrichment.discogs_candidate_strategy_stale?
+      # A strategy upgrade should re-check a cached automatic candidate, but
+      # never override or repeatedly retry a curator-selected release.
       # every public live-track refresh when Discogs is unavailable or skipped.
       # Any source failure, including MusicBrainz, needs the short error
       # cooldown even if a Discogs-candidate strategy upgrade is also pending.
