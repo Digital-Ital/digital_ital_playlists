@@ -68,11 +68,39 @@ module MusicMetadata
 
       return [ nil, nil ] if @track.name.blank? || @track.artist.blank?
 
-      query = %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}")
-      payload = get("recording/", query: query, limit: 5)
-      candidate = Array(payload["recordings"]).find { |recording| high_confidence_match?(recording) }
+      candidate = recording_candidates(strict_recording_query)
+        .find { |recording| strict_recording_match?(recording) }
+      return [ candidate, "candidate_title_artist_duration" ] if candidate.present?
 
-      [ candidate, candidate.present? ? "candidate_title_artist_duration" : nil ]
+      # A track may be indexed under a release's artist credit or title rather
+      # than Spotify's display strings. Only after the strict lookup fails, add
+      # Spotify's album as a second source-side clue. The local exact-title,
+      # compatible-artist, and duration checks remain unchanged, so this route
+      # cannot accept a merely similar song.
+      candidate = recording_candidates(album_supported_recording_query)
+        .find { |recording| strict_recording_match?(recording) }
+      return [ candidate, "candidate_album_title_artist_duration" ] if candidate.present?
+
+      [ nil, nil ]
+    end
+
+    def strict_recording_query
+      %(recording:"#{search_value(@track.name)}" AND artist:"#{search_value(@track.artist)}")
+    end
+
+    def album_supported_recording_query
+      return if @track.album.blank?
+
+      # Deliberately omit an artist term here: the later local artist check is
+      # stricter and tolerates harmless credit styling differences.
+      %(recording:"#{search_value(@track.name)}" AND release:"#{search_value(@track.album)}")
+    end
+
+    def recording_candidates(query)
+      return [] if query.blank?
+
+      payload = get("recording/", query: query, limit: 10)
+      Array(payload["recordings"])
     end
 
     def fetch_work(recording)
@@ -338,7 +366,7 @@ module MusicMetadata
       }
     end
 
-    def high_confidence_match?(recording)
+    def strict_recording_match?(recording)
       title_matches = normalize(recording["title"]) == normalize(@track.name)
       credited_artists = Array(recording["artist-credit"]).filter_map do |credit|
         credit.dig("artist", "name") || credit["name"]
