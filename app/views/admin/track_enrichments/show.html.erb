@@ -101,7 +101,7 @@
                 <article class="rounded-lg border border-gray-800 bg-gray-950/80 p-3">
                   <p class="font-medium text-gray-100"><%= claim.display_value %></p>
                   <p class="mt-1 text-xs text-gray-400"><%= claim.context %> • <%= claim.confidence_label %></p>
-                  <% if claim.source == "discogs" %>
+                  <% if claim.discogs? %>
                     <%= link_to "Data provided by Discogs.", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-orange-300 hover:text-orange-200" %>
                   <% elsif claim.source_url.present? %>
                     <%= link_to "#{claim.source_label} ↗", claim.source_url, target: "_blank", rel: "noopener", class: "mt-2 inline-block text-xs font-semibold text-cyan-300 hover:text-cyan-200" %>
