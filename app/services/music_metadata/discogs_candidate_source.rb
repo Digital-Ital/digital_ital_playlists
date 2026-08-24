@@ -61,6 +61,8 @@ module MusicMetadata
         source: "discogs_candidate",
         claims: claims,
         metadata: {
+          outcome: "found",
+          mode: "automatic_candidate",
           identifier: release_candidate.dig(:result, "id"),
           kind: "release",
           master_identifier: master_candidate&.dig(:result, "id")
@@ -373,11 +375,30 @@ module MusicMetadata
     end
 
     def no_candidate
-      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, error: nil)
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {
+          outcome: "no_safe_candidate",
+          reason: "no_safe_candidate",
+          mode: "automatic_candidate"
+        },
+        error: nil
+      )
     end
 
     def skipped
-      SourceResult.new(source: "discogs_candidate", claims: [], metadata: {}, skipped: true, error: nil)
+      SourceResult.new(
+        source: "discogs_candidate",
+        claims: [],
+        metadata: {
+          outcome: "skipped",
+          reason: "not_configured",
+          mode: "automatic_candidate"
+        },
+        skipped: true,
+        error: nil
+      )
     end
   end
 end
