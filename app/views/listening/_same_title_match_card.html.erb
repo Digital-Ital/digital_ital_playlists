@@ -32,9 +32,13 @@ end %>
   <% if title_match[:exact_spotify_id] && title_match[:duplicate_playlists].any? %>
     <div class="mt-4 rounded-lg border border-red-400/50 bg-red-950/50 p-3 text-sm text-red-100">
       <p class="font-bold">⚠ Probable duplicate in this playlist</p>
-      <ul class="mt-2 space-y-1 text-xs text-red-200">
+      <ul class="mt-3 space-y-2 text-xs text-red-200">
         <% title_match[:duplicate_playlists].each do |duplicate| %>
-          <li><%= duplicate[:playlist].title %> — positions #<%= duplicate[:positions].join(", #") %></li>
+          <% duplicate_playlist = duplicate[:playlist] %>
+          <li class="flex items-center gap-2">
+            <%= render "crate_cover", playlist: duplicate_playlist, thumbnail_class: "h-16 w-16" %>
+            <span><%= link_to duplicate_playlist.title, playlist_path(duplicate_playlist), class: "font-semibold text-red-100 underline decoration-red-300/50 hover:text-white" %> — positions #<%= duplicate[:positions].join(", #") %></span>
+          </li>
         <% end %>
       </ul>
     </div>
@@ -42,18 +46,24 @@ end %>
 
   <ul class="mt-4 space-y-2">
     <% title_match[:memberships].each do |membership| %>
+      <% playlist = membership[:playlist] %>
       <li class="rounded-lg border border-white/10 bg-gray-900/70 p-3">
-        <div class="flex items-start justify-between gap-3">
-          <%= link_to membership[:playlist].title, playlist_path(membership[:playlist]), class: "min-w-0 font-semibold text-yellow-300 hover:text-yellow-200" %>
-          <span class="shrink-0 text-xs text-gray-400">#<%= membership[:position].to_i + 1 %></span>
-        </div>
-        <% if membership[:categories].any? %>
-          <div class="mt-2 flex flex-wrap gap-1">
-            <% membership[:categories].each do |category| %>
-              <span class="rounded-full px-2 py-0.5 text-[11px] text-white" style="background-color: <%= category.color.presence || '#4B5563' %>"><%= category.name %></span>
+        <div class="flex items-start gap-3">
+          <%= render "crate_cover", playlist: playlist, thumbnail_class: "h-24 w-24" %>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-start justify-between gap-3">
+              <%= link_to playlist.title, playlist_path(playlist), class: "min-w-0 font-semibold text-yellow-300 hover:text-yellow-200" %>
+              <span class="shrink-0 text-xs text-gray-400">#<%= membership[:position].to_i + 1 %></span>
+            </div>
+            <% if membership[:categories].any? %>
+              <div class="mt-2 flex flex-wrap gap-1">
+                <% membership[:categories].each do |category| %>
+                  <span class="rounded-full px-2 py-0.5 text-[11px] text-white" style="background-color: <%= category.color.presence || '#4B5563' %>"><%= category.name %></span>
+                <% end %>
+              </div>
             <% end %>
           </div>
-        <% end %>
+        </div>
       </li>
     <% end %>
   </ul>
