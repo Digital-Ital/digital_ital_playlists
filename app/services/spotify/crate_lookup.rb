@@ -320,6 +320,7 @@ module Spotify
     def title_key(value)
       value.to_s.downcase
            .gsub(/\[[^\]]*\]|\([^\)]*\)/, " ")
+           .gsub(/\s*[-–—:]\s*(?:(?:\d{4}\s+)?digital\s+)?(?:\d{4}\s+)?remaster(?:ed)?(?:\s+(?:version|\d{4}))?\s*\z/, " ")
            .gsub(/\b(remaster(?:ed)?|mono|stereo|explicit|clean|version)\b/, " ")
            .gsub(/\b(?:feat(?:uring)?|ft\.?)\b.*/, " ")
            .gsub(/[^a-z0-9]+/, " ")
