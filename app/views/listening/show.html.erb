@@ -59,7 +59,9 @@
 
       <%= render "crate_placements", memberships: @selected_lookup[:memberships] %>
 
-      <%= render "same_title_links", same_title_matches: @selected_lookup[:same_title_matches] %>
+      <%= render "same_title_links",
+        same_title_matches: @selected_lookup[:same_title_matches],
+        same_title_search_key: @selected_lookup[:same_title_search_key] %>
 
       <% if @dossier_track.present? %>
         <% live_source = @current_track.present? && source[:spotify_id] == @current_track[:spotify_id] %>
