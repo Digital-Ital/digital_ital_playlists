@@ -57,6 +57,7 @@ module Spotify
         match_type: match_type,
         local_tracks: local_tracks,
         memberships: memberships_for(local_tracks),
+        same_title_search_key: title_key(@track[:name]),
         same_title_matches: same_title_matches
       }
     end
