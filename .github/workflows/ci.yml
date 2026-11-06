@@ -53,3 +53,19 @@ jobs:
       - name: Lint code for consistent style
         run: bin/rubocop -f github
 
+
+  boot_check:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+      CI: "true"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Verify Rails boots and application constants autoload
+        run: bin/rails zeitwerk:check
