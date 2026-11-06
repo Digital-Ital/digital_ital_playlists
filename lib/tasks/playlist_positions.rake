@@ -19,14 +19,14 @@ namespace :playlist_positions do
     puts "PLAYLIST POSITION REORGANIZATION — DRY RUN"
     puts "PLAYLIST COUNT: #{entries.size}"
     puts "PREVIEW_SHA=#{proposal.fetch(:fingerprint)}"
-    puts "Matching curated directory: #{entries.count { |item| item[:match] == 'manifest' }}"
-    puts "Additional playlists (inferred branch; review these): #{entries.count { |item| item[:match] == 'inferred' }}"
-    puts "Changes proposed: #{entries.count { |item| item[:old_position] != item[:new_position] }}"
+    puts "Matching curated directory: #{entries.count { |item| item[ :match ] == 'manifest' }}"
+    puts "Additional playlists (inferred branch; review these): #{entries.count { |item| item[ :match ] == 'inferred' }}"
+    puts "Changes proposed: #{entries.count { |item| item[ :old_position ] != item[ :new_position ] }}"
     puts "Rows: new_position | old_position | ID | match | title"
     entries.each do |item|
       puts "%3d | %4s | %5d | %8s | %s" % [
         item.fetch(:new_position),
-        item[:old_position].nil? ? "-" : item[:old_position],
+        item[ :old_position ].nil? ? "-" : item[ :old_position ],
         item.fetch(:id), item.fetch(:match), item.fetch(:title)
       ]
     end
