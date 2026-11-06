@@ -4,6 +4,9 @@
 # three incorrect Sound System tags, and one category-name update are included.
 # Database update is manual-only; deploying this file does not modify memberships.
 expected_playlist_count: 110
+expected_additions: 62
+expected_removals: 3
+expected_actions: 66
 expected_inventory_sha256: cc86e946cd1b1d997ea78b85d170e96f59e9c0c511f3766fae18635aafdd1fc3
 rename:
   from: "Hip-Hop Beats / Instrumentals"
