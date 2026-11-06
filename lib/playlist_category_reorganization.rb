@@ -166,7 +166,9 @@ class PlaylistCategoryReorganization
     end
 
     raise "No category actions found" if instructions.empty?
-    raise "Duplicate category actions" unless @add.values.flatten.uniq.length <= @add.values.flatten.length
+    (@add.to_a + @remove.to_a).each do |name, ids|
+      raise "Repeated ID in #{name} actions" unless ids.uniq.length == ids.length
+    end
     indexed = playlists.index_by(&:id)
     changes = []
     additions = 0
@@ -203,8 +205,9 @@ class PlaylistCategoryReorganization
       }
     end
 
-    raise "Expected 62 additions, got #{additions}" unless additions == 62 && @manifest.fetch("expected_playlist_count") == 110
-    raise "Expected 3 removals, got #{removals}" unless removals == 3 && instruction_count == 66
+    raise "Unexpected addition count #{additions}" unless additions == Integer(@manifest.fetch("expected_additions"))
+    raise "Unexpected removal count #{removals}" unless removals == Integer(@manifest.fetch("expected_removals"))
+    raise "Unexpected total action count" unless instruction_count == Integer(@manifest.fetch("expected_actions"))
 
     {
       inventory_sha256: digest,
