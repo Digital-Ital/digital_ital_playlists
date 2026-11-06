@@ -9,7 +9,7 @@ require "yaml"
 # No records are modified until apply! runs with the exact preview fingerprint.
 class PlaylistPositionReorganization
   BRANCHES = %w[vocal dub soundsystem history lyrical political cannabis other].freeze
-  PREFIXES = BRANCHES.to_h { |branch| [branch, (BRANCHES.index(branch) + 1) * 100] }.freeze
+  PREFIXES = BRANCHES.to_h { |branch| [ branch, (BRANCHES.index(branch) + 1) * 100 ] }.freeze
   BACKUP_PREFIX = "playlist-position-reorder:".freeze
   ROLLBACK_PREFIX = "playlist-position-rollback:".freeze
 
@@ -65,32 +65,32 @@ class PlaylistPositionReorganization
       item.merge(branch: branch, new_position: new_position, match: known ? "manifest" : "inferred")
     end
 
-    entries.select { |item| item[ :new_position ].nil? }
+    entries.select { |item| item[:new_position].nil? }
            .group_by { |item| item.fetch(:branch) }
            .each do |branch, items|
       block_start = PREFIXES.fetch(branch)
       reserved = @reserved.fetch(branch).keys
       # Keep every curator-reserved position free even if its playlist is not live.
-      taken = (reserved + used.keys).to_h { |position| [position, true] }
-      extra_start = [reserved.max || block_start, block_start].max + 4
-      items.sort_by { |item| [item.fetch(:title).downcase, item.fetch(:id)] }.each do |item|
-        volume = item[ :title ].match(/\bVol(?:ume)?\.?\s*0*(\d+)\b/i)
+      taken = (reserved + used.keys).to_h { |position| [ position, true ] }
+      extra_start = [ reserved.max || block_start, block_start ].max + 4
+      items.sort_by { |item| [ item.fetch(:title).downcase, item.fetch(:id) ] }.each do |item|
+        volume = item[:title].match(/\bVol(?:ume)?\.?\s*0*(\d+)\b/i)
         candidate = volume && volume[1].to_i.between?(1, 22) ? block_start + 1 + 4 * (volume[1].to_i - 1) : nil
         candidate = nil if candidate && taken[candidate]
         candidate ||= ((extra_start...(block_start + 100)).find { |position| !taken[position] })
-        raise "Branch #{branch} has no space for #{item[ :title ]}" unless candidate
+        raise "Branch #{branch} has no space for #{item[:title]}" unless candidate
 
-        item[ :new_position ] = candidate
-        used[candidate] = item[ :id ]
+        item[:new_position] = candidate
+        used[candidate] = item[:id]
         taken[candidate] = true
-        extra_start = [extra_start, candidate + 1].max
+        extra_start = [ extra_start, candidate + 1 ].max
       end
     end
 
     positions = entries.map { |item| item.fetch(:new_position) }
     raise "Duplicate proposed positions" unless positions.uniq.size == positions.size
 
-    { fingerprint: fingerprint, entries: entries.sort_by { |item| [item.fetch(:new_position), item.fetch(:id)] } }
+    { fingerprint: fingerprint, entries: entries.sort_by { |item| [ item.fetch(:new_position), item.fetch(:id) ] } }
   end
 
   def apply!(expected_fingerprint:)
@@ -103,14 +103,14 @@ class PlaylistPositionReorganization
       proposal = plan(playlists)
       raise "Playlist data changed since preview; rerun preview" unless proposal.fetch(:fingerprint) == expected_fingerprint
 
-      changed = proposal.fetch(:entries).select { |item| item[ :old_position ] != item[ :new_position ] }
+      changed = proposal.fetch(:entries).select { |item| item[:old_position] != item[:new_position] }
       changed.each do |item|
         playlist = playlists.find { |candidate| candidate.id == item.fetch(:id) }
         UpdateLog.create!(
           playlist: playlist,
           log_type: "playlist_metadata",
           field_name: "position",
-          old_value: item[ :old_position ]&.to_s,
+          old_value: item[:old_position]&.to_s,
           new_value: item.fetch(:new_position).to_s,
           change_summary: "#{BACKUP_PREFIX}#{batch_id}"
         )
