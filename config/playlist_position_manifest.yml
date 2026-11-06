@@ -1,0 +1,249 @@
+# Curator's November 2026 110-playlist directory.
+# These slots are RESERVED even for playlists not yet in the database.
+# Blocks are exactly 100..199, 200..299, ..., 800..899.
+# Positions in the gaps are intentionally available for future playlists.
+branches:
+  vocal:
+    category: "Main Reggae (Vocal) Branch"
+    slots:
+      - position: 101
+        title: "Reggae Vol.01: From Kingston to the World — Jamaican Crossover Reggae & Island Soul (1970–1981)"
+      - position: 105
+        title: "Reggae Vol.02: Sufferers & Prophets — The Birth of Conscious Deep Roots Reggae (1970–1980)"
+      - position: 109
+        title: "Reggae Vol.03: Post-Marley Cultural Roots — Harmony & Songwriting (1981–2002)"
+      - position: 113
+        title: "Reggae Vol.04: Deep Vocal Roots & Steppers — Dubwise Dread Continuum I (1981–2005)"
+      - position: 117
+        title: "Reggae Vol.05: Neo-Roots Soul — Modern Harmony & Deep Vocal Expression (1993–Now)"
+      - position: 121
+        title: "Reggae Vol.06 Modern Pop-Reggae — Polished Hooks & Festival Anthems (1993–Now)"
+      - position: 125
+        title: "Reggae Vol.07: Progressive Roots — Expansive Songs & Full-Band Journeys (1993–Now)"
+      - position: 129
+        title: "Reggae Vol.08: Rebel Ska-Punk & Gritty Reggae with Attitude (1993–Now)"
+      - position: 133
+        title: "Reggae Vol.09: Reggae Hip-Hop & Cali Rap-Rock (1993–Now)"
+      - position: 137
+        title: "Reggae Vol.10: Bluesy Folk & Storyteller Singer-Songwriter Roots-Rock Reggae (1993–Now)"
+      - position: 141
+        title: "Reggae Vol.11: Mellow Beachy Campfire Party / Chill, Stripped-Down & Acoustic Folk-Reggae (1993–Now)"
+      - position: 145
+        title: "Reggae Vol.12: Modern Deep Roots — Dubwise Dread Continuum II (2000–Now)"
+      - position: 149
+        title: "Reggae Vol.13: Mystic Psychedelic Roots — Reggae-Psych & Cosmic Roots-Rock (1993–Now)"
+      - position: 157
+        title: "Reggae Vol.15: Alternative Dub-Rock — Heavy, Angular & Post-Punk Reggae Hybrids (1993–Now)"
+      - position: 165
+        title: "Reggae Vol.17: Global Roots Reggae From Jamaica to the World — With Love"
+      - position: 173
+        title: "Reggae & Love: Lovers Rock & Romantic Reggae of all kind"
+      - position: 177
+        title: "Reggae FR: Nouvelles racines du reggae français engagé / Reggae à textes & Roots-Rap"
+      - position: 181
+        title: "Rock-Reggae-Ska-Punk: Ska Punk / Reggae Punk-Rock Fusion"
+  dub:
+    category: "Dub & Instrumental Reggae Branch"
+    slots:
+      - position: 201
+        title: "Dub Instrumentals Vol. 01: Classic Analog Dub Foundations (1973–1978)"
+      - position: 205
+        title: "Dub Instrumentals Vol. 02: Roots Radics Analog Drum & Bass Rub-a-Dub Era (1979–1987)"
+      - position: 209
+        title: "Dub Instrumentals Vol. 03: UK Psychedelic Dub Lab & Global Digital Dub Explorations (1981–1997)"
+      - position: 213
+        title: "Dub Instrumentals Vol. 04: Jah Shaka Dub Roots Warrior & Analog Steppers Foundations (1980–1992)"
+      - position: 217
+        title: "Dub Instrumentals Vol. 05: UK Steppers Renaissance – Digital Roots Warrior Dub (1990–2005)"
+      - position: 221
+        title: "Dub Instrumentals Vol. 06: Modern Steppers Dub – Global Warrior Bass Culture (2005–Now)"
+      - position: 225
+        title: "Dub Instrumentals Vol. 07: Modern Roots Dub – Organic One-Drop & Deep Roots Mixes (2000–Now)"
+      - position: 229
+        title: "Dub Instrumentals Vol. 08: Global Fusion & Future Dub Bass Explorations (2000-Now)"
+      - position: 233
+        title: "Dub Instrumentals Vol. 09: Band-Led Dub Grooves – The Skank Break Moment"
+      - position: 237
+        title: "Dub Instrumentals Vol. 10: Organic Instrumentals & Chants / Tribal Dub / Electronica Dub World Music"
+      - position: 245
+        title: "Dub Instrumentals Vol. 12: Dubwise Samplers: Sample-Heavy Instrumentals (Dub, Hip-Hop, Beat Science)"
+      - position: 249
+        title: "Dub Instrumentals Vol. 13: Dubwise Guitar-Driven Roots Rock Meets Roots Dub"
+      - position: 253
+        title: "Dub Instrumentals Vol. 14: Percussion-Driven Roots Ritual Dub — Nyabinghi Drums & Ceremonial Bass"
+      - position: 257
+        title: "Dub Instrumentals Vol. 15: Dubwise Psychedelic Ritual / Ambient Hypnotic Dub / Hypnotic Inner-Space"
+      - position: 261
+        title: "Dub Vol.16: Dubwise Sahara - Desert Steppers & Gnawa Bass"
+      - position: 269
+        title: "Dubwise Djazaïr – New Generation Algerian Dub & Bass Sound System: Soul, Raï & Rap"
+      - position: 273
+        title: "Dubwise Rock & Reggae-Punk – Post-Punk Dub Roots"
+  soundsystem:
+    category: "Rub-a-Dub / Sound System Branch"
+    slots:
+      - position: 301
+        title: "Rub-a-Dub / Sound System Vol.1: Golden Age Analog Rub-a-Dub & Conscious Deejays (1976–1984)"
+      - position: 305
+        title: "Rub-a-Dub / Sound System Vol.2: Analog Slackness Wave & Party Deejays (1979–1984)"
+      - position: 309
+        title: "Rub-a-Dub / Sound System Vol.3: Proto-Digital Transition & Early Ragga Shift (1982–1989)"
+      - position: 313
+        title: "Rub-a-Dub / Sound System Vol.4: Digital Ragga – 90s Sound-Clash Hardcore Dancehall (1987–1999)"
+      - position: 317
+        title: "Rub-a-Dub / Sound System Vol.5 Digital Ragga – 90s Dancehall Party & Ragga-Pop Crossover (1987–1999)"
+      - position: 321
+        title: "Rub-a-Dub / Sound System Vol.6: Hybrid Roots Revival – Smooth & Conscious Dancehall (1995–Now)"
+      - position: 325
+        title: "Rub-a-Dub / Sound System Vol.7: Hybrid Ragga Rap – Dancehall & Hip-Hop Culture Fusion (1999–Now)"
+      - position: 329
+        title: "Rub-a-Dub / Sound System Vol.8: Modern Rub-a-Dub Revival – Smooth Roots & Harmony Vocals (2000–Now)"
+      - position: 333
+        title: "Rub-a-Dub / Sound System Vol.9: Modern Ragga Dancehall Sound-System Dub Pressure (2000–Now)"
+      - position: 337
+        title: "Rub-a-Dub / Sound System Vol.10: Rap-Dub Massives – Hip-Hop Lyricism & Sound-System Bass (2000–Now)"
+      - position: 345
+        title: "Rub-a-Dub / Sound System Vol.12: Ragga Breakbeat & Jungle Sound-System Militancy"
+      - position: 349
+        title: "Rub-a-Dub / Sound System Vol.13: Future Roots Bass Harmony & Vocal Vapor Dub Exploration"
+      - position: 353
+        title: "Rub-a-Dub / Sound System Vol.14: Warrior Chant & Militant Sound System Pressure Steppers with Vocals"
+      - position: 357
+        title: "Rub-a-Dub / Sound System Vol.15: Dancefloor Modern Reggae Steppers Dub with Vocals"
+      - position: 361
+        title: "Rub-a-Dub / Sound System Vol.16: Vocal-Jazz Rub-a-Dub / Dubwise Soul Swing Jazz"
+      - position: 369
+        title: "Dubwise: Español x Português Reggae Ragga Hip-Hop Ragga-Hop - Internacional Sound System"
+      - position: 373
+        title: "Dubwise: French Ragga MCs – Street Sound System Culture"
+      - position: 377
+        title: "Dubwise: French Smooth Rub-a-Dub Atmosphérique / French Lounge Vapor-Dub Sound System"
+      - position: 381
+        title: "Rub-a-Dub / Sound System Vol.X: Festival Ready Crowd Bass Pressure Dub & Party Stepper"
+  history:
+    category: "Rap Period Crates"
+    slots:
+      - position: 401
+        title: "Hip-Hop/Rap: 1978–1986 – Foundation – Disco-Rap, Funk-Rap, Electro-Boogie"
+      - position: 405
+        title: "Hip-Hop/Rap: 1985–1989 - The Base – Second Wave, New School, Raw Hardcore Rap"
+      - position: 409
+        title: "Hip-Hop/Rap: 1988–1992: Golden Age: Boom-Bap, Conscious, Hardcore, Gangsta"
+      - position: 413
+        title: "Hip-Hop/Rap: 1993–1994 – Regional Rep Era – G-Funk, East Coast, South Rises"
+      - position: 417
+        title: "Hip-Hop/Rap: 1995 – Coastlines Clash – Hardcore, Jazz Loops, G-Funk, Classics"
+      - position: 421
+        title: "Hip-Hop/Rap: 1996 – Hip-Hop Legends Never Die"
+      - position: 425
+        title: "Hip-Hop/Rap FR: 2012–2019 – Nouvelle Vague / New Underground French Rap Wave"
+  lyrical:
+    category: "Lyrical Rap Branch"
+    slots:
+      - position: 501
+        title: "Lyrical Hip-Hop Vol. 1: 1996–2002 – Cassette-Era Indie-Rap Sandbox Pre-School"
+      - position: 505
+        title: "Lyrical Hip-Hop Vol. 2: 2003–2011 – Tapes to Bandcamp, Indie-Rap Art School"
+      - position: 509
+        title: "Lyrical Hip-Hop Vol. 3: 2012–2019 - Streaming Conscious Lyricism University"
+      - position: 513
+        title: "Lyrical Hip-Hop Vol. 4: 2020+ Confinement Bars, Indie-Rap Silent Graduation"
+      - position: 521
+        title: "Hip-Hop/Rap FR – Folk-Rap Musette, Manouche, Maghrebi, Eastern Beats"
+      - position: 525
+        title: "Hip-Hop/Rap FR – Le Rapsurde: Rap Absurde, Électro-Rap Expérimental & Surréalisme Français"
+      - position: 529
+        title: "Hip-Hop/Rap FR – Poésie Lyrique, Rap Cru, Street Poetry, Rap de Haute Plume"
+      - position: 533
+        title: "Hip-Hop/Rap FR: Linha Imaginot: Troubadour Ragga / Duels de tchatche"
+      - position: 537
+        title: "Hip-Hop/Rap – Jazz-Rap, Atmospheric Rap, Ambient Beats Abstract Rap"
+      - position: 541
+        title: "Hip-Hop/Rap: 90s Jazzy or Funky Boom Bap Hip-Hop / Jazz-Rap"
+      - position: 545
+        title: "Hip-Hop/Rap: Female Empowerment / Women Empowerment Hip-Hop / Feminist Rap"
+      - position: 549
+        title: "Hip-Hop/Rap: Hippie / Vagabond / The Free-Spirited Hitchhiker Guide to a Hippie's favorite Hip-Hop"
+      - position: 553
+        title: "Hip-Hop/Rap: Horrorcore Rap / Homicide Hip-Hop"
+      - position: 557
+        title: "Lyrical Hip-Hop – Cinematic Swing-Hop, Gypsy Rap, Upbeat Jam Folk-Rap"
+      - position: 561
+        title: "Lyrical Hip-Hop – Global Underground Vagabond Rap – Hitchhiker’s Guide to Conscious Rap"
+      - position: 565
+        title: "Lyrical Hip-Hop – Real-Life Rap: Heartfelt, Personal, Introspective Bars"
+      - position: 569
+        title: "Lyrical Hip-Hop: Alt Left Post-Capitalist Anarcho-Communism Rap Manifesto"
+      - position: 573
+        title: "Lyrical Hip-Hop: Brutalist Apocalypse Rap — Psycho Bars & Goon-Bap"
+      - position: 577
+        title: "Lyrical Hip-Hop: Chill, Positive, Laidback, Relaxing & Therapeutic"
+      - position: 581
+        title: "Lyrical Hip-Hop: Conceptual & Alter-Ego Underground Rap (Post-Boom-Bap)"
+      - position: 585
+        title: "Lyrical Hip-Hop: Downtempo Souls, Jazzy Lo-Fi Beats & Stripped Down Indie-Rap"
+  political:
+    category: "Political Crates"
+    slots:
+      - position: 601
+        title: "Political Reggae Vol 01: Vintage & Classic Cuts (70s / early 90s)"
+      - position: 605
+        title: "Political Reggae Vol 02: Smooth Roots Revival & Conscious Roots-Rock Reggae (late 90s–current)"
+      - position: 609
+        title: "Political Reggae Vol 03: Fast-Talk Rub-a-Dub & Conscious Dancehall (late 80s/early 2000s)"
+      - position: 613
+        title: "Political Reggae Vol 04: Protest Roots Revival & Rebel Roots-Rock Reggae (late 90s–current)"
+      - position: 617
+        title: "Political Reggae Vol 05: Militant Steppers & Revolutionary Dub Sound System (late 90s–current)"
+      - position: 621
+        title: "Political Reggae Vol 06: Dub Poets & Militant Spoken Word"
+      - position: 625
+        title: "Political Reggae Vol 07: Acoustic Rebel Ballads & Unplugged Protest (late 90s–current)"
+      - position: 633
+        title: "Revolutionary Hip-Hop Against the Police State / Political Rap / A.C.A.B. 🏴 ANTIFA 🚩Class Warfare"
+  cannabis:
+    category: "Cannabis Crates"
+    slots:
+      - position: 701
+        title: "Cannabis Songs Vol.1: The OG Blunt Era - Weed Rap of the 90s"
+      - position: 705
+        title: "Cannabis Songs Vol.2: Weed Rap 2 - The Chronic Generation (2000 - 2012)"
+      - position: 709
+        title: "Cannabis Songs Vol.3: Modern Weed Rap - The Zaza Stoner Trap Generation (2012 to now)"
+      - position: 713
+        title: "Cannabis Songs Vol.4: Stoner Hip-Hop — Nonchalant Flow & Blunted Downtempo Rap"
+      - position: 717
+        title: "Cannabis Songs Vol.5: Roots Weed Anthems & Smooth Ganja Reggae & Classic Rub-a-Dub"
+      - position: 721
+        title: "Cannabis Songs Vol.6: High Grade Digital Dancehall Weed Anthems"
+      - position: 725
+        title: "Cannabis Songs Vol.7: Dubwise Weed Reggae — Ganja Steppers & Stoners Sound System"
+      - position: 729
+        title: "Cannabis Songs Vol.8: Cali-Roots & Full-Band Weed Reggae"
+      - position: 737
+        title: "Cannabis Songs Vol.10: Classic Rock, Folk-Rock, Blues & Jam-Rock Weed Songs"
+      - position: 741
+        title: "Cannabis Songs Vol.11: Punk, Alt-Rock & Heavy Weed Songs"
+      - position: 745
+        title: "Cannabis Songs Vol.12: Country & Classic Folk Weed Songs"
+      - position: 749
+        title: "Cannabis Songs Vol.13: Jazz, Oldies & Big Band Weed Songs"
+      - position: 753
+        title: "Cannabis Songs Vol.14: Pop & Indie Weed Songs"
+      - position: 769
+        title: "Cannabis Songs Vol.18: Musique de Beuh — Weed en Français"
+      - position: 777
+        title: "Cannabis Songs Vol.420: Dabs & Dubs — Weed Dub Deep Cuts, From the Most High to the Most High"
+      - position: 781
+        title: "Marijuana Ultimate Crate: Cannabis, Ganja, Weed Music Exploration for 420 Connoisseurs 🌿🔥🍃😙💨🗿"
+      - position: 785
+        title: "Marijuana 🎤🔥 Rap / Hip-Hop Songs About Weed / Ganja / Cannabis"
+  other:
+    category: "Hip-Hop Beats / Instrumentals"
+    slots:
+      - position: 801
+        title: "Hip-Hop/Rap – Jazz-Hop Instrumentals, Atmospheric & Ambient Beats (No Rap)"
+      - position: 805
+        title: "Broken Soul & Dream-Hop Rituals — Melancholy Freak Folk, Soulful Broken Dub, Witch-Hop Whispes"
+      - position: 809
+        title: "Rhythm & Poetry: Dub Poets, Jazz Poems, Slam & Spoken Word"
