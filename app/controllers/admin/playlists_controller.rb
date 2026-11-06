@@ -6,14 +6,24 @@ class Admin::PlaylistsController < Admin::BaseController
 
   def index
     @categories = Category.ordered
-    # Sort by followers count (popularity) by default, or by position/title
+    # Apply the same safe, whitelisted sort to both lists before pagination.
+    @sort = %w[popular position name].include?(params[:sort]) ? params[:sort] : "popular"
+    ordering = case @sort
+    when "position"
+      Arel.sql("CASE WHEN playlists.position IS NULL THEN 1 ELSE 0 END ASC, playlists.position ASC, LOWER(playlists.title) ASC, playlists.id ASC")
+    when "name"
+      Arel.sql("LOWER(playlists.title) ASC, playlists.id ASC")
+    else
+      { followers_count: :desc, position: :asc, title: :asc, id: :asc }
+    end
+
     @playlists = Playlist.includes(:categories)
-                         .order(followers_count: :desc, position: :asc, title: :asc)
+                         .order(ordering)
                          .page(params[:page])
                          .per(20)
     @uncategorized = Playlist.left_joins(:categories)
                              .where(categories: { id: nil })
-                             .order(followers_count: :desc, position: :asc, title: :asc)
+                             .order(ordering)
                              .page(params[:page])
                              .per(10)
   end
