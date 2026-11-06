@@ -25,7 +25,21 @@
   </div>
 
   <div class="bg-gray-900/60 rounded-xl p-6 border border-gray-700">
-    <h2 class="text-xl text-white mb-4">All Playlists</h2>
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <h2 class="text-xl text-white">All Playlists</h2>
+      <%= form_with url: admin_playlists_path, method: :get, local: true, class: "flex items-center gap-2" do %>
+        <%= label_tag :sort, "Sort by", class: "text-sm text-gray-300" %>
+        <%= select_tag :sort,
+              options_for_select([
+                ["Most saved", "popular"],
+                ["Position (low to high)", "position"],
+                ["Name (A–Z)", "name"]
+              ], @sort),
+              onchange: "this.form.requestSubmit()",
+              class: "bg-gray-800 text-white border border-gray-600 rounded-lg px-3 py-2 focus:border-yellow-500 focus:outline-none" %>
+        <noscript><%= submit_tag "Sort", class: "bg-yellow-500 text-black rounded-lg px-3 py-2" %></noscript>
+      <% end %>
+    </div>
     <div class="overflow-x-auto">
       <table class="min-w-full text-white">
         <thead>
