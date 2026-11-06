@@ -1,0 +1,25 @@
+# Approved by the curator on 2026-11-06 from ital_crates_verified_category_audit.xlsx.
+# Source: production Heroku inventory of 110 playlists, 2026-11-06.
+# All 39 previously uncategorized playlists, all 23 optional secondary memberships,
+# three incorrect Sound System tags, and one category-name update are included.
+# Database update is manual-only; deploying this file does not modify memberships.
+expected_playlist_count: 110
+expected_additions: 62
+expected_removals: 3
+expected_actions: 66
+expected_inventory_sha256: cc86e946cd1b1d997ea78b85d170e96f59e9c0c511f3766fae18635aafdd1fc3
+rename:
+  from: "Hip-Hop Beats / Instrumentals"
+  to: "Cross-Genre & Instrumentals"
+  preserve_slug: true
+add:
+  "Cannabis Crates": [49, 51, 55, 56, 57, 58, 59, 119, 118]
+  "Cross-Genre & Instrumentals": [116, 117, 86, 133]
+  "Dub & Instrumental Reggae Branch": [86, 87, 88, 89, 90, 44, 114, 60, 116]
+  "Lyrical Rap Branch": [39, 38, 37, 40, 19, 121, 120, 20, 97, 100, 35]
+  "Main Reggae (Vocal) Branch": [73, 74, 75, 113, 43, 115, 114, 45, 107, 108, 110, 112, 50, 53]
+  "Political Crates": [43, 121]
+  "Rap Period Crates": [36]
+  "Rub-a-Dub / Sound System Branch": [100, 101, 104, 103, 45, 106, 44, 40, 109, 111, 51, 52]
+remove:
+  "Rub-a-Dub / Sound System Branch": [46, 47, 48]

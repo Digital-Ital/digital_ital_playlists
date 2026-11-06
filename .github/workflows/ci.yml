@@ -86,3 +86,20 @@ jobs:
         run: bin/rails db:schema:load
       - name: Test safe playlist position reorganization and rollback
         run: bin/rails runner script/playlist_positions_smoke.rb
+
+  playlist_category_audit_smoke:
+    runs-on: ubuntu-latest
+    env:
+      RAILS_ENV: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+      - name: Load disposable test database schema
+        run: bin/rails db:schema:load
+      - name: Verify approved category changes and reversible rollback
+        run: bin/rails runner script/playlist_category_reorg_smoke.rb
