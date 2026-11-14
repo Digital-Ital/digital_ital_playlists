@@ -139,6 +139,10 @@ class Api::PlaylistsController < ApplicationController
   private
 
   def playlist_json(playlist)
+    # Resolve category ancestors from one request-scoped lookup rather than
+    # querying the database again for every playlist/category parent.
+    category_lookup = (@category_lookup ||= Category.all.index_by(&:id))
+
     {
       id: playlist.id,
       title: playlist.title,
@@ -157,10 +161,10 @@ class Api::PlaylistsController < ApplicationController
       categories: playlist.categories.flat_map do |category|
         # Include the category itself and all its parent categories
         categories_to_show = [ category ]
-        current = category.parent
+        current = category_lookup[category.parent_id]
         while current
           categories_to_show << current
-          current = current.parent
+          current = category_lookup[current.parent_id]
         end
 
         categories_to_show.map do |cat|
