@@ -2,8 +2,9 @@ class PagesController < ApplicationController
   helper_method :split_artist_names
 
   def home
-    @categories = Category.roots.includes(children: { children: :playlists })
-    @main_families = Category.main_families.includes(children: { children: :playlists })
+    @main_families = Category.main_families.includes(children: :children).load
+    # The legacy tree is only rendered when no main family is configured.
+    @categories = @main_families.empty? ? Category.roots.includes(:children) : []
     @total_playlists_count = Playlist.count
     @total_followers_count = Playlist.sum(:followers_count)
 
