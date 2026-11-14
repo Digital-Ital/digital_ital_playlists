@@ -249,10 +249,22 @@ module Spotify
     end
 
     def tracks_with_title_key(key)
-      key.split.reduce(Track.all) do |scope, token|
+      # A short title may match thousands of catalogue rows. Scan only the
+      # minimal columns in small batches, then load full records for genuine
+      # normalized-title matches. Preserve the original display ordering.
+      scope = key.split.reduce(Track.all) do |relation, token|
         pattern = "%#{ActiveRecord::Base.sanitize_sql_like(token)}%"
-        scope.where("LOWER(name) LIKE ?", pattern)
-      end.order(:artist, :album, :name).select { |track| title_key(track.name) == key }
+        relation.where("LOWER(name) LIKE ?", pattern)
+      end
+
+      matching_ids = []
+      scope.select(:id, :name).find_each(batch_size: 250) do |candidate|
+        matching_ids << candidate.id if title_key(candidate.name) == key
+      end
+
+      return [] if matching_ids.empty?
+
+      Track.where(id: matching_ids).order(:artist, :album, :name).to_a
     end
 
     def artist_stats
