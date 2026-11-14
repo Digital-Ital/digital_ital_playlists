@@ -6,6 +6,14 @@ class PagesController < ApplicationController
     @main_families = Category.main_families.includes(children: { children: :playlists })
     @total_playlists_count = Playlist.count
     @total_followers_count = Playlist.sum(:followers_count)
+
+    # The category tree displays the same playlist count and track total for
+    # every category. Fetch both aggregates once rather than issuing two
+    # queries per node as the homepage is rendered.
+    @category_playlist_totals = Playlist.joins(:categories)
+      .group("categories.id")
+      .pluck("categories.id", Arel.sql("COUNT(playlists.id)"), Arel.sql("SUM(playlists.track_count)"))
+      .to_h { |category_id, count, tracks| [ category_id, [ count, tracks.to_i ] ] }
   end
 
   def whats_new
