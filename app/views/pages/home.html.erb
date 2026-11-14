@@ -197,7 +197,7 @@
                     <%= family.family_emoji || '🎵' %> <%= family.name %> <%= family.family_emoji || '🎵' %>
                   </span>
                   <span class="px-4 py-1.5 bg-black/40 rounded-full text-sm font-bold text-yellow-300 border-2 border-yellow-400/60 shadow-lg backdrop-blur-sm">
-                    <%= family.playlists.count %> playlists · <%= number_with_delimiter(family.playlists.sum(:track_count)) %> tracks
+                    <%= @category_playlist_totals.fetch(family.id, [0, 0]).first %> playlists · <%= number_with_delimiter(@category_playlist_totals.fetch(family.id, [0, 0]).last) %> tracks
                   </span>
                 </div>
               </div>
@@ -217,7 +217,7 @@
                         <span class="text-white font-bold text-lg drop-shadow-md">
                           <%= root_category.emoji || '🎶' %> <%= root_category.name %>
                         </span>
-                        <span class="px-3 py-1 bg-black/40 rounded-full text-xs font-bold text-yellow-300 border border-yellow-400/50"><%= root_category.playlists.count %> playlists · <%= number_with_delimiter(root_category.playlists.sum(:track_count)) %> tracks</span>
+                        <span class="px-3 py-1 bg-black/40 rounded-full text-xs font-bold text-yellow-300 border border-yellow-400/50"><%= @category_playlist_totals.fetch(root_category.id, [0, 0]).first %> playlists · <%= number_with_delimiter(@category_playlist_totals.fetch(root_category.id, [0, 0]).last) %> tracks</span>
                       </div>
                     </div>
                     <div class="tree-content hidden ml-8 mt-3 space-y-2 bg-black/20 rounded-xl p-3" id="root-<%= root_category.id %>-content">
@@ -254,7 +254,7 @@
                     <%= root_category.emoji || '🎶' %> <%= root_category.name %>
                   </span>
                   <span class="px-3 py-1 bg-black/30 rounded-full text-sm font-bold text-yellow-300 border border-yellow-400/30">
-                    <%= root_category.playlists.count %> playlists · <%= number_with_delimiter(root_category.playlists.sum(:track_count)) %> tracks
+                    <%= @category_playlist_totals.fetch(root_category.id, [0, 0]).first %> playlists · <%= number_with_delimiter(@category_playlist_totals.fetch(root_category.id, [0, 0]).last) %> tracks
                   </span>
                 </div>
               </div>
@@ -268,7 +268,7 @@
                             data-category-slug="<%= child.slug %>">
                       ↳ <%= child.emoji || '🎵' %> <%= child.name %>
                     </button>
-                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= child.playlists.count %> · <%= number_with_delimiter(child.playlists.sum(:track_count)) %>)</span>
+                    <span class="px-2 py-0.5 bg-black/30 rounded text-xs font-bold text-gray-300">(<%= @category_playlist_totals.fetch(child.id, [0, 0]).first %> · <%= number_with_delimiter(@category_playlist_totals.fetch(child.id, [0, 0]).last) %>)</span>
                   </div>
                 <% end %>
               </div>
