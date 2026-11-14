@@ -31,7 +31,7 @@ namespace :playlists do
       source: "heroku_scheduler"
     )
 
-    playlists = Playlist.all.to_a
+    playlist_count = Playlist.count
     total_changes = 0
     skipped_count = 0
     error_count = 0
@@ -53,9 +53,9 @@ namespace :playlists do
     puts "🔑 Spotify token obtained successfully"
     Rails.logger.info "🔑 Spotify token obtained successfully"
 
-    playlists.each_with_index do |playlist, index|
+    Playlist.find_each.with_index do |playlist, index|
       current_time = Time.current
-      progress = "#{index + 1}/#{playlists.size}"
+      progress = "#{index + 1}/#{playlist_count}"
 
       batch.update!(
         current_index: index + 1,
@@ -104,9 +104,9 @@ namespace :playlists do
 
       # Minimal delay to respect rate limits
       if result && result[:success] && result[:skipped]
-        sleep(0.5) if index < playlists.size - 1  # Faster for skipped playlists
+        sleep(0.5) if index < playlist_count - 1  # Faster for skipped playlists
       else
-        sleep(1) if index < playlists.size - 1   # Normal delay for full sync
+        sleep(1) if index < playlist_count - 1   # Normal delay for full sync
       end
     end
 
@@ -127,7 +127,7 @@ namespace :playlists do
     puts "⏰ Ended: #{end_time}"
     puts "⏱️  Duration: #{duration} seconds"
     puts "📊 Results:"
-    puts "   ✅ Updated: #{updated_playlists.size} playlists"
+    puts "   ✅ Updated: #{updated_playlist_count} playlists"
     puts "   ⏭️  Skipped: #{skipped_count} playlists"
     puts "   ❌ Errors: #{error_count} playlists"
     puts "   🔄 Total changes: #{total_changes}"
@@ -157,7 +157,7 @@ namespace :playlists do
     Rails.logger.info "⏰ Ended: #{end_time}"
     Rails.logger.info "⏱️  Duration: #{duration} seconds"
     Rails.logger.info "📊 Results:"
-    Rails.logger.info "   ✅ Updated: #{updated_playlists.size} playlists"
+    Rails.logger.info "   ✅ Updated: #{updated_playlist_count} playlists"
     Rails.logger.info "   ⏭️  Skipped: #{skipped_count} playlists"
     Rails.logger.info "   ❌ Errors: #{error_count} playlists"
     Rails.logger.info "   🔄 Total changes: #{total_changes}"
