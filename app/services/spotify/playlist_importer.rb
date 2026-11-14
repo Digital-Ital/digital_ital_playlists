@@ -111,7 +111,8 @@ module Spotify
       end
 
       raise "Spotify tracks page error: #{res.code}" unless res.is_a?(Net::HTTPSuccess)
-      JSON.parse(res.body).fetch("tracks", JSON.parse(res.body)) rescue JSON.parse(res.body)
+      page = JSON.parse(res.body)
+      page.fetch("tracks", page)
     end
 
     def format_duration_ms(ms)
