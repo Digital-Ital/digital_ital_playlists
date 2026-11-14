@@ -45,19 +45,32 @@ class PagesController < ApplicationController
       end
     end
 
-    # Group tracks by song and create grouped data structure
-    @grouped_tracks = group_tracks_by_song(playlist_tracks)
+    # Count and paginate song groups in PostgreSQL. Only load the 50 groups
+    # actually displayed instead of allocating every curated track in Ruby.
+    grouped = playlist_tracks.except(:includes, :preload, :eager_load, :order)
+                             .distinct(false)
+                             .group("playlist_tracks.track_id")
+    hot_groups = grouped.having("COUNT(DISTINCT playlist_tracks.id) >= 3")
+    @total_hot_songs_count = PlaylistTrack.from(
+      hot_groups.select("playlist_tracks.track_id"), :song_groups
+    ).count
 
-    # Calculate total HOT songs count across all pages (before filtering)
-    @total_hot_songs_count = @grouped_tracks.count { |group| group[:total_playlists] >= 3 }
-
-    # Filter for HOT songs only if requested
-    if params[:hot_only] == "true"
-      @grouped_tracks = @grouped_tracks.select { |group| group[:total_playlists] >= 3 }
+    visible_groups = params[:hot_only] == "true" ? hot_groups : grouped
+    total_count = if params[:hot_only] == "true"
+      @total_hot_songs_count
+    else
+      PlaylistTrack.from(grouped.select("playlist_tracks.track_id"), :song_groups).count
     end
+    page_number = [ params[:page].to_i, 1 ].max
+    offset = (page_number - 1) * 50
+    track_ids = visible_groups
+      .order(Arel.sql("MAX(playlist_tracks.added_at) DESC, playlist_tracks.track_id ASC"))
+      .limit(50).offset(offset).pluck("playlist_tracks.track_id")
 
-    # Apply pagination to the grouped results
-    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
+    page_groups = group_tracks_by_song(playlist_tracks.where(track_id: track_ids))
+    @grouped_tracks = Kaminari.paginate_array(
+      page_groups, total_count: total_count, limit: 50, offset: offset
+    )
   end
 
   def all_songs
@@ -104,8 +117,36 @@ class PagesController < ApplicationController
       playlist_tracks = playlist_tracks.joins(:track).where("LOWER(tracks.artist) LIKE ?", artist_query)
     end
 
-    @grouped_tracks = group_tracks_for_all_songs(playlist_tracks, sort_by: @sort)
-    @grouped_tracks = Kaminari.paginate_array(@grouped_tracks).page(params[:page]).per(50)
+    # Preserve existing search/filter semantics but sort and paginate
+    # distinct song groups in SQL. Eager-load full associations only for the
+    # current page, preventing unbounded allocations on public requests.
+    grouped = playlist_tracks.except(:includes, :preload, :eager_load, :order)
+                             .distinct(false)
+                             .joins(:track)
+                             .group("playlist_tracks.track_id")
+    total_count = PlaylistTrack.from(
+      grouped.select("playlist_tracks.track_id"), :song_groups
+    ).count
+
+    order_sql = case @sort
+    when "artist"
+      "LOWER(MIN(tracks.artist)) ASC, LOWER(MIN(tracks.name)) ASC"
+    when "title"
+      "LOWER(MIN(tracks.name)) ASC, LOWER(MIN(tracks.artist)) ASC"
+    when "playlist_count"
+      "COUNT(DISTINCT playlist_tracks.playlist_id) DESC, LOWER(MIN(tracks.name)) ASC"
+    else
+      "MAX(playlist_tracks.added_at) DESC"
+    end
+
+    page_number = [ params[:page].to_i, 1 ].max
+    offset = (page_number - 1) * 50
+    track_ids = grouped.order(Arel.sql("#{order_sql}, playlist_tracks.track_id ASC"))
+                       .limit(50).offset(offset).pluck("playlist_tracks.track_id")
+    page_groups = group_tracks_for_all_songs(playlist_tracks.where(track_id: track_ids), sort_by: @sort)
+    @grouped_tracks = Kaminari.paginate_array(
+      page_groups, total_count: total_count, limit: 50, offset: offset
+    )
   end
 
   private
