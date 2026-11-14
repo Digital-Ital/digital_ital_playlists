@@ -154,7 +154,7 @@ class Api::PlaylistsController < ApplicationController
       track_count: playlist.track_count,
       duration: playlist.duration_formatted,
       reaction_count: playlist.reaction_count || 0,
-      categories: playlist.categories.reload.flat_map do |category|
+      categories: playlist.categories.flat_map do |category|
         # Include the category itself and all its parent categories
         categories_to_show = [ category ]
         current = category.parent
