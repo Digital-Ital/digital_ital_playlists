@@ -31,11 +31,10 @@ namespace :scheduler do
       # Get a single access token to reuse across all playlists
       access_token = fetch_spotify_token
 
-      playlists = Playlist.all.to_a
       total_changes = 0
       skipped_count = 0
 
-      playlists.each_with_index do |playlist, index|
+      Playlist.find_each.with_index do |playlist, index|
         batch.update!(
           current_index: index + 1,
           current_playlist_title: playlist.title
